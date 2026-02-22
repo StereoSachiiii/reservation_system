@@ -55,17 +55,22 @@ export type PublisherCategory = 'FICTION' | 'NON_FICTION' | 'CHILDREN' | 'EDUCAT
 export interface Hall {
     id: number;
     name: string;
+    hallName?: string; // compat
     venueName?: string;
     totalSqFt?: number;
+    sqFt?: number; // compat
     capacity?: number;
     tier?: string;
     floorLevel?: number;
+    floor?: number; // compat
     status: HallStatus;
     mainCategory?: PublisherCategory;
+    category?: PublisherCategory | string; // compat
     // Metadata
     ceilingHeight?: number;
     isIndoor?: boolean;
     isAirConditioned?: boolean;
+    isAc?: boolean; // compat
     expectedFootfall?: number;
     noiseLevel?: string;
     nearbyFacilities?: string;

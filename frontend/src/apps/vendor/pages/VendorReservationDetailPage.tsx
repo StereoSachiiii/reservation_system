@@ -1,8 +1,5 @@
-import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { reservationApi } from '@/shared/api/reservationApi';
-import { vendorApi } from '@/shared/api/vendorApi';
+import { useVendorReservationDetail } from '../hooks/useVendorReservationDetail';
 
 // Sub-components
 import { ReservationHeader } from '../components/VendorReservationDetail/ReservationHeader';
@@ -28,58 +25,16 @@ export const VendorReservationDetailPage = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const reservationId = Number(id);
-    const [showQrFullscreen, setShowQrFullscreen] = useState(false);
-    const [showCancelConfirm, setShowCancelConfirm] = useState(false);
-    const [showEditInfo, setShowEditInfo] = useState(false);
-    const [isDownloading, setIsDownloading] = useState(false);
-    const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-    const queryClient = useQueryClient();
 
-    const { data: reservation, isLoading, error } = useQuery({
-        queryKey: ['reservation', reservationId],
-        queryFn: () => reservationApi.getById(reservationId),
-        enabled: !!reservationId,
-    });
-
-    const cancelMutation = useMutation({
-        mutationFn: async () => {
-            if (reservation?.status === 'PAID') {
-                return vendorApi.requestRefund(reservationId, 'Vendor requested refund from detail page');
-            }
-            return vendorApi.cancelReservation(reservationId);
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['reservation', reservationId] });
-            queryClient.invalidateQueries({ queryKey: ['reservations'] });
-            setShowCancelConfirm(false);
-        }
-    });
-
-    const updateProfileMutation = useMutation({
-        mutationFn: (categories: string[]) => vendorApi.updateProfile({ categories }),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['reservation', reservationId] });
-            setShowEditInfo(false);
-        }
-    });
-
-    const handleDownloadTicket = async () => {
-        if (isDownloading) return;
-        setIsDownloading(true);
-        try {
-            await vendorApi.downloadTicket(reservationId);
-        } catch (e) {
-            console.error('Download error', e);
-            alert('Failed to download ticket. Please try again.');
-        } finally {
-            setIsDownloading(false);
-        }
-    };
-
-    const openEditModal = () => {
-        setSelectedCategories(reservation?.user?.categories || []);
-        setShowEditInfo(true);
-    };
+    const {
+        reservation, isLoading, error,
+        showQrFullscreen, setShowQrFullscreen,
+        showCancelConfirm, setShowCancelConfirm,
+        showEditInfo, setShowEditInfo,
+        selectedCategories, setSelectedCategories,
+        cancelMutation, updateProfileMutation,
+        handleDownloadTicket, openEditModal
+    } = useVendorReservationDetail(reservationId);
 
     if (isLoading) return (
         <div className="min-h-[60vh] flex flex-col items-center justify-center p-8 gap-4">

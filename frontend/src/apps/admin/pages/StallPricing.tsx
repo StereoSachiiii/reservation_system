@@ -1,94 +1,14 @@
-import { useState, useEffect, useMemo } from 'react';
 import { formatNumber } from '@/shared/utils/format';
-import { adminApi } from '@/shared/api/adminApi';
+import { useStallPricing } from '../hooks/useStallPricing';
 import PricingTable from '@/apps/admin/components/Pricing/PricingTable';
 import { Tag, TrendingUp, DollarSign, Database, AlertCircle } from 'lucide-react';
 
 export default function StallPricingPage() {
-    const [events, setEvents] = useState<any[]>([]);
-    const [selectedEventId, setSelectedEventId] = useState<number | null>(null);
-    const [stalls, setStalls] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
-
-    // Load events on mount to let admin pick which event's stalls to price
-    useEffect(() => {
-        loadEvents();
-    }, []);
-
-    const loadEvents = async () => {
-        setLoading(true);
-        try {
-            // Use the dashboard stats which gives us a list of events indirectly
-            // Fetch all halls first then get events from stalls via the event endpoint
-            // Actually, fetch events from the admin dashboard — we'll get them from the public endpoint
-            const response = await fetch('/api/v1/public/events');
-            const data = response.ok ? await response.json() : [];
-            const eventList = Array.isArray(data) ? data : data.content || [];
-            setEvents(eventList);
-            if (eventList.length > 0) {
-                setSelectedEventId(eventList[0].id);
-            }
-        } catch (err) {
-            setError('Failed to load events.');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        if (selectedEventId) loadStallsForEvent(selectedEventId);
-    }, [selectedEventId]);
-
-    const loadStallsForEvent = async (eventId: number) => {
-        setLoading(true);
-        setError('');
-        try {
-            // The 'data' variable from adminApi.getEventStats(eventId) was unused.
-            // If it's meant to be used, it should be integrated into the state or logic.
-            // For now, removing the unused declaration.
-            // const data = await adminApi.getEventStats(eventId);
-            // Also fetch the actual stall list
-            const stallList = await fetch(`/api/v1/admin/events/${eventId}/stalls`, {
-                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-            }).then(r => r.json());
-            setStalls(Array.isArray(stallList) ? stallList : []);
-        } catch (err) {
-            setError('Failed to load stalls for this event.');
-            setStalls([]);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleUpdate = async (id: number, base: number, mult: number) => {
-        try {
-            await adminApi.updateStallPrice(id, base, mult);
-            setStalls(prev => prev.map(s => s.id === id
-                ? { ...s, finalPriceCents: Math.round(base * mult), pricingVersion: 'MANUAL' }
-                : s
-            ));
-        } catch (err) {
-            throw err;
-        }
-    };
-
-    const stats = useMemo(() => {
-        if (stalls.length === 0) return { avg: 0, max: 1, count: stalls.length };
-        const prices = stalls.map(s => s.finalPriceCents || 0).filter(p => p > 0);
-        const avg = prices.length > 0 ? prices.reduce((a, b) => a + b, 0) / prices.length : 0;
-        const max = prices.length > 0 ? Math.max(...prices) : 0;
-        return { avg, max, count: stalls.length };
-    }, [stalls]);
-
-    // Map EventStall shape to what PricingTable expects
-    const pricingStalls = stalls.map(s => ({
-        id: s.id,
-        name: s.templateId ? `Stall #${s.id}` : `Stall #${s.id}`,
-        templateName: s.pricingVersion || 'Standard',
-        baseRateCents: s.finalPriceCents || 0,
-        multiplier: 1.0,
-    }));
+    const {
+        events, selectedEventId, setSelectedEventId,
+        loading, error,
+        handleUpdate, stats, pricingStalls
+    } = useStallPricing();
 
     return (
         <div className="space-y-8">

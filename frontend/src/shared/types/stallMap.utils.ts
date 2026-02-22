@@ -68,12 +68,15 @@ export interface RawZonesJson {
     }>
 }
 
+import { Hall } from './api'
+
 /** What the API actually returns */
 export interface RawEventMap {
     eventId: number
     eventName: string
     stalls: MapStall[]
     zones: string  // JSON string — NOT a nested object
+    halls?: Hall[]
 }
 
 // ─── Normalized Internal Types ────────────────────────────────────────────────

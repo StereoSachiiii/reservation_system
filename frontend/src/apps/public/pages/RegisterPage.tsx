@@ -20,12 +20,6 @@ function RegisterPage() {
         contactNumber: '',
         role: 'VENDOR'
     })
-    // Note: The UI might have extra fields like contactNumber not in RegisterRequest yet?
-    // Let's assume RegisterRequest in authApi needs to match this form or vice versa.
-    // Checking authApi: 
-    // export interface RegisterRequest { username, password, email, role, businessName?, businessDescription?, logoUrl?, category? }
-    // It does NOT have contactNumber. I should probably ignore it or add it to the type if backend needs it.
-    // For now, I will cast or just send what is in types.
 
     const [errors, setErrors] = useState<Partial<RegisterRequest & { contactNumber?: string }>>({})
 

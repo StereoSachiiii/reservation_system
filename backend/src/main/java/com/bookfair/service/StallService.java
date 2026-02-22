@@ -115,14 +115,21 @@ public class StallService {
         java.util.List<java.util.Map<String, Object>> drivers = new java.util.ArrayList<>();
 
         try {
-            if (eventStall.getStallTemplate().getHall() != null) {
-                String hallLayout = eventStall.getStallTemplate().getHall().getStaticLayout();
-                if (hallLayout != null && !hallLayout.trim().isEmpty() && !hallLayout.equals("{}")) {
-                    com.fasterxml.jackson.databind.JsonNode hallNode = objectMapper.readTree(hallLayout);
-                    com.fasterxml.jackson.databind.JsonNode influences = hallNode.get("influences");
+            if (eventStall.getEvent() != null) {
+                String eventLayout = eventStall.getEvent().getLayoutConfig();
+                String hallLayout = eventStall.getStallTemplate().getHall() != null ? 
+                                    eventStall.getStallTemplate().getHall().getStaticLayout() : null;
+                
+                // Prioritize Event layoutConfig (saved from Designer), fallback to Hall static layout
+                String activeLayout = (eventLayout != null && !eventLayout.trim().isEmpty() && !eventLayout.equals("{}"))
+                                      ? eventLayout : hallLayout;
+
+                if (activeLayout != null && !activeLayout.trim().isEmpty() && !activeLayout.equals("{}")) {
+                    com.fasterxml.jackson.databind.JsonNode layoutNode = objectMapper.readTree(activeLayout);
+                    com.fasterxml.jackson.databind.JsonNode influences = layoutNode.get("influences");
                     
-                    double hallWidth = hallNode.has("width") ? hallNode.get("width").asDouble() : 1000.0;
-                    double hallHeight = hallNode.has("height") ? hallNode.get("height").asDouble() : 800.0;
+                    double canvasWidth = layoutNode.has("width") ? layoutNode.get("width").asDouble() : 1000.0;
+                    double canvasHeight = layoutNode.has("height") ? layoutNode.get("height").asDouble() : 800.0;
                     
                     String geometryStr = eventStall.getGeometry();
                     if (geometryStr == null || geometryStr.trim().isEmpty()) {
@@ -130,7 +137,7 @@ public class StallService {
                     }
 
                     if (geometryStr != null && !geometryStr.trim().isEmpty()) {
-                        com.fasterxml.jackson.databind.JsonNode stallGeom = objectMapper.readTree(geometryStr);
+                        com.fasterxml.jackson.databind.JsonNode stallGeom = objectMapper.readTree(geometryStr); //name conflict
                         if (stallGeom.has("x") && stallGeom.has("y")) {
                             double stallX = stallGeom.get("x").asDouble() + (stallGeom.has("w") ? stallGeom.get("w").asDouble() / 2 : 0);
                             double stallY = stallGeom.get("y").asDouble() + (stallGeom.has("h") ? stallGeom.get("h").asDouble() / 2 : 0);
@@ -144,8 +151,8 @@ public class StallService {
                                     String typeStr = influence.get("type").asText();
                                     String falloffStr = influence.get("falloff").asText();
 
-                                    double normStallX = (stallX / 100.0) * hallWidth;
-                                    double normStallY = (stallY / 100.0) * hallHeight;
+                                    double normStallX = (stallX / 100.0) * canvasWidth;
+                                    double normStallY = (stallY / 100.0) * canvasHeight;
 
                                     double dist = Math.sqrt(Math.pow(normStallX - infX, 2) + Math.pow(normStallY - infY, 2));
 
