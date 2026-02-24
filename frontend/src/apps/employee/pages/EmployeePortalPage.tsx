@@ -17,7 +17,8 @@ export default function EmployeePortalPage() {
     const {
         activeTab, setActiveTab,
         stats, loadingStats,
-        searchQuery, setSearchQuery, searchResults, handleSearch
+        searchQuery, setSearchQuery, searchResults, handleSearch,
+        events, selectedEventId, setSelectedEventId
     } = useEmployeeDashboard();
 
     const {
@@ -41,8 +42,9 @@ export default function EmployeePortalPage() {
     const loading = lookupLoading || admitLoading || overrideLoading;
 
     const handleExport = async () => {
+        if (!selectedEventId) return;
         try {
-            const blob = await employeeApi.exportAttendance();
+            const blob = await employeeApi.exportAttendance(selectedEventId);
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
@@ -63,6 +65,9 @@ export default function EmployeePortalPage() {
                 activeTab={activeTab}
                 setActiveTab={setActiveTab}
                 onExport={handleExport}
+                events={events}
+                selectedEventId={selectedEventId}
+                setSelectedEventId={setSelectedEventId}
             />
 
             <main className="max-w-4xl mx-auto px-6 py-12">

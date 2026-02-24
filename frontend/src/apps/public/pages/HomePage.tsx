@@ -76,9 +76,9 @@ export default function HomePage() {
                                 </div>
                             </div>
 
-                            <a href="/events" className="w-full md:w-auto px-12 text-center bg-secondary text-primary-400 font-black py-5 rounded-xl shadow-lg hover:shadow-glow-gold hover:bg-black hover:text-white transition-all duration-300 relative z-10 whitespace-nowrap text-lg">
+                            <Link to="/events" className="w-full md:w-auto px-12 text-center bg-secondary text-primary-400 font-black py-5 rounded-xl shadow-lg hover:shadow-glow-gold hover:bg-black hover:text-white transition-all duration-300 relative z-10 whitespace-nowrap text-lg">
                                 Book a New Stall
-                            </a>
+                            </Link>
                         </div>
                     </section>
 

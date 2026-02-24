@@ -37,13 +37,13 @@ export const OperationalDashboard: React.FC<OperationalDashboardProps> = ({ stat
                     <div className="space-y-6">
                         <div className="space-y-2">
                             <div className="flex justify-between text-sm font-bold text-slate-400">
-                                <span>Real-time Occupancy</span>
-                                <span>{Math.round(((stats?.checkedInCount || 0) / (stats?.reservedStalls || 1)) * 100)}%</span>
+                                <span>Vendor Check-in Progress</span>
+                                <span>{stats?.reservedStalls ? Math.round(((stats?.checkedInCount || 0) / stats.reservedStalls) * 100) : 0}%</span>
                             </div>
                             <div className="h-4 bg-white/10 rounded-full overflow-hidden">
                                 <div
                                     className="h-full bg-blue-500 transition-all duration-1000"
-                                    style={{ width: `${Math.min(100, ((stats?.checkedInCount || 0) / (stats?.reservedStalls || 1)) * 100)}%` }}
+                                    style={{ width: `${stats?.reservedStalls ? Math.min(100, ((stats?.checkedInCount || 0) / stats.reservedStalls) * 100) : 0}%` }}
                                 />
                             </div>
                         </div>

@@ -25,8 +25,6 @@ public class StallResponse {
     private Boolean reserved;      // computed from reservations table
     private String occupiedBy;     // publisher business name
     private String publisherCategory; // For map color-coding
-    private Double posX;
-    private Double posY;
     private Double width;
     private Double height;
     private java.util.Map<String, Object> pricingBreakdown;

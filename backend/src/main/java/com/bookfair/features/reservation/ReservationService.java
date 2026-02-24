@@ -47,16 +47,19 @@ public class ReservationService {
      */
     @Transactional
     public List<Reservation> createReservations(ReservationRequest request) {
-        User user = userService.getByIdForServices(request.getUserId());
+        // 1. Lock User Record to prevent concurrent requests from same user bypassing limits
+        userService.findByIdWithLock(request.getUserId())
+                   .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         
-        // Limit check now happens inside the loop per event
+        User user = userService.getByIdForServices(request.getUserId());
         
         List<Reservation> reservations = new ArrayList<>();
         Long eventId = null;
         String eventName = "";
         
         for (Long eventStallId : request.getStallIds()) {
-            com.bookfair.entity.EventStall eventStall = eventStallRepository.findById(eventStallId)
+            // 2. Lock EventStall Record to prevent double-booking by different users
+            com.bookfair.entity.EventStall eventStall = eventStallRepository.findByIdWithLock(eventStallId)
                     .orElseThrow(() -> new ResourceNotFoundException("EventStall not found: " + eventStallId));
             
             if (eventId == null) {

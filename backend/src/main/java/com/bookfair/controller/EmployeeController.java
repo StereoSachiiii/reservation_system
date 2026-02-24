@@ -39,18 +39,21 @@ public class EmployeeController {
      * Reserved count is derived from active (PAID or PENDING) reservations.
      */
     @GetMapping("/dashboard")
-    public ResponseEntity<DashboardStats> getDashboardStats() {
-        long totalStalls = eventStallRepository.count();
-        // Count reserved by checking active reservations across all events
-        long reservedStalls = reservationRepository.countByStatusIn(List.of(
-            com.bookfair.features.reservation.Reservation.ReservationStatus.PAID,
-            com.bookfair.features.reservation.Reservation.ReservationStatus.PENDING_PAYMENT
-        ));
+    public ResponseEntity<DashboardStats> getDashboardStats(@RequestParam Long eventId) {
+        long totalStalls = eventStallRepository.findByEvent_Id(eventId).size();
+        
+        long reservedStalls = reservationRepository.findActiveByEventId(eventId).size();
+        
         long availableStalls = totalStalls - reservedStalls;
-        long totalUsers = userRepository.count();
-        long totalReservations = reservationRepository.count();
+        
+        // Count users who have reservations in this event
+        long totalUsers = reservationRepository.findActiveByEventId(eventId).stream()
+                .map(r -> r.getUser().getId()).distinct().count();
+                
+        // Total reservations for the event
+        long totalReservations = reservationRepository.searchReservations("", (com.bookfair.features.reservation.Reservation.ReservationStatus) null, eventId).size();
 
-        long checkedIn = checkInLogRepository.count();
+        long checkedIn = checkInLogRepository.countByReservation_EventStall_Event_Id(eventId);
 
         return ResponseEntity.ok(DashboardStats.builder()
                 .totalStalls(totalStalls)
@@ -103,9 +106,9 @@ public class EmployeeController {
      * Exports attendance log as CSV.
      */
     @GetMapping("/attendance/export")
-    public ResponseEntity<byte[]> exportAttendance() {
+    public ResponseEntity<byte[]> exportAttendance(@RequestParam Long eventId) {
         StringBuilder csv = new StringBuilder("LogID,Timestamp,ReservationID,Stall,Vendor,Employee,OverrideReason\n");
-        List<com.bookfair.entity.CheckInLog> logs = checkInLogRepository.findAll();
+        List<com.bookfair.entity.CheckInLog> logs = checkInLogRepository.findByReservation_EventStall_Event_Id(eventId);
         
         for (com.bookfair.entity.CheckInLog log : logs) {
             com.bookfair.features.reservation.Reservation res = log.getReservation();

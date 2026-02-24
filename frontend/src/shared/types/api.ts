@@ -169,7 +169,7 @@ export interface Event {
     name: string;
     description?: string;
     imageUrl?: string;
-    status: 'DRAFT' | 'UPCOMING' | 'OPEN' | 'CLOSED' | 'COMPLETED' | 'CANCELLED';
+    status: 'UPCOMING' | 'OPEN' | 'CLOSED' | 'COMPLETED' | 'CANCELLED' | 'ARCHIVED';
     startDate: string;
     endDate: string;
     location: string;
@@ -229,7 +229,7 @@ export interface MapZone {
 }
 
 export interface MapInfluence {
-    id: string;
+    id: string | number;
     hallName: string;
     type: string;
     posX: number;
@@ -249,6 +249,7 @@ export interface Reservation {
     vendor?: string;
     stalls: string[];
     totalPriceCents?: number;
+    paymentId?: string; // Stripe Payment Intent ID
     ttlSeconds?: number;
     expiresAt?: string;
     user?: {

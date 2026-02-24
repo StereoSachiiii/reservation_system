@@ -49,8 +49,12 @@ public class EventService {
         event.setStartDate(request.getStartDate());
         event.setEndDate(request.getEndDate());
         event.setLocation(request.getLocation());
-        if (request.getStatus() != null) {
-            event.setStatus(request.getStatus());
+        if (request.getStatus() != null && !request.getStatus().isBlank()) {
+            try {
+                event.setStatus(Event.EventStatus.valueOf(request.getStatus().toUpperCase()));
+            } catch (IllegalArgumentException e) {
+                // Unknown status string (e.g. DRAFT) — keep current status
+            }
         }
         if (request.getMapUrl() != null) event.setMapUrl(request.getMapUrl());
         if (request.getMapWidth() != null) event.setMapWidth(request.getMapWidth());

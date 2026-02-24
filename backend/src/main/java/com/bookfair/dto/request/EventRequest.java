@@ -25,7 +25,7 @@ public class EventRequest {
     @NotBlank(message = "Location is required")
     private String location;
 
-    private Event.EventStatus status;
+    private String status;
 
     private String mapUrl;
     private Double mapWidth;

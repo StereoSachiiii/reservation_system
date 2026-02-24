@@ -33,30 +33,22 @@ public class AdminVenueController {
 
     @GetMapping("/venues")
     public ResponseEntity<List<VenueAdminResponse>> getAllVenues() {
-        return ResponseEntity.ok(adminVenueService.getAllVenues().stream()
-                .map(adminMapper::mapToVenueAdminResponse)
-                .collect(Collectors.toList()));
+        return ResponseEntity.ok(adminVenueService.getAllVenues());
     }
 
     @GetMapping("/venues/{id}/buildings")
     public ResponseEntity<List<BuildingAdminResponse>> getBuildingsByVenue(@PathVariable Long id) {
-        return ResponseEntity.ok(adminVenueService.getBuildingsByVenue(id).stream()
-                .map(adminMapper::mapToBuildingAdminResponse)
-                .collect(Collectors.toList()));
+        return ResponseEntity.ok(adminVenueService.getBuildingsByVenue(id));
     }
 
     @GetMapping("/buildings/{id}/halls")
     public ResponseEntity<List<HallResponse>> getHallsByBuilding(@PathVariable Long id) {
-        return ResponseEntity.ok(adminVenueService.getHallsByBuilding(id).stream()
-                .map(adminMapper::mapToHallResponse)
-                .collect(Collectors.toList()));
+        return ResponseEntity.ok(adminVenueService.getHallsByBuilding(id));
     }
 
     @GetMapping("/halls")
     public ResponseEntity<List<HallResponse>> getAllHalls() {
-        return ResponseEntity.ok(adminHallService.getAllHalls().stream()
-                .map(adminMapper::mapToHallResponse)
-                .collect(Collectors.toList()));
+        return ResponseEntity.ok(adminHallService.getAllHalls());
     }
 
     @PostMapping("/halls")

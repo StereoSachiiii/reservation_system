@@ -122,7 +122,7 @@ export default function Dashboard() {
                         onEdit={handleStartEdit}
                         onDelete={handleDeleteEvent}
                         onCreateClick={() => {
-                            setEventData({ name: '', location: 'BMICH', status: 'DRAFT', startDate: new Date().toISOString().split('T')[0], endDate: new Date().toISOString().split('T')[0] });
+                            setEventData({ name: '', location: 'BMICH', status: 'UPCOMING', startDate: new Date().toISOString().split('T')[0], endDate: new Date().toISOString().split('T')[0] });
                             setShowCreateModal(true);
                         }}
                     />

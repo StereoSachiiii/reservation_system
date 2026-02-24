@@ -1,5 +1,7 @@
-import { useParams, useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useVendorReservationDetail } from '../hooks/useVendorReservationDetail';
+import { paymentApi } from '@/shared/api/paymentApi';
 
 // Sub-components
 import { ReservationHeader } from '../components/VendorReservationDetail/ReservationHeader';
@@ -35,6 +37,24 @@ export const VendorReservationDetailPage = () => {
         cancelMutation, updateProfileMutation,
         handleDownloadTicket, openEditModal
     } = useVendorReservationDetail(reservationId);
+
+    const location = useLocation();
+
+    // Catch Stripe Redirect to confirm payment intent coupling
+    useEffect(() => {
+        const query = new URLSearchParams(location.search);
+        const paymentIntent = query.get('payment_intent');
+        const redirectStatus = query.get('redirect_status');
+
+        if (paymentIntent && redirectStatus === 'succeeded') {
+            paymentApi.confirmPayment(reservationId, paymentIntent)
+                .then(() => {
+                    // Clean URL
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                })
+                .catch(err => console.error("Stripe confirm sync failed:", err));
+        }
+    }, [location.search, reservationId]);
 
     if (isLoading) return (
         <div className="min-h-[60vh] flex flex-col items-center justify-center p-8 gap-4">
@@ -105,6 +125,22 @@ export const VendorReservationDetailPage = () => {
                                     Update Categories
                                 </button>
                             </div>
+
+                            {/* Pay Now — visible only for pending payment */}
+                            {status === 'PENDING_PAYMENT' && (
+                                <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-3xl p-6 shadow-lg shadow-emerald-200">
+                                    <h4 className="text-sm font-black text-white mb-2 uppercase tracking-tight">Complete Payment</h4>
+                                    <p className="text-xs text-emerald-100 mb-5 font-medium leading-relaxed">
+                                        Your stall is reserved but not confirmed yet. Pay now to secure your booking before the slot expires.
+                                    </p>
+                                    <button
+                                        onClick={() => navigate(`/checkout/${reservation.id}`)}
+                                        className="w-full bg-white text-emerald-700 font-black py-3.5 rounded-2xl transition-all shadow-md uppercase text-[10px] tracking-widest hover:bg-emerald-50 active:scale-[0.98]"
+                                    >
+                                        Pay Now →
+                                    </button>
+                                </div>
+                            )}
 
                             <div className="bg-slate-50 border border-slate-100 rounded-3xl p-6 shadow-sm">
                                 <h4 className="text-sm font-black text-slate-800 mb-2 uppercase tracking-tight">Reservation Management</h4>

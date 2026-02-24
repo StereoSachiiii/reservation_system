@@ -68,4 +68,4 @@ export function stallColor(cat: StallCategory, isSelected: boolean): string {
     }
 }
 
-export const formatPrice = (cents: number) => `LKR ${(cents / 100).toLocaleString()}`;
+export const formatPrice = (cents: number) => `LKR ${(cents / 100).toLocaleString()} `;

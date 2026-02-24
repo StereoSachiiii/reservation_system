@@ -23,6 +23,13 @@ public class AdminReservationController {
 
     private final AdminReservationService adminReservationService;
 
+    @GetMapping("/refunds/pending")
+    public ResponseEntity<List<ReservationResponse>> getPendingRefunds() {
+        return ResponseEntity.ok(adminReservationService.getPendingRefunds().stream()
+                .map(ReservationController::mapToResponse)
+                .collect(Collectors.toList()));
+    }
+
     @GetMapping("/reservations")
     public ResponseEntity<List<ReservationResponse>> getAllReservations() {
         return ResponseEntity.ok(adminReservationService.getAllReservations().stream()
@@ -58,11 +65,11 @@ public class AdminReservationController {
 
     @PostMapping("/payments/refund")
     public ResponseEntity<RefundResponse> refundReservation(@jakarta.validation.Valid @RequestBody RefundRequest request) {
-        adminReservationService.refundReservation(request.getReservationId(), request.getReason());
+        String refundTxId = adminReservationService.refundReservation(request.getReservationId(), request.getReason());
         return ResponseEntity.ok(RefundResponse.builder()
                 .id(request.getReservationId())
                 .status("REFUND_ISSUED")
-                .refundTxId("MANUAL-" + request.getReservationId())
+                .refundTxId(refundTxId)
                 .refundedAt(java.time.LocalDateTime.now().toString())
                 .reason(request.getReason())
                 .build());

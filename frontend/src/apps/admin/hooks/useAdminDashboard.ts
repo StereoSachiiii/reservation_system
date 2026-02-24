@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { adminApi } from '@/shared/api/adminApi';
-import { publicApi } from '@/shared/api/publicApi';
 import { PageEnvelope, Event, AdminDashboardStats, AuditLog, SystemHealth } from '@/shared/types/api';
 
 export function useAdminDashboard() {
@@ -17,9 +16,9 @@ export function useAdminDashboard() {
     const [eventData, setEventData] = useState<Partial<Event>>({
         name: '',
         location: 'BMICH',
-        status: 'DRAFT',
-        startDate: new Date().toISOString().split('T')[0],
-        endDate: new Date().toISOString().split('T')[0]
+        status: 'UPCOMING',
+        startDate: new Date().toISOString().split('T')[0] + 'T00:00:00',
+        endDate: new Date().toISOString().split('T')[0] + 'T23:59:59'
     });
 
     useEffect(() => {
@@ -42,12 +41,12 @@ export function useAdminDashboard() {
                     latencyMs: 0
                 } as SystemHealth)),
                 adminApi.getAuditLogs('RESERVATION', 0).catch((err) => { console.error("AuditLogs Error:", err); return null; }),
-                publicApi.getActiveEvents().catch((err) => { console.error("ActiveEvents Error:", err); return { content: [] }; }),
+                adminApi.getAllEvents().catch((err) => { console.error("AllEvents Error:", err); return []; }),
                 adminApi.getDashboardStats().catch((err) => { console.error("Stats Fetch Error:", err); return null; })
             ]);
             setHealth(h);
             setAuditLogs(a);
-            setEvents(e.content);
+            setEvents(e);
             setStats(s);
         } catch (err) {
             console.error("Dashboard Load Error:", err);
@@ -58,9 +57,18 @@ export function useAdminDashboard() {
 
     const handleCreateEvent = async () => {
         try {
-            await adminApi.createEvent(eventData);
+            // Ensure dates are parsed as valid LocalDateTime for Java backend (needs T00:00:00 format, not just YYYY-MM-DD)
+            const payload = { ...eventData };
+            if (payload.startDate && payload.startDate.length === 10) payload.startDate += 'T00:00:00';
+            if (payload.endDate && payload.endDate.length === 10) payload.endDate += 'T23:59:59';
+
+            await adminApi.createEvent(payload);
             setShowCreateModal(false);
-            setEventData({ name: '', location: 'BMICH', status: 'DRAFT' });
+            setEventData({
+                name: '', location: 'BMICH', status: 'UPCOMING',
+                startDate: new Date().toISOString().split('T')[0] + 'T00:00:00',
+                endDate: new Date().toISOString().split('T')[0] + 'T23:59:59'
+            });
             loadInitialData();
         } catch (e: any) {
             alert(e.message);
@@ -77,7 +85,7 @@ export function useAdminDashboard() {
         }
     };
 
-    const handleUpdateEventStatus = async (id: number, status: 'DRAFT' | 'OPEN' | 'CLOSED') => {
+    const handleUpdateEventStatus = async (id: number, status: 'UPCOMING' | 'OPEN' | 'CLOSED') => {
         try {
             await adminApi.changeEventStatus(id, status);
             loadInitialData();
@@ -89,8 +97,8 @@ export function useAdminDashboard() {
     const handleStartEdit = (event: Event) => {
         setEventData({
             ...event,
-            startDate: new Date(event.startDate).toISOString().split('T')[0],
-            endDate: new Date(event.endDate).toISOString().split('T')[0]
+            startDate: event.startDate ? new Date(event.startDate).toISOString().split('T')[0] + 'T00:00:00' : undefined,
+            endDate: event.endDate ? new Date(event.endDate).toISOString().split('T')[0] + 'T23:59:59' : undefined
         });
         setShowEditModal(true);
     };
@@ -98,7 +106,11 @@ export function useAdminDashboard() {
     const handleUpdateEvent = async () => {
         if (!eventData.id) return;
         try {
-            await adminApi.updateEvent(eventData.id, eventData);
+            const payload = { ...eventData };
+            if (payload.startDate && payload.startDate.length === 10) payload.startDate += 'T00:00:00';
+            if (payload.endDate && payload.endDate.length === 10) payload.endDate += 'T23:59:59';
+
+            await adminApi.updateEvent(eventData.id, payload);
             setShowEditModal(false);
             loadInitialData();
         } catch (e: any) {

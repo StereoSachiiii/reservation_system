@@ -71,4 +71,8 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
     /** Count reservations that have a check-in log entry */
     @Query("SELECT COUNT(DISTINCT cl.reservation.id) FROM CheckInLog cl")
     long countCheckedIn();
+
+    /** Find all reservations with a specific status, fully joined for admin display. */
+    @Query("SELECT r FROM Reservation r LEFT JOIN FETCH r.eventStall es LEFT JOIN FETCH es.stallTemplate st LEFT JOIN FETCH st.hall h LEFT JOIN FETCH h.building b LEFT JOIN FETCH r.user WHERE r.status = :status")
+    List<Reservation> findByStatus(@org.springframework.data.repository.query.Param("status") Reservation.ReservationStatus status);
 }

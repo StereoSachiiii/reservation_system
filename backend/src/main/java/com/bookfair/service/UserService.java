@@ -63,12 +63,16 @@ public class UserService {
     }
     
     public User getByIdForServices(Long id) {
-
         if (id == null) {
             throw new IllegalArgumentException("User ID cannot be null");
         }
         return userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+    }
+
+    @org.springframework.transaction.annotation.Transactional
+    public java.util.Optional<User> findByIdWithLock(Long id) {
+        return userRepository.findByIdWithLock(id);
     }
 
     public UserResponse getById(Long id) {

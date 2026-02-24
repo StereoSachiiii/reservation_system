@@ -45,7 +45,7 @@ public class EventController {
                 .startDate(request.getStartDate())
                 .endDate(request.getEndDate())
                 .location(request.getLocation())
-                .status(request.getStatus() != null ? request.getStatus() : Event.EventStatus.UPCOMING)
+                .status(parseEventStatus(request.getStatus()))
                 .build();
         
         return ResponseEntity.ok(mapToResponse(eventService.createEvent(event)));
@@ -93,5 +93,15 @@ public class EventController {
                 .imageUrl(event.getImageUrl())
                 .createdAt(event.getCreatedAt())
                 .build();
+    }
+
+    private Event.EventStatus parseEventStatus(String status) {
+        if (status == null || status.isBlank()) return Event.EventStatus.UPCOMING;
+        try {
+            return Event.EventStatus.valueOf(status.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            // Legacy value like DRAFT - default to UPCOMING
+            return Event.EventStatus.UPCOMING;
+        }
     }
 }

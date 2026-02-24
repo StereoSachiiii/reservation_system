@@ -80,6 +80,11 @@ api.interceptors.response.use(
 
             let friendlyMessage = errorMap[apiError.code] || apiError.message;
 
+            // Preserve backend duplicate user/email conflict messages
+            if (apiError.code === 'RESOURCE_CONFLICT' && apiError.message && (apiError.message.includes('Username') || apiError.message.includes('Email'))) {
+                friendlyMessage = apiError.message;
+            }
+
             // Append details if useful (e.g. which stall caused the conflict)
             if (apiError.code === 'TAXONOMY_DENIED' && apiError.details?.allowed) {
                 friendlyMessage += ` (Allowed: ${apiError.details.allowed})`;

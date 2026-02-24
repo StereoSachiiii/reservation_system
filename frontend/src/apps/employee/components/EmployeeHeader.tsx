@@ -6,9 +6,15 @@ interface EmployeeHeaderProps {
     activeTab: 'SCAN' | 'DASHBOARD' | 'SEARCH';
     setActiveTab: (tab: 'SCAN' | 'DASHBOARD' | 'SEARCH') => void;
     onExport: () => void;
+    events: any[];
+    selectedEventId: number | null;
+    setSelectedEventId: (id: number) => void;
 }
 
-export const EmployeeHeader: React.FC<EmployeeHeaderProps> = ({ user, activeTab, setActiveTab, onExport }) => {
+export const EmployeeHeader: React.FC<EmployeeHeaderProps> = ({
+    user, activeTab, setActiveTab, onExport,
+    events, selectedEventId, setSelectedEventId
+}) => {
     return (
         <header className="bg-white border-b border-slate-200">
             <div className="max-w-7xl mx-auto px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
@@ -17,8 +23,21 @@ export const EmployeeHeader: React.FC<EmployeeHeaderProps> = ({ user, activeTab,
                         🛡️
                     </div>
                     <div>
-                        <h1 className="text-xl font-black tracking-tight text-slate-900">Operational Hub</h1>
-                        <p className="text-sm text-slate-500 font-medium uppercase tracking-wider">Operator: {user?.username}</p>
+                        <div className="flex items-center gap-3">
+                            <h1 className="text-xl font-black tracking-tight text-slate-900">Operational Hub</h1>
+                            {events && events.length > 0 && (
+                                <select
+                                    className="bg-slate-100 border border-slate-200 text-slate-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-1.5 font-bold"
+                                    value={selectedEventId || ''}
+                                    onChange={(e) => setSelectedEventId(Number(e.target.value))}
+                                >
+                                    {events.map((evt: any) => (
+                                        <option key={evt.id} value={evt.id}>{evt.name}</option>
+                                    ))}
+                                </select>
+                            )}
+                        </div>
+                        <p className="text-sm text-slate-500 font-medium uppercase tracking-wider mt-1">Operator: {user?.username}</p>
                     </div>
                 </div>
 
