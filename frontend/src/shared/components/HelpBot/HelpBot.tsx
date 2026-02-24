@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { MessageCircle, Send, X, Bot } from 'lucide-react';
-import axios from 'axios';
+import { vendorApi } from '../../api/vendorApi';
 import './HelpBot.css';
 
 interface Message {
@@ -49,10 +49,10 @@ const HelpBot: React.FC = () => {
         setIsLoading(true);
 
         try {
-            const response = await axios.post('/public/help/ask', { query: input });
+            const data = await vendorApi.askQuestion(input);
             const botMsg: Message = {
                 id: (Date.now() + 1).toString(),
-                text: response.data.answer,
+                text: data.answer,
                 sender: 'bot',
                 timestamp: new Date()
             };
