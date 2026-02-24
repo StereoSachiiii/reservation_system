@@ -103,4 +103,25 @@ public class AdminStallService {
         }
         return sb.toString().getBytes(StandardCharsets.UTF_8);
     }
+
+    /** Update a stall template's metadata */
+    @Transactional
+    public StallTemplate updateStallTemplate(Long hallId, Long stallId, com.bookfair.dto.request.StallTemplateUpdateRequest req) {
+        StallTemplate template = stallTemplateRepository.findById(stallId)
+                .orElseThrow(() -> new ResourceNotFoundException("Stall template not found: " + stallId));
+        if (!template.getHall().getId().equals(hallId)) {
+            throw new com.bookfair.exception.BadRequestException("Stall does not belong to this hall.");
+        }
+        if (req.getName() != null) template.setName(req.getName());
+        if (req.getSize() != null) template.setSize(req.getSize());
+        if (req.getType() != null) template.setType(req.getType());
+        if (req.getCategory() != null) template.setCategory(req.getCategory());
+        if (req.getBasePriceCents() != null) template.setBasePriceCents(req.getBasePriceCents());
+        if (req.getSqFt() != null) template.setSqFt(req.getSqFt());
+        if (req.getIsAvailable() != null) template.setIsAvailable(req.getIsAvailable());
+        if (req.getDefaultProximityScore() != null) template.setDefaultProximityScore(req.getDefaultProximityScore());
+        if (req.getImageUrl() != null) template.setImageUrl(req.getImageUrl());
+
+        return stallTemplateRepository.save(template);
+    }
 }

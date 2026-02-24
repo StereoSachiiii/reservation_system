@@ -19,6 +19,18 @@ export interface ApiError {
     details?: ErrorDetails;
 }
 
+export interface ValueDriver {
+    label: string;
+    value: string;
+}
+
+export interface PricingBreakdown {
+    'Visibility Score'?: string | number;
+    'Value Drivers'?: ValueDriver[];
+    'Base Rate'?: number;
+    calculatedScore?: number;
+}
+
 export interface User {
     id: number;
     username: string;
@@ -30,7 +42,6 @@ export interface User {
     categories: string[];
     contactNumber?: string;
     address?: string;
-    reservedStallsCount: number;
 }
 
 export interface UserRequest {
@@ -38,6 +49,12 @@ export interface UserRequest {
     email: string;
     password?: string;
     role?: 'ADMIN' | 'VENDOR' | 'EMPLOYEE';
+    businessName?: string;
+    businessDescription?: string;
+    logoUrl?: string;
+    contactNumber?: string;
+    address?: string;
+    categories?: string[];
 }
 
 export interface LoginRequest {
@@ -55,22 +72,17 @@ export type PublisherCategory = 'FICTION' | 'NON_FICTION' | 'CHILDREN' | 'EDUCAT
 export interface Hall {
     id: number;
     name: string;
-    hallName?: string; // compat
     venueName?: string;
     totalSqFt?: number;
-    sqFt?: number; // compat
     capacity?: number;
     tier?: string;
     floorLevel?: number;
-    floor?: number; // compat
     status: HallStatus;
     mainCategory?: PublisherCategory;
-    category?: PublisherCategory | string; // compat
     // Metadata
     ceilingHeight?: number;
     isIndoor?: boolean;
     isAirConditioned?: boolean;
-    isAc?: boolean; // compat
     expectedFootfall?: number;
     noiseLevel?: string;
     nearbyFacilities?: string;
@@ -78,11 +90,10 @@ export interface Hall {
     distanceFromParking?: number;
     isGroundFloor?: boolean;
     building?: Building;
+    constraints?: PhysicalConstraint[];
 }
 
 export interface putHallRequest {
-    id: number;
-    buildingId: number;
     name: string;
     venueName?: string;
     totalSqFt?: number;
@@ -91,7 +102,6 @@ export interface putHallRequest {
     floorLevel?: number;
     status: HallStatus;
     mainCategory?: PublisherCategory;
-    // Metadata
     ceilingHeight?: number;
     isIndoor?: boolean;
     isAirConditioned?: boolean;
@@ -101,7 +111,18 @@ export interface putHallRequest {
     distanceFromEntrance?: number;
     distanceFromParking?: number;
     isGroundFloor?: boolean;
-    building?: Building;
+}
+
+export type PhysicalConstraintType = 'PILLAR' | 'FIRE_EXIT' | 'WALL' | 'ENTRANCE' | 'OFFICE' | 'OTHER';
+
+export interface PhysicalConstraint {
+    id?: number;
+    type: PhysicalConstraintType;
+    posX: number;
+    posY: number;
+    width: number;
+    height: number;
+    label?: string;
 }
 
 export interface StallTemplate {
@@ -115,7 +136,10 @@ export interface StallTemplate {
     sqFt?: number;
     isAvailable: boolean;
     defaultProximityScore?: number;
-    geometry: string; // JSON string
+    posX?: number;
+    posY?: number;
+    width?: number;
+    height?: number;
     imageUrl?: string;
 }
 
@@ -136,7 +160,7 @@ export interface Venue {
 export interface Building {
     id: number;
     name: string;
-    gpsCoordinates?: string;  // Matches backend field
+    gpsLocation?: string;
     halls: Array<{ id: number; name: string; category?: string }>;
 }
 
@@ -151,7 +175,9 @@ export interface Event {
     location: string;
     venueId?: number;
     venueName?: string;
-    layoutConfig?: string;
+    mapUrl?: string;
+    mapWidth?: number;
+    mapHeight?: number;
     createdAt?: string;
 }
 
@@ -161,70 +187,75 @@ export interface EventStall {
     templateName: string;
     size: StallSize;
     type: StallType;
+    category: StallCategory;
     priceCents: number;
     proximityScore?: number;
     hallName?: string;
     hallCategory?: string;
+    posX?: number;
+    posY?: number;
     width?: number;
     height?: number;
-    positionX?: number;
-    positionY?: number;
-    colSpan?: number;
-    rowSpan?: number;
     reserved: boolean;
     occupiedBy?: string;
     publisherCategory?: string;
-    geometry: string | { x: number; y: number; w: number; h: number };
-    pricingBreakdown?: Record<string, number | string>;
+    pricingBreakdown?: PricingBreakdown;
 }
 
 export type ZoneType = 'ENTRANCE' | 'EXIT' | 'WALKWAY' | 'STAGE' | 'PILLAR' | 'RESTRICTED';
 
-export interface LayoutZone {
-    id?: number;
-    type: ZoneType;
-    geometry: { x: number; y: number; w: number; h: number };
-    metadata?: {
-        label?: string;
-        trafficWeight?: number;
-    };
+export interface EventStallAdminResponse {
+    id: number;
+    stallName: string;
+    status: string;
+    baseRateCents: number;
+    finalPriceCents: number;
+    posX: number;
+    posY: number;
+    width: number;
+    height: number;
+    pricingVersion: string;
 }
 
-export interface Stall {
+export interface MapZone {
     id: number;
-    name: string;
-    size: StallSize;
-    type: StallType;
-    category: StallCategory;
-    priceCents?: number;
-    width?: number;
-    height?: number;
-    colSpan?: number;
-    rowSpan?: number;
-    reserved: boolean;
-    occupiedBy?: string;
-    positionX: number;
-    positionY: number;
+    hallName: string;
+    type: string;
+    posX: number;
+    posY: number;
+    width: number;
+    height: number;
+    label: string;
+}
+
+export interface MapInfluence {
+    id: string;
+    hallName: string;
+    type: string;
+    posX: number;
+    posY: number;
+    radius: number;
+    intensity: number;
+    falloff: string;
 }
 
 export interface Reservation {
     id: number;
-    reservationId: number; // Spec literal
+    reservationId: number;
     qrCode?: string;
-    status: 'PENDING_PAYMENT' | 'PAID' | 'CANCELLED' | 'EXPIRED' | 'CHECKED_IN' | 'PENDING_REFUND'; // Matches API.md 5.1 and new flow
+    status: 'PENDING_PAYMENT' | 'PAID' | 'CANCELLED' | 'EXPIRED' | 'CHECKED_IN' | 'PENDING_REFUND';
     emailSent?: boolean;
     createdAt: string;
-    vendor?: string; // Derived field/Computed
-    stalls: string[]; // Spec literal: ["A1", "A2"]
+    vendor?: string;
+    stalls: string[];
     totalPriceCents?: number;
     ttlSeconds?: number;
     expiresAt?: string;
-    // Internal helper for rich UI (optional if we still want it)
     user?: {
         id: number;
         username: string;
         email: string;
-        businessName: string;
+        businessName?: string;
         contactNumber?: string;
         role: string;
         categories?: string[];
@@ -252,7 +283,7 @@ export interface Reservation {
 
 export interface ReservationRequest {
     userId: number;
-    eventId: number; // Mandatory for V4 atomic booking
+    eventId: number;
     stallIds: number[];
 }
 
@@ -297,6 +328,7 @@ export interface NotificationResponse {
     read: boolean;
     createdAt: string;
 }
+
 export interface DashboardStats {
     totalStalls: number;
     reservedStalls: number;

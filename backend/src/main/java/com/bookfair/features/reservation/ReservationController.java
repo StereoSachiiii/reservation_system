@@ -140,7 +140,11 @@ public class ReservationController {
                         template.getHall() != null ? template.getHall().getFloorLevel() : null,
                         template.getHall() != null && template.getHall().getBuilding() != null ? template.getHall().getBuilding().getName() : null,
                         true,
-                        template.getGeometry()
+                        String.format("{\"x\": %s, \"y\": %s, \"w\": %s, \"h\": %s}",
+                            template.getPosX() != null ? template.getPosX() : 0,
+                            template.getPosY() != null ? template.getPosY() : 0,
+                            template.getWidth() != null ? template.getWidth() : 10,
+                            template.getHeight() != null ? template.getHeight() : 10)
                 ));
             }
             res.setTotalPriceCents(r.getEventStall().getFinalPriceCents());

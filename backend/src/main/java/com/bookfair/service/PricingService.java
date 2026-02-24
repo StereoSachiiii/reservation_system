@@ -1,6 +1,7 @@
 package com.bookfair.service;
 
 import com.bookfair.entity.EventStall;
+import com.bookfair.exception.ResourceNotFoundException;
 import com.bookfair.repository.EventStallRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -22,6 +23,7 @@ import static com.bookfair.constant.ScoringConstants.*;
 public class PricingService {
 
     private final EventStallRepository eventStallRepository;
+    private final com.bookfair.repository.MapInfluenceRepository mapInfluenceRepository;
     private final ObjectMapper objectMapper;
 
     /**
@@ -33,112 +35,104 @@ public class PricingService {
         List<EventStall> stalls = eventStallRepository.findByEvent_Id(eventId);
         if (stalls.isEmpty()) return;
 
-        String layoutConfig = stalls.get(0).getEvent().getLayoutConfig();
-        if (layoutConfig == null || layoutConfig.trim().isEmpty() || layoutConfig.equals("{}")) {
-            log.warn("No layout config found for event {}, skipping automated pricing.", eventId);
-            return;
+        List<com.bookfair.entity.MapInfluence> influences = mapInfluenceRepository.findByEvent_Id(eventId);
+        
+        for (EventStall stall : stalls) {
+            calculateAndApplyPrice(stall, influences);
         }
-
-        try {
-            JsonNode layoutNode = objectMapper.readTree(layoutConfig);
-            for (EventStall stall : stalls) {
-                calculateAndApplyPrice(stall, layoutNode);
-            }
-            eventStallRepository.saveAll(stalls);
-        } catch (Exception e) {
-            log.error("Failed to parse layout config for event {}: {}", eventId, e.getMessage());
-        }
+        eventStallRepository.saveAll(stalls);
     }
 
     /**
      * Calculates the price for a single stall and updates its fields.
      */
-    public Map<String, Object> calculatePriceBreakdown(EventStall stall, JsonNode layoutNode) {
-        String geometryStr = stall.getGeometry() != null ? stall.getGeometry() : stall.getStallTemplate().getGeometry();
+    public Map<String, Object> calculatePriceBreakdown(EventStall stall, List<com.bookfair.entity.MapInfluence> influences) {
         long baseRateCents = stall.getBaseRateCents();
         int defaultProximityScore = stall.getStallTemplate().getDefaultProximityScore();
         double multiplier = stall.getMultiplier();
 
-        return calculatePriceBreakdown(geometryStr, baseRateCents, defaultProximityScore, multiplier, layoutNode);
+        return calculatePriceBreakdown(stall, baseRateCents, defaultProximityScore, multiplier, influences);
     }
 
-    /**
-     * Calculates the price for a single stall providing layout config as string
-     */
-    public Map<String, Object> calculatePriceBreakdownStringConfig(String geometryStr, long baseRateCents, int defaultProximityScore, double multiplier, String layoutConfig) {
-        try {
-            JsonNode layoutNode = objectMapper.readTree(layoutConfig);
-            return calculatePriceBreakdown(geometryStr, baseRateCents, defaultProximityScore, multiplier, layoutNode);
-        } catch (Exception e) {
-            log.error("Failed to parse layout config for interactive pricing: {}", e.getMessage());
-            Map<String, Object> breakdown = new HashMap<>();
-            breakdown.put("Base Rate", baseRateCents);
-            breakdown.put("calculateScore", defaultProximityScore * DEFAULT_PROXIMITY_MULTIPLIER);
-            breakdown.put("Visibility Score", (defaultProximityScore * DEFAULT_PROXIMITY_MULTIPLIER) + "/100");
-            double scoreFactor = 1.0 + ((defaultProximityScore * DEFAULT_PROXIMITY_MULTIPLIER) - 50) / 100.0;
-            long finalPriceCents = (long) (baseRateCents * scoreFactor * multiplier);
-            breakdown.put("Final Price", finalPriceCents);
-            return breakdown;
-        }
-    }
 
     /**
      * Calculates the price for a single stall without requiring a persisted entity.
      */
-    public Map<String, Object> calculatePriceBreakdown(String geometryStr, long baseRateCents, int defaultProximityScore, double multiplier, JsonNode layoutNode) {
+    public Map<String, Object> calculatePriceInteractive(Long eventId, String geometryJson, Long baseRateCents, Integer defaultProximityScore) {
+        EventStall dummyStall = new EventStall();
+        try {
+            if (geometryJson != null && !geometryJson.isEmpty()) {
+                JsonNode geom = objectMapper.readTree(geometryJson);
+                dummyStall.setPosX(geom.path("x").asDouble());
+                dummyStall.setPosY(geom.path("y").asDouble());
+                dummyStall.setWidth(geom.path("w").asDouble());
+                dummyStall.setHeight(geom.path("h").asDouble());
+            }
+        } catch (Exception e) {
+            log.warn("Invalid geometry JSON: {}", geometryJson);
+        }
+
+        List<com.bookfair.entity.MapInfluence> influences = mapInfluenceRepository.findByEvent_Id(eventId);
+        long rate = baseRateCents != null ? baseRateCents : 0L;
+        int prox = defaultProximityScore != null ? defaultProximityScore : 1;
+        
+        return calculatePriceBreakdown(dummyStall, rate, prox, 1.0, influences);
+    }
+
+    public Map<String, Object> calculatePriceBreakdown(EventStall stall, long baseRateCents, int defaultProximityScore, double multiplier, List<com.bookfair.entity.MapInfluence> influences) {
         Map<String, Object> breakdown = new HashMap<>();
         breakdown.put("Base Rate", baseRateCents);
 
-        int calculatedScore = 0;
+        int calculatedScore = defaultProximityScore * DEFAULT_PROXIMITY_MULTIPLIER;
         List<Map<String, Object>> drivers = new ArrayList<>();
 
         try {
-            double canvasWidth = layoutNode.has("width") ? layoutNode.get("width").asDouble() : 1000.0;
-            double canvasHeight = layoutNode.has("height") ? layoutNode.get("height").asDouble() : 800.0;
+            // These were used for coordinate normalization from pixels. 
+            // In the new system, everything is already 0-100 percentage based.
+            // We use 1000x1000 as the reference "normalized" pixel space if needed, 
+            // but since both are percentages, they cancel out.
             
-            JsonNode influences = layoutNode.get("influences");
+            Double sX = stall.getPosX() != null ? stall.getPosX() : stall.getStallTemplate().getPosX();
+            Double sY = stall.getPosY() != null ? stall.getPosY() : stall.getStallTemplate().getPosY();
+            Double sW = stall.getWidth() != null ? stall.getWidth() : stall.getStallTemplate().getWidth();
+            Double sH = stall.getHeight() != null ? stall.getHeight() : stall.getStallTemplate().getHeight();
 
-            if (geometryStr != null && !geometryStr.trim().isEmpty()) {
-                JsonNode stallGeom = objectMapper.readTree(geometryStr);
-                if (stallGeom.has("x") && stallGeom.has("y")) {
-                    double stallX = stallGeom.get("x").asDouble() + (stallGeom.has("w") ? stallGeom.get("w").asDouble() / 2 : 0);
-                    double stallY = stallGeom.get("y").asDouble() + (stallGeom.has("h") ? stallGeom.get("h").asDouble() / 2 : 0);
+            if (sX != null && sY != null) {
+                double stallCenterX = sX + (sW != null ? sW / 2 : 0);
+                double stallCenterY = sY + (sH != null ? sH / 2 : 0);
 
-                    if (influences != null && influences.isArray()) {
-                        for (JsonNode influence : influences) {
-                            double infX = influence.get("x").asDouble();
-                            double infY = influence.get("y").asDouble();
-                            double radius = influence.get("radius").asDouble();
-                            int intensity = influence.get("intensity").asInt();
-                            String typeStr = influence.get("type").asText();
-                            String falloffStr = influence.get("falloff").asText();
+                if (influences != null && !influences.isEmpty()) {
+                    for (com.bookfair.entity.MapInfluence influence : influences) {
+                        double infX = influence.getPosX();
+                        double infY = influence.getPosY();
+                        double radius = influence.getRadius();
+                        int intensity = influence.getIntensity();
+                        String typeStr = influence.getType().name();
+                        String falloffStr = influence.getFalloff();
 
-                            double normStallX = (stallX / 100.0) * canvasWidth;
-                            double normStallY = (stallY / 100.0) * canvasHeight;
+                        // Distance in 0-100 unit space
+                        double dist = Math.sqrt(Math.pow(stallCenterX - infX, 2) + Math.pow(stallCenterY - infY, 2));
 
-                            double dist = Math.sqrt(Math.pow(normStallX - infX, 2) + Math.pow(normStallY - infY, 2));
-
-                            if (dist < radius) {
-                                double factor = 1.0 - (dist / radius);
-                                if ("EXPONENTIAL".equals(falloffStr)) factor = Math.pow(factor, 2);
-                                
-                                int contribution = (int) (intensity * factor);
-                                if (contribution > 0) {
-                                    calculatedScore += contribution;
-                                    Map<String, Object> driver = new HashMap<>();
-                                    driver.put("label", typeStr + " Proximity");
-                                    driver.put("value", "+" + contribution);
-                                    drivers.add(driver);
-                                }
+                        if (dist < radius) {
+                            double factor = 1.0 - (dist / radius);
+                            if ("EXPONENTIAL".equals(falloffStr)) factor = Math.pow(factor, 2);
+                            
+                            int contribution = (int) (intensity * factor);
+                            if (contribution > 0) {
+                                calculatedScore += contribution;
+                                Map<String, Object> driver = new HashMap<>();
+                                driver.put("label", typeStr + " Proximity");
+                                driver.put("value", "+" + contribution);
+                                drivers.add(driver);
                             }
                         }
                     }
                 }
             }
             
-            // Apply Edge Distance Penalty
-            if (geometryStr != null && (geometryStr.contains("\"x\": 0") || geometryStr.contains("\"x\": 0.0") ||
-                geometryStr.contains("\"y\": 0") || geometryStr.contains("\"y\": 0.0"))) {
+            // Apply Edge Distance Penalty (stalls near any edge of the layout)
+            if (sX != null && sY != null && sW != null && sH != null &&
+                (sX <= 2 || sY <= 2 || sX + sW >= 98 || sY + sH >= 98)) {
                 calculatedScore -= EDGE_DISTANCE_PENALTY;
                 Map<String, Object> penalty = new HashMap<>();
                 penalty.put("label", "Edge Distance");
@@ -147,8 +141,7 @@ public class PricingService {
             }
 
         } catch (Exception e) {
-            log.error("Price calculation failed for geometry string: {}", e.getMessage());
-            calculatedScore = defaultProximityScore * DEFAULT_PROXIMITY_MULTIPLIER;
+            log.error("Price calculation failed: {}", e.getMessage());
         }
 
         calculatedScore = Math.min(MAX_SCORE, Math.max(MIN_SCORE, calculatedScore));
@@ -157,24 +150,55 @@ public class PricingService {
         breakdown.put("Value Drivers", drivers);
         breakdown.put("calculatedScore", calculatedScore);
 
+        // Size-based pricing: scale relative to a reference stall area (8% × 8% = 64 sq%)
+        double sizeFactor = 1.0;
+        Double sW_final = stall.getWidth() != null ? stall.getWidth() : (stall.getStallTemplate() != null ? stall.getStallTemplate().getWidth() : null);
+        Double sH_final = stall.getHeight() != null ? stall.getHeight() : (stall.getStallTemplate() != null ? stall.getStallTemplate().getHeight() : null);
+        if (sW_final != null && sH_final != null && sW_final > 0 && sH_final > 0) {
+            double area = sW_final * sH_final;
+            double referenceArea = 64.0; // 8% × 8% standard stall
+            sizeFactor = Math.max(0.5, Math.min(2.5, area / referenceArea)); // clamp 0.5x - 2.5x
+            breakdown.put("Size Factor", String.format("%.2fx (area=%.1f sq%%)", sizeFactor, area));
+        }
+
         double scoreFactor = 1.0 + (calculatedScore - 50) / 100.0;
-        long finalPriceCents = (long) (baseRateCents * scoreFactor * multiplier);
+        long finalPriceCents = (long) (baseRateCents * scoreFactor * sizeFactor * multiplier);
         breakdown.put("Final Price", finalPriceCents);
 
         return breakdown;
     }
 
-    private void calculateAndApplyPrice(EventStall stall, JsonNode layoutNode) {
-        Map<String, Object> breakdown = calculatePriceBreakdown(stall, layoutNode);
+    private void calculateAndApplyPrice(EventStall stall, List<com.bookfair.entity.MapInfluence> influences) {
+        Map<String, Object> breakdown = calculatePriceBreakdown(stall, influences);
         int score = (int) breakdown.get("calculatedScore");
+        long finalPrice = (long) breakdown.get("Final Price");
         
-        // Automation Routine: Final Price = Base Rate * (1 + (Score-50)/100.0) * Multiplier
-        // If score is 50 (neutral), price is base. If 100, price is base * 1.5.
-        double scoreFactor = 1.0 + (score - 50) / 100.0;
-        long proximityBonus = (long) (stall.getBaseRateCents() * (score - 50) / 100.0);
+        long proximityBonus = finalPrice - stall.getBaseRateCents();
         
         stall.setProximityBonusCents(proximityBonus);
-        stall.setFinalPriceCents((long) (stall.getBaseRateCents() * scoreFactor * stall.getMultiplier()));
-        stall.setPricingVersion("AUTO_V1_SCORE_" + score);
+        stall.setFinalPriceCents(finalPrice);
+        stall.setPricingVersion("AUTO_V2_NORM_" + score);
+    }
+
+    @Transactional
+    public com.bookfair.dto.response.StallPriceResponse updateStallPrice(Long stallId, Map<String, Object> request) {
+        EventStall stall = eventStallRepository.findById(stallId)
+                .orElseThrow(() -> new ResourceNotFoundException("EventStall not found: " + stallId));
+
+        if (request.containsKey("baseRateCents")) {
+            long base = Long.parseLong(request.get("baseRateCents").toString());
+            double multiplier = request.containsKey("multiplier")
+                    ? Double.parseDouble(request.get("multiplier").toString())
+                    : 1.0;
+            if (base < 0) throw new com.bookfair.exception.BadRequestException("Price cannot be negative");
+            stall.setFinalPriceCents((long) (base * multiplier));
+            stall.setPricingVersion("MANUAL_PRICE_UPDATE");
+        }
+        eventStallRepository.save(stall);
+
+        return com.bookfair.dto.response.StallPriceResponse.builder()
+                .stallId(stallId)
+                .finalPriceCents(stall.getFinalPriceCents())
+                .build();
     }
 }

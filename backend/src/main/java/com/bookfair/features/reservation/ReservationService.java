@@ -62,10 +62,11 @@ public class ReservationService {
             if (eventId == null) {
                 eventId = eventStall.getEvent().getId();
                 eventName = eventStall.getEvent().getName();
-                // Check max stalls limit per event (count PENDING and PAID)
-                long currentCount = reservationRepository.countByUserIdAndEventIdAndStatusActive(user.getId(), eventId);
-                if (currentCount + request.getStallIds().size() > maxStallsPerPublisher) {
-                    throw new BadRequestException("Cannot reserve more than " + maxStallsPerPublisher + " stalls for this event");
+
+                // Check max stalls limit PER EVENT (count PENDING and PAID)
+                long eventCount = reservationRepository.countByUserIdAndEventIdAndStatusActive(user.getId(), eventId);
+                if (eventCount + request.getStallIds().size() > maxStallsPerPublisher) {
+                    throw new BadRequestException("You have reached your limit of " + maxStallsPerPublisher + " stalls for the event: " + eventName);
                 }
             }
             
@@ -78,16 +79,14 @@ public class ReservationService {
                     .eventStall(eventStall)
                     .status(Reservation.ReservationStatus.PENDING_PAYMENT)
                     .emailSent(false)
-                    .qrCode("TEMP-" + UUID.randomUUID())
+                    .qrCode("RES-" + UUID.randomUUID().toString().substring(0, 8)) // Stable unique QR before save
                     .build();
             
             reservation = reservationRepository.save(reservation);
-            reservation.setQrCode("RES-" + reservation.getId());
-            Reservation saved = reservationRepository.save(reservation);
-            reservations.add(saved);
+            reservations.add(reservation);
             
             // Real-time broadcast
-            realTimeUpdateService.broadcastFromReservation(saved);
+            realTimeUpdateService.broadcastFromReservation(reservation);
         }
 
         // Trigger Notification

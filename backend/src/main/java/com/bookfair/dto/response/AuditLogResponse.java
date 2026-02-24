@@ -12,5 +12,5 @@ public class AuditLogResponse {
     private String entityType;
     private Long entityId;
     private String timestamp;
-    private String metadata;
+    private String changeDescription;
 }

@@ -2,7 +2,8 @@ import { useMemo, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { publicApi } from '@/shared/api/publicApi'
 import { vendorApi } from '@/shared/api/vendorApi'
-import { RawEventMap, MapStall, parseZones } from '@/shared/types/stallMap.utils'
+import { EventStall as Stall } from '@/shared/types/api';
+import { RawEventMap, normalizeMapData } from '@/shared/types/stallMap.utils';
 
 interface UseMapDataProps {
     eventId: number | null
@@ -19,12 +20,11 @@ export function useMapData({
     selectedHall,
     setSelectedHall,
 }: UseMapDataProps) {
-    const initialEventMap: RawEventMap = { eventId: 0, eventName: '', stalls: [], zones: '' }
+    const initialEventMap: RawEventMap = { eventId: 0, eventName: '', stalls: [], zones: [], influences: [] }
 
     const { data: rawEventMap = initialEventMap, isLoading } = useQuery<RawEventMap>({
         queryKey: ['stalls', eventId],
         queryFn: () => {
-            console.info(`[MapPage] Refetching event map for eventId: ${eventId}`);
             return eventId
                 ? publicApi.getEventMap(eventId)
                 : Promise.resolve(initialEventMap);
@@ -36,7 +36,6 @@ export function useMapData({
     const { data: limitData } = useQuery({
         queryKey: ['available-count', eventId],
         queryFn: () => {
-            console.info(`[MapPage] Checking available slots for eventId: ${eventId}`);
             return eventId ? vendorApi.getAvailableCount(eventId) : Promise.resolve({ limit: 3, used: 0, remaining: 3 });
         },
         enabled: !!user && !!eventId,
@@ -45,14 +44,14 @@ export function useMapData({
     const remainingSlots: number = limitData?.remaining ?? 3
 
     const { influences, zones } = useMemo(
-        () => parseZones(rawEventMap?.zones),
-        [rawEventMap?.zones]
+        () => normalizeMapData(rawEventMap?.zones || [], rawEventMap?.influences || [], rawEventMap?.halls || []),
+        [rawEventMap?.zones, rawEventMap?.influences, rawEventMap?.halls]
     )
 
-    const allStalls: MapStall[] = rawEventMap?.stalls ?? []
+    const allStalls: Stall[] = rawEventMap?.stalls ?? []
 
     const halls = useMemo(
-        () => Array.from(new Set(allStalls.map((s: MapStall) => s.hallName).filter(Boolean))).sort() as string[],
+        () => Array.from(new Set(allStalls.map((s: Stall) => s.hallName).filter(Boolean))).sort() as string[],
         [allStalls]
     )
 
@@ -63,8 +62,8 @@ export function useMapData({
             let best = halls[0];
             if (selectedGenre && selectedGenre !== 'ANY') {
                 const match = halls.find(h => {
-                    const meta = hallsMeta.find(m => m.hallName === h || m.name === h);
-                    const cat = (meta?.mainCategory || meta?.category || '').toUpperCase();
+                    const meta = hallsMeta.find(m => (m as any).name === h);
+                    const cat = ((meta as any)?.mainCategory || (meta as any)?.category || '').toUpperCase();
                     return cat === selectedGenre;
                 });
                 if (match) best = match;
@@ -76,7 +75,7 @@ export function useMapData({
     }, [halls, selectedHall, selectedGenre, rawEventMap, setSelectedHall])
 
     const displayedStalls = useMemo(
-        () => (selectedHall ? allStalls.filter((s: MapStall) => s.hallName === selectedHall) : allStalls),
+        () => (selectedHall ? allStalls.filter((s: Stall) => s.hallName === selectedHall) : allStalls),
         [allStalls, selectedHall]
     )
 
@@ -92,9 +91,9 @@ export function useMapData({
 
     const isRecommended = (hall: string): boolean => {
         if (selectedGenre === 'ANY' || !selectedGenre) return false;
-        const hallMeta = rawEventMap.halls?.find(h => h.hallName === hall || h.name === hall);
+        const hallMeta = rawEventMap.halls?.find(h => (h as any).name === hall);
         if (!hallMeta) return false;
-        const category = (hallMeta.mainCategory || hallMeta.category || '').toUpperCase();
+        const category = ((hallMeta as any).mainCategory || (hallMeta as any).category || '').toUpperCase();
         return category === selectedGenre;
     }
 

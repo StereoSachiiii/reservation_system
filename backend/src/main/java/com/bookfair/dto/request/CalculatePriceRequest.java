@@ -13,5 +13,6 @@ public class CalculatePriceRequest {
     private String geometry;
     private Long baseRateCents;
     private Integer defaultProximityScore;
-    private String layoutConfig;
+    private Double mapWidth;
+    private Double mapHeight;
 }

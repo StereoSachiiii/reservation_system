@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { Event, Hall } from '@/shared/types/api';
 import { DesignerStall, DesignerZone, DesignerInfluence, DesignerDrawMode } from './types';
-import { useDebouncedPriceCalculation } from './hooks/useDebouncedPriceCalculation';
+import { usePriceCalculation } from './hooks/usePriceCalculation';
 
 interface DesignerContextType {
     event: Event;
@@ -28,8 +28,7 @@ interface DesignerContextType {
     setCurrentPos: React.Dispatch<React.SetStateAction<{ x: number; y: number } | null>>;
     updateStall: (id: number, patch: Partial<DesignerStall>) => void;
     deleteStall: (id: number) => void;
-    calculatingPriceId: number | null;
-    calculatePrice: (stall: DesignerStall, stalls: DesignerStall[], zones: DesignerZone[], influences: DesignerInfluence[]) => void;
+    calculatePrice: (stall: DesignerStall, influences: DesignerInfluence[]) => DesignerStall;
 }
 
 const DesignerContext = createContext<DesignerContextType | null>(null);
@@ -69,7 +68,7 @@ export function DesignerProvider({
         if (editingStallId === id) setEditingStallId(null);
     };
 
-    const { calculatingPriceId, calculatePrice } = useDebouncedPriceCalculation(event.id, updateStall);
+    const { calculatePrice } = usePriceCalculation();
 
     return (
         <DesignerContext.Provider value={{
@@ -83,7 +82,7 @@ export function DesignerProvider({
             startPos, setStartPos,
             currentPos, setCurrentPos,
             updateStall, deleteStall,
-            calculatingPriceId, calculatePrice
+            calculatePrice
         }}>
             {children}
         </DesignerContext.Provider>

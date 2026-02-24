@@ -1,4 +1,3 @@
-import { } from 'react';
 import { DesignerStall, DesignerZone, DesignerInfluence } from '../types';
 import { useDesignerLoading } from './useDesignerLoading';
 import { useDesignerPersistence } from './useDesignerPersistence';

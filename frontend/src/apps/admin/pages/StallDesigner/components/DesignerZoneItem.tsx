@@ -12,13 +12,13 @@ export function DesignerZoneItem({ zone, onMouseDown }: DesignerZoneItemProps) {
 
     return (
         <div
-            onMouseDown={e => onMouseDown(e, zone.id, 'ZONE', zone.geometry.x, zone.geometry.y)}
+            onMouseDown={e => onMouseDown(e, zone.id, 'ZONE', zone.posX || 0, zone.posY || 0)}
             className={`absolute border-2 ${bg} flex items-center justify-center opacity-70 cursor-move rounded-md`}
             style={{
-                left: `${zone.geometry.x}%`,
-                top: `${zone.geometry.y}%`,
-                width: `${zone.geometry.w}%`,
-                height: `${zone.geometry.h}%`
+                left: `${zone.posX || 0}%`,
+                top: `${zone.posY || 0}%`,
+                width: `${zone.width || 0}%`,
+                height: `${zone.height || 0}%`
             }}
         >
             <span className="text-[10px] font-black uppercase text-gray-700/80 tracking-widest px-2 text-center leading-tight">

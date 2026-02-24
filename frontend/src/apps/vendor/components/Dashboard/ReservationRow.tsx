@@ -8,9 +8,10 @@ import { formatTimeLeft } from '@/shared/utils/format';
 interface ReservationRowProps {
     res: Reservation;
     onCancel: (id: number) => void;
+    isGrouped?: boolean;
 }
 
-export const ReservationRow = ({ res, onCancel }: ReservationRowProps) => {
+export const ReservationRow = ({ res, onCancel, isGrouped }: ReservationRowProps) => {
     const navigate = useNavigate();
     const [timeLeft, setTimeLeft] = useState<string>("");
     const [isDownloading, setIsDownloading] = useState(false);
@@ -43,32 +44,37 @@ export const ReservationRow = ({ res, onCancel }: ReservationRowProps) => {
             onClick={() => navigate(`/vendor/reservations/${res.id}`)}
             className="hover:bg-slate-50/80 transition-all cursor-pointer group border-b border-slate-50 last:border-0"
         >
-            <td className="px-6 py-5">
-                <span className="font-mono text-[10px] font-black uppercase tracking-widest text-indigo-500 bg-indigo-50 px-2 py-1 rounded-lg">
+            <td className="px-10 py-4">
+                <span className="font-mono text-[9px] font-black uppercase tracking-widest text-slate-400 group-hover:text-indigo-500 transition-colors">
                     #{res.id}
                 </span>
             </td>
-            <td className="px-6 py-5">
-                <div className="font-black text-slate-800 text-sm group-hover:text-indigo-600 transition-colors">
-                    {res.event?.name || 'Colombo Bookfair 2026'}
-                </div>
-                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Stall Booking</div>
-            </td>
-            <td className="px-6 py-5">
+
+            {!isGrouped && (
+                <td className="px-6 py-4">
+                    <div className="font-black text-slate-800 text-sm group-hover:text-indigo-600 transition-colors">
+                        {res.event?.name || 'Colombo Book Fair 2026'}
+                    </div>
+                </td>
+            )}
+
+            <td className="px-6 py-4">
                 <div className="flex flex-wrap gap-1.5">
                     {res.stalls.map(s => (
-                        <span key={s} className="bg-slate-900 text-white text-[9px] font-black px-2 py-0.5 rounded-md uppercase tracking-tighter">
-                            {s}
-                        </span>
+                        <div key={s} className="flex flex-col">
+                            <span className="bg-slate-900 text-white text-[9px] font-black px-2 py-0.5 rounded-md uppercase tracking-tighter">
+                                {s}
+                            </span>
+                        </div>
                     ))}
                 </div>
             </td>
-            <td className="px-6 py-5 text-center">
+            <td className="px-6 py-4 text-center">
                 <div className="flex flex-col items-center">
                     <StatusBadge status={res.status} />
                     {res.status === 'PENDING_PAYMENT' && timeLeft && (
-                        <span className="text-[9px] text-rose-500 font-black mt-1.5 animate-pulse">
-                            {timeLeft} Left
+                        <span className="text-[8px] text-rose-500 font-black mt-1 animate-pulse">
+                            {timeLeft}
                         </span>
                     )}
                 </div>

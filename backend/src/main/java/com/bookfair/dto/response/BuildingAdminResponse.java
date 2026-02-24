@@ -1,5 +1,6 @@
 package com.bookfair.dto.response;
 
+import java.util.List;
 import lombok.Builder;
 import lombok.Data;
 
@@ -9,4 +10,5 @@ public class BuildingAdminResponse {
     private Long id;
     private String name;
     private String gpsCoordinates;
+    private List<HallResponse> halls;
 }

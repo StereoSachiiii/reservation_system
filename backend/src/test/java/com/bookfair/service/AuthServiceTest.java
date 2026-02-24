@@ -69,7 +69,7 @@ class AuthServiceTest {
         when(userService.mapToUserResponse(testUser)).thenReturn(
             new com.bookfair.dto.response.UserResponse(
                 1L, "vendor1", "vendor@test.com", "VENDOR",
-                "Test Publisher", null, null, java.util.Collections.emptyList(), null, null, 0
+                "Test Publisher", null, null, java.util.Collections.emptyList(), null, null
             )
         );
 
@@ -124,7 +124,7 @@ class AuthServiceTest {
         when(userService.mapToUserResponse(testUser)).thenReturn(
             new com.bookfair.dto.response.UserResponse(
                 1L, "vendor1", "vendor@test.com", "VENDOR",
-                "Test Publisher", null, null, java.util.Collections.emptyList(), null, null, 0
+                "Test Publisher", null, null, java.util.Collections.emptyList(), null, null
             )
         );
 

@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { adminApi } from '@/shared/api/adminApi';
 import { publicApi } from '@/shared/api/publicApi';
 import { Event, Hall } from '@/shared/types/api';
-import { DesignerStall, parseGeometry, DesignerZone, DesignerInfluence } from '../types';
-import { parseZones } from '@/shared/types/stallMap.utils';
+import { DesignerStall, DesignerZone, DesignerInfluence } from '../types';
+import { normalizeMapData, NormalizedInfluence, NormalizedZone } from '@/shared/types/stallMap.utils';
 
 export function useDesignerLoading(hallId: string | undefined) {
     const [loading, setLoading] = useState(true);
@@ -38,41 +38,64 @@ export function useDesignerLoading(hallId: string | undefined) {
                 if (!currentEvent) throw new Error("No active event assigned to this venue");
                 setEvent(currentEvent);
 
-                const mapData = await publicApi.getEventMap(currentEvent.id).catch(() => ({ stalls: [] }));
+                const [mapDataRaw, adminStallsRaw] = await Promise.all([
+                    publicApi.getEventMap(currentEvent.id).catch(() => ({ stalls: [], zones: [], influences: [] })),
+                    adminApi.getEventStalls(currentEvent.id).catch(() => [])
+                ]);
+                const mapData = mapDataRaw as any;
                 setRawMapData(mapData);
 
-                const hallStalls = (mapData?.stalls || [])
+                const adminStallsMap = new Map(adminStallsRaw.map(s => [s.id, s]));
+
+                const hallStalls: DesignerStall[] = (mapData?.stalls || [])
                     .filter((s: any) => s.hallName === currentHall.name)
-                    .map((s: any) => ({
-                        id: s.id,
-                        name: s.name,
-                        geometry: parseGeometry(s.geometry),
-                        priceCents: s.priceCents,
-                        size: s.size || 'MEDIUM',
-                        category: s.type || 'RETAIL',
-                        isAvailable: !s.reserved,
-                        sqFt: s.sqFt,
-                    }));
+                    .map((s: any) => {
+                        const adminInfo = adminStallsMap.get(s.id);
+                        return {
+                            id: s.id,
+                            name: s.name,
+                            posX: s.posX || 0,
+                            posY: s.posY || 0,
+                            width: s.width || 8,
+                            height: s.height || 8,
+                            priceCents: Math.round(Number(s.priceCents)) || 0,
+                            baseRateCents: adminInfo ? Math.round(Number(adminInfo.baseRateCents)) : Math.round(Number(s.priceCents)),
+                            pricingVersion: adminInfo?.pricingVersion || "LEGACY",
+                            size: s.size || 'MEDIUM',
+                            category: s.category || 'RETAIL',
+                            isAvailable: !s.reserved,
+                            sqFt: s.sqFt,
+                        };
+                    });
 
                 setInitialStalls(hallStalls);
 
-                const parsedConfig = parseZones(currentEvent.layoutConfig);
-                const hallInfluences = parsedConfig.influences.filter(inf => !inf.hallName || inf.hallName === currentHall.name);
-                setInitialInfluences(hallInfluences.map(inf => ({
-                    id: inf.id,
-                    type: inf.type as any,
-                    x: inf.cx, y: inf.cy, radius: inf.r,
-                    intensity: inf.intensity,
-                    falloff: inf.falloff as any
-                })));
+                const parsedConfig = normalizeMapData(mapData.zones || [], mapData.influences || []);
+                const hallInfluences: DesignerInfluence[] = parsedConfig.influences
+                    .filter((inf: NormalizedInfluence) => !inf.hallName || inf.hallName === currentHall.name)
+                    .map((inf: NormalizedInfluence) => ({
+                        id: inf.id,
+                        type: inf.type as any,
+                        intensity: inf.intensity,
+                        falloff: inf.falloff as any,
+                        posX: inf.cx,
+                        posY: inf.cy,
+                        radius: inf.r
+                    }));
+                setInitialInfluences(hallInfluences);
 
-                const hallZones = parsedConfig.zones.filter(z => !z.hallName || z.hallName === currentHall.name);
-                setInitialZones(hallZones.map(z => ({
-                    id: crypto.randomUUID(),
-                    type: z.type,
-                    geometry: { x: z.x, y: z.y, w: z.w, h: z.h },
-                    label: z.label
-                })));
+                const hallZones: DesignerZone[] = parsedConfig.zones
+                    .filter((z: NormalizedZone) => !z.hallName || z.hallName === currentHall.name)
+                    .map((z: NormalizedZone) => ({
+                        id: crypto.randomUUID(),
+                        type: z.type as any,
+                        posX: z.x,
+                        posY: z.y,
+                        width: z.w,
+                        height: z.h,
+                        label: z.label
+                    }));
+                setInitialZones(hallZones);
 
             } catch (err: any) {
                 setError(err.message);

@@ -27,5 +27,7 @@ public class EventRequest {
 
     private Event.EventStatus status;
 
-    private String layoutConfig;
+    private String mapUrl;
+    private Double mapWidth;
+    private Double mapHeight;
 }

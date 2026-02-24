@@ -11,11 +11,11 @@ export function DesignerInfluenceItem({ influence, onMouseDown }: DesignerInflue
 
     return (
         <div
-            onMouseDown={e => onMouseDown(e, influence.id, 'INFLUENCE', influence.x - influence.radius, influence.y - influence.radius)}
+            onMouseDown={e => onMouseDown(e, influence.id, 'INFLUENCE', influence.posX - influence.radius, influence.posY - influence.radius)}
             className="absolute z-0 mix-blend-multiply flex items-center justify-center cursor-move hover:border hover:border-gray-400 hover:border-dashed"
             style={{
-                left: `${influence.x - influence.radius}%`,
-                top: `${influence.y - influence.radius}%`,
+                left: `${influence.posX - influence.radius}%`,
+                top: `${influence.posY - influence.radius}%`,
                 width: `${influence.radius * 2}%`,
                 height: `${influence.radius * 2}%`,
                 background: `radial-gradient(circle, ${color} ${influence.intensity}%, transparent 70%)`,

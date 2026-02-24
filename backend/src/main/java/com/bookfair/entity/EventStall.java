@@ -58,8 +58,10 @@ public class EventStall {
 
     private String pricingVersion;
 
-    @Column(columnDefinition = "TEXT")
-    private String geometry; // JSON: { "x": 10, "y": 20, "w": 5, "h": 5 }
+    private Double posX;
+    private Double posY;
+    private Double width;
+    private Double height;
 
     private LocalDateTime deletedAt;
 }

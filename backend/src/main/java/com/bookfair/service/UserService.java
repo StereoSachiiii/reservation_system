@@ -141,8 +141,7 @@ public class UserService {
             user.getLogoUrl(),
             (user.getCategories() != null) ? user.getCategories().stream().map(Enum::name).collect(java.util.stream.Collectors.toList()) : java.util.Collections.emptyList(),
             user.getContactNumber(),
-            user.getAddress(),
-            user.getReservedStallsCount()
+            user.getAddress()
         );
     }
 }

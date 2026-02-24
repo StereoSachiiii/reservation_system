@@ -185,8 +185,8 @@ export function useHallManagement() {
                 const created = await adminApi.createHall({
                     ...payload,
                     name: data.name,
-                    building: { id: selectedBuilding.id } as any
-                });
+                    buildingId: selectedBuilding.id
+                } as any);
                 setHalls(prev => [...prev, created]);
                 setSuccess(`Hall "${created.name}" created.`);
             }

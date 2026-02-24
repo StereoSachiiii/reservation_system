@@ -33,6 +33,7 @@ function RegisterPage() {
 
         // Custom fields validation
         if (!form.businessName) newErrors.businessName = 'Business Name is required'
+        if (!form.contactNumber) newErrors.contactNumber = 'Contact Number is required'
 
         setErrors(newErrors)
         return Object.keys(newErrors).length === 0

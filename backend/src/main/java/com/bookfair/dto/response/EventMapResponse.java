@@ -11,7 +11,11 @@ public class EventMapResponse {
     private Long eventId;
     private String eventName;
     private List<StallResponse> stalls;
+    private String mapUrl;
+    private Double mapWidth;
+    private Double mapHeight;
     private Object layout;
     private Collection<Object> halls;
-    private String zones;
+    private List<MapZoneResponse> zones;
+    private List<MapInfluenceResponse> influences;
 }

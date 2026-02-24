@@ -58,11 +58,12 @@ export function MapCanvas({
                                 <MapZones zones={zones} />
                                 <ImplicitAisleLayer stalls={stalls} />
 
-                                {stalls.filter(s => s.geometry).map(stall => (
+                                {stalls.filter(s => s.posX !== undefined).map(stall => (
                                     <MapStallComponent
                                         key={stall.id}
                                         stall={stall}
                                         selectedIds={selectedIds}
+                                        showHeatmap={showHeatmap}
                                         onStallClick={onStallClick}
                                         onHoverChange={onHoverChange}
                                     />

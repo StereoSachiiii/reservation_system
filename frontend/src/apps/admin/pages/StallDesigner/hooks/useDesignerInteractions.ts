@@ -1,8 +1,7 @@
-import { useRef } from 'react';
-import { toPercent, DesignerStall } from '../types';
+import { useRef, useEffect, useCallback } from 'react';
+import { toPercent } from '../types';
 import { useDesignerDrawing } from './useDesignerDrawing';
 import { useDesignerDragging } from './useDesignerDragging';
-import { useDesigner } from '../DesignerContext';
 
 export function useDesignerInteractions() {
     const overlayRef = useRef<HTMLDivElement>(null);
@@ -42,28 +41,30 @@ export function useDesignerInteractions() {
 
         if (dragData) {
             updateDragging(pos);
-            const { stalls, zones, influences, calculatePrice } = useDesigner();
-            if (dragData.type === 'STALL') {
-                const targetStall = stalls.find((s: DesignerStall) => s.id === dragData.id);
-                if (targetStall) {
-                    const newX = pos.x - dragData.offsetX;
-                    const newY = pos.y - dragData.offsetY;
-                    const updatedStall = { ...targetStall, geometry: { ...targetStall.geometry, x: newX, y: newY } };
-                    calculatePrice(updatedStall, stalls.map((s: DesignerStall) => s.id === updatedStall.id ? updatedStall : s), zones, influences);
-                }
-            }
         } else if (isDrawing) {
             updateDrawing(pos);
         }
     };
 
-    const handleMouseUp = () => {
+    const handleMouseUp = useCallback(() => {
         if (dragData) {
             stopDragging();
         } else if (isDrawing) {
             finalizeDrawing();
         }
-    };
+    }, [dragData, isDrawing, stopDragging, finalizeDrawing]);
+
+    // Also clear drag when mouse leaves the canvas
+    const handleMouseLeave = handleMouseUp;
+
+    // Global mouseup to catch releases outside the canvas
+    useEffect(() => {
+        const onGlobalMouseUp = () => {
+            if (dragData) stopDragging();
+        };
+        window.addEventListener('mouseup', onGlobalMouseUp);
+        return () => window.removeEventListener('mouseup', onGlobalMouseUp);
+    }, [dragData, stopDragging]);
 
     return {
         overlayRef,
@@ -71,9 +72,9 @@ export function useDesignerInteractions() {
         handleMouseDown,
         handleMouseMove,
         handleMouseUp,
+        handleMouseLeave,
         isDrawing,
         startPos,
         currentPos
     };
 }
-

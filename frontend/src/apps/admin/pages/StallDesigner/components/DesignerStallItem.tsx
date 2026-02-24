@@ -1,4 +1,3 @@
-import { useDesigner } from '../DesignerContext';
 import { DesignerStall, stallColor, formatPrice } from '../types';
 
 interface DesignerStallItemProps {
@@ -8,30 +7,23 @@ interface DesignerStallItemProps {
 }
 
 export function DesignerStallItem({ stall, isEditing, onMouseDown }: DesignerStallItemProps) {
-    const { calculatingPriceId } = useDesigner();
-    const isCalculating = calculatingPriceId === stall.id;
-
     return (
         <div
-            onMouseDown={e => onMouseDown(e, stall.id, 'STALL', stall.geometry.x, stall.geometry.y)}
+            onMouseDown={e => onMouseDown(e, stall.id, 'STALL', stall.posX || 0, stall.posY || 0)}
             className={`absolute border-2 transition-colors cursor-move flex flex-col items-center justify-center gap-0.5
                 ${stallColor(stall.category, isEditing)}
                 ${!stall.isAvailable ? 'opacity-40' : 'hover:shadow-md'}
                 ${isEditing ? 'z-20 shadow-lg' : 'z-10'}`}
             style={{
-                left: `${stall.geometry.x}%`,
-                top: `${stall.geometry.y}%`,
-                width: `${stall.geometry.w}%`,
-                height: `${stall.geometry.h}%`,
+                left: `${stall.posX || 0}%`,
+                top: `${stall.posY || 0}%`,
+                width: `${stall.width || 8}%`,
+                height: `${stall.height || 8}%`,
             }}
         >
             <span className="font-black text-[9px] leading-none">{stall.name}</span>
-            {stall.geometry.w > 4 && stall.geometry.h > 4 && (
-                isCalculating ? (
-                    <div className="w-3 h-3 border-2 border-white/40 border-t-white rounded-full animate-spin mt-0.5" />
-                ) : (
-                    <span className="text-[7px] font-bold opacity-60">{formatPrice(stall.priceCents)}</span>
-                )
+            {stall.width && stall.height && stall.width > 4 && stall.height > 4 && (
+                <span className="text-[7px] font-bold opacity-60">{formatPrice(stall.priceCents)}</span>
             )}
         </div>
     );

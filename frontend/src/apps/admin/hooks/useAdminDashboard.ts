@@ -41,9 +41,9 @@ export function useAdminDashboard() {
                     activeThreads: 0,
                     latencyMs: 0
                 } as SystemHealth)),
-                adminApi.getAuditLogs('RESERVATION', 0),
-                publicApi.getActiveEvents(),
-                adminApi.getDashboardStats().catch(() => null)
+                adminApi.getAuditLogs('RESERVATION', 0).catch((err) => { console.error("AuditLogs Error:", err); return null; }),
+                publicApi.getActiveEvents().catch((err) => { console.error("ActiveEvents Error:", err); return { content: [] }; }),
+                adminApi.getDashboardStats().catch((err) => { console.error("Stats Fetch Error:", err); return null; })
             ]);
             setHealth(h);
             setAuditLogs(a);
@@ -79,7 +79,7 @@ export function useAdminDashboard() {
 
     const handleUpdateEventStatus = async (id: number, status: 'DRAFT' | 'OPEN' | 'CLOSED') => {
         try {
-            await adminApi.updateEvent(id, { status });
+            await adminApi.changeEventStatus(id, status);
             loadInitialData();
         } catch (e: any) {
             alert(e.message);

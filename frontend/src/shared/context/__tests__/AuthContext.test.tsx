@@ -49,7 +49,7 @@ describe('AuthContext', () => {
     it('hydrates user from localStorage on mount', async () => {
         const mockUser = {
             id: 1, username: 'vendor1', email: 'v@test.com', role: 'VENDOR' as const,
-            categories: [], reservedStallsCount: 2,
+            categories: [],
         }
         localStorage.setItem('token', 'jwt-test-token')
         localStorage.setItem('user', JSON.stringify(mockUser))
@@ -99,7 +99,7 @@ describe('AuthContext', () => {
     it('login() stores token and user in state and localStorage', async () => {
         const mockUser = {
             id: 5, username: 'admin', email: 'admin@test.com', role: 'ADMIN' as const,
-            categories: [], reservedStallsCount: 0,
+            categories: [],
         }
 
         function LoginTester() {
@@ -187,7 +187,7 @@ describe('AuthContext', () => {
     it('role property reflects user role correctly', async () => {
         const mockUser = {
             id: 3, username: 'emp1', email: 'e@t.com', role: 'EMPLOYEE' as const,
-            categories: [], reservedStallsCount: 0,
+            categories: [],
         }
         localStorage.setItem('token', 'jwt')
         localStorage.setItem('user', JSON.stringify(mockUser))

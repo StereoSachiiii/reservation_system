@@ -87,7 +87,9 @@ public class EventController {
                 .venueId(event.getVenue() != null ? event.getVenue().getId() : null)
                 .venueName(event.getVenue() != null ? event.getVenue().getName() : null)
                 .status(event.getStatus().name())
-                .layoutConfig(event.getLayoutConfig()) // JSON for frontend map
+                .mapUrl(event.getMapUrl())
+                .mapWidth(event.getMapWidth())
+                .mapHeight(event.getMapHeight())
                 .imageUrl(event.getImageUrl())
                 .createdAt(event.getCreatedAt())
                 .build();

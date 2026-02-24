@@ -65,12 +65,6 @@ public class User {
     @Column(name = "category")
     private java.util.Set<PublisherCategory> categories;
 
-    /** 
-     * Atomic counter for active reservations (PENDING + PAID + CHECKED_IN).
-     * Enforced by service layer and checked in atomic transactions.
-     * Limit: 3 per vendor.
-     */
-    private Integer reservedStallsCount = 0;
 
     private LocalDateTime deletedAt;
 
@@ -89,9 +83,6 @@ public class User {
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
-        if (this.reservedStallsCount == null) {
-            this.reservedStallsCount = 0;
-        }
     }
     
     /** Auto-update updatedAt on every update. */

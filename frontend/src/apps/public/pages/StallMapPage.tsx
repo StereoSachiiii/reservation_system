@@ -150,7 +150,7 @@ export default function StallMapPage() {
           </div>
 
           {(() => {
-            const currentHall = rawEventMap.halls?.find(h => h.name === selectedHall || h.hallName === selectedHall);
+            const currentHall = rawEventMap.halls?.find(h => h.name === selectedHall);
             return currentHall ? <HallInfo currentHall={currentHall} /> : null;
           })()}
 

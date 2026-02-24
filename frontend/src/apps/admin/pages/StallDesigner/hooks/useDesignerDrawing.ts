@@ -10,7 +10,8 @@ export function useDesignerDrawing() {
         setEditingStallId,
         isDrawing, setIsDrawing,
         startPos, setStartPos,
-        currentPos, setCurrentPos
+        currentPos, setCurrentPos,
+        influences, calculatePrice
     } = useDesigner();
 
     const startDrawing = (pos: { x: number; y: number }) => {
@@ -38,19 +39,28 @@ export function useDesignerDrawing() {
                 const newStall: DesignerStall = {
                     id: Date.now(),
                     name: `S-${stalls.length + 1}`,
-                    geometry: rect,
+                    posX: rect.x,
+                    posY: rect.y,
+                    width: rect.w,
+                    height: rect.h,
                     priceCents: 500000,
+                    baseRateCents: 500000,
+                    pricingVersion: 'AUTO_V2_NORM_100',
                     size: 'MEDIUM',
                     category: 'RETAIL',
                     isAvailable: true,
                 };
-                setStalls(prev => [...prev, newStall]);
-                setEditingStallId(newStall.id);
+                const pricedStall = calculatePrice(newStall, influences);
+                setStalls(prev => [...prev, pricedStall]);
+                setEditingStallId(pricedStall.id);
             } else if (drawMode === 'ZONE') {
                 const newZone: DesignerZone = {
                     id: crypto.randomUUID(),
                     type: zoneType,
-                    geometry: rect,
+                    posX: rect.x,
+                    posY: rect.y,
+                    width: rect.w,
+                    height: rect.h,
                     label: zoneType === 'WALKWAY' ? 'Main Walkway' : zoneType === 'STAGE' ? 'Main Stage' : 'Entrance'
                 };
                 setZones(prev => [...prev, newZone]);
@@ -58,13 +68,16 @@ export function useDesignerDrawing() {
                 const newInf: DesignerInfluence = {
                     id: crypto.randomUUID(),
                     type: influenceType,
-                    x: rect.x + (rect.w / 2),
-                    y: rect.y + (rect.h / 2),
+                    posX: rect.x + (rect.w / 2),
+                    posY: rect.y + (rect.h / 2),
                     radius: Math.max(rect.w, rect.h) / 2,
                     intensity: 80,
                     falloff: 'linear'
                 };
-                setInfluences(prev => [...prev, newInf]);
+                const updatedInfluences = [...influences, newInf];
+                setInfluences(updatedInfluences);
+                // Recalculate ALL stall prices against the new influence set
+                setStalls(prev => prev.map(s => calculatePrice(s, updatedInfluences)));
             }
         }
     };

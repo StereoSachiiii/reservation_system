@@ -18,7 +18,7 @@ export const HallInfo = ({ currentHall }: { currentHall: Hall }) => {
               <div className="flex items-center gap-3">
                 <p className="text-slate-400 font-bold text-[10px] uppercase tracking-[0.2em]">Hall Specification</p>
                 {(() => {
-                  const cat = currentHall.mainCategory || currentHall.category;
+                  const cat = currentHall.mainCategory;
                   if (!cat) return null;
                   return (
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-white text-blue-600 border border-blue-100 shadow-sm">
@@ -46,7 +46,7 @@ export const HallInfo = ({ currentHall }: { currentHall: Hall }) => {
                 <Layers className="w-3.5 h-3.5 group-hover:text-blue-500 transition-colors" />
                 <p className="text-[10px] font-black uppercase tracking-widest">Floor Level</p>
               </div>
-              <p className="text-xl font-bold text-slate-900">Level {currentHall.floorLevel ?? currentHall.floor ?? 'G'}</p>
+              <p className="text-xl font-bold text-slate-900">Level {currentHall.floorLevel !== undefined ? currentHall.floorLevel : 'G'}</p>
             </div>
 
             <div className="group">
@@ -55,10 +55,7 @@ export const HallInfo = ({ currentHall }: { currentHall: Hall }) => {
                 <p className="text-[10px] font-black uppercase tracking-widest">Total Area</p>
               </div>
               <p className="text-xl font-bold text-slate-900">
-                {(() => {
-                  const area = currentHall.totalSqFt || currentHall.sqFt;
-                  return area ? `${area.toLocaleString()} sqft` : '—';
-                })()}
+                {currentHall.totalSqFt ? `${currentHall.totalSqFt.toLocaleString()} sqft` : '—'}
               </p>
             </div>
 
@@ -77,7 +74,7 @@ export const HallInfo = ({ currentHall }: { currentHall: Hall }) => {
                 <p className="text-[10px] font-black uppercase tracking-widest">Climate</p>
               </div>
               <div className="flex items-center gap-2">
-                {currentHall.isAirConditioned || currentHall.isAc ? (
+                {currentHall.isAirConditioned ? (
                   <span className="px-3 py-1 bg-cyan-50 text-cyan-700 text-[10px] font-black uppercase rounded-lg border border-cyan-100 shadow-sm shadow-cyan-50">
                     A/C Controlled
                   </span>

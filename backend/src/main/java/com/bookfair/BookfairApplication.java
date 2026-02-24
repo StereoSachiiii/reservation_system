@@ -21,7 +21,7 @@ public class BookfairApplication {
             });
             log.info("Dotenv loaded successfully.");
         } catch (Exception e) {
-            log.error("Could not load .env file: " + e.getMessage());
+            log.error("Could not load .env file: {}", e.getMessage());
         }
 
         SpringApplication.run(BookfairApplication.class, args);

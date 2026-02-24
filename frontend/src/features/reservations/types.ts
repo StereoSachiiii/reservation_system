@@ -1,5 +1,4 @@
-import { User } from '@/shared/types/user';
-import { Stall } from '@/shared/types/stall';
+import { EventStall as Stall, User } from '@/shared/types/api'
 
 export interface Reservation {
     id: number

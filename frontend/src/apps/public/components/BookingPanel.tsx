@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
-import { MapStall } from '@/shared/types/stallMap.utils'
+import { EventStall as Stall } from '@/shared/types/api'
 
 // Sub-components
 import { ConfirmModal } from './ConfirmModal'
@@ -11,7 +11,7 @@ import { BookingSummary } from './BookingSummary'
 
 interface BookingPanelProps {
   selectedIds: number[]
-  allStalls: MapStall[]
+  allStalls: Stall[]
   remainingSlots: number
   eventName: string
   error: string | null

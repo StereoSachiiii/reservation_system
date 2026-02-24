@@ -24,6 +24,9 @@ class PricingServiceTest {
     @Mock
     private EventStallRepository eventStallRepository;
 
+    @Mock
+    private com.bookfair.repository.MapInfluenceRepository mapInfluenceRepository;
+
     private ObjectMapper objectMapper = new ObjectMapper();
 
     @InjectMocks
@@ -32,7 +35,7 @@ class PricingServiceTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        pricingService = new PricingService(eventStallRepository, objectMapper);
+        pricingService = new PricingService(eventStallRepository, mapInfluenceRepository, objectMapper);
     }
 
     @Test
@@ -40,26 +43,22 @@ class PricingServiceTest {
         // Arrange
         StallTemplate template = StallTemplate.builder()
                 .defaultProximityScore(5)
-                .geometry("{\"x\": 10, \"y\": 10, \"w\": 10, \"h\": 10}")
+                .posX(10.0).posY(10.0).width(10.0).height(10.0)
                 .build();
         
         EventStall stall = EventStall.builder()
                 .id(1L)
                 .stallTemplate(template)
                 .baseRateCents(100000L)
-                .geometry("{\"x\": 10, \"y\": 10, \"w\": 10, \"h\": 10}")
+                .posX(10.0).posY(10.0).width(10.0).height(10.0)
                 .build();
 
-        String layoutConfig = "{" +
-                "\"width\": 1000, \"height\": 800," +
-                "\"influences\": [" +
-                "  {\"x\": 150, \"y\": 150, \"radius\": 200, \"intensity\": 80, \"type\": \"ENTRANCE\", \"falloff\": \"LINEAR\"}" +
-                "]" +
-                "}";
-        JsonNode layoutNode = objectMapper.readTree(layoutConfig);
+        List<com.bookfair.entity.MapInfluence> influences = List.of(
+            com.bookfair.entity.MapInfluence.builder().type(com.bookfair.entity.MapInfluenceType.TRAFFIC).posX(10.0).posY(10.0).radius(20.0).intensity(80).falloff("linear").build()
+        );
 
         // Act
-        Map<String, Object> breakdown = pricingService.calculatePriceBreakdown(stall, layoutNode);
+        Map<String, Object> breakdown = pricingService.calculatePriceBreakdown(stall, influences);
 
         // Assert
         assertTrue(breakdown.containsKey("Visibility Score"));
@@ -68,7 +67,7 @@ class PricingServiceTest {
         
         List<Map<String, Object>> drivers = (List<Map<String, Object>>) breakdown.get("Value Drivers");
         assertFalse(drivers.isEmpty());
-        assertEquals("ENTRANCE Proximity", drivers.get(0).get("label"));
+        assertEquals("TRAFFIC Proximity", drivers.get(0).get("label"));
     }
 
     @Test
@@ -79,14 +78,13 @@ class PricingServiceTest {
                 .id(1L)
                 .stallTemplate(template)
                 .baseRateCents(100000L)
-                .geometry("{\"x\": 0, \"y\": 10, \"w\": 10, \"h\": 10}") // At edge
+                .posX(0.0).posY(10.0).width(10.0).height(10.0) // At edge
                 .build();
 
-        String layoutConfig = "{\"width\": 1000, \"height\": 800, \"influences\": []}";
-        JsonNode layoutNode = objectMapper.readTree(layoutConfig);
+        List<com.bookfair.entity.MapInfluence> influences = List.of();
 
         // Act
-        Map<String, Object> breakdown = pricingService.calculatePriceBreakdown(stall, layoutNode);
+        Map<String, Object> breakdown = pricingService.calculatePriceBreakdown(stall, influences);
 
         // Assert
         List<Map<String, Object>> drivers = (List<Map<String, Object>>) breakdown.get("Value Drivers");
@@ -98,7 +96,7 @@ class PricingServiceTest {
     void recalculateEventPrices_ShouldUpdateStalls() throws Exception {
         // Arrange
         Long eventId = 101L;
-        Event event = Event.builder().id(eventId).layoutConfig("{\"width\": 1000, \"height\": 800, \"influences\": []}").build();
+        Event event = Event.builder().id(eventId).build();
         
         StallTemplate template = StallTemplate.builder().defaultProximityScore(5).id(1L).build();
         EventStall stall = EventStall.builder()
@@ -106,7 +104,7 @@ class PricingServiceTest {
                 .stallTemplate(template)
                 .baseRateCents(100000L)
                 .multiplier(1.0)
-                .geometry("{\"x\": 50, \"y\": 50, \"w\": 10, \"h\": 10}")
+                .posX(50.0).posY(50.0).width(10.0).height(10.0)
                 .build();
 
         when(eventStallRepository.findByEvent_Id(eventId)).thenReturn(List.of(stall));
@@ -117,6 +115,6 @@ class PricingServiceTest {
         // Assert
         verify(eventStallRepository, times(1)).saveAll(anyList());
         assertNotNull(stall.getPricingVersion());
-        assertTrue(stall.getPricingVersion().startsWith("AUTO_V1_"));
+        assertTrue(stall.getPricingVersion().startsWith("AUTO_V2_"));
     }
 }

@@ -31,21 +31,24 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
 
     /** Count active reservations for a user (for the max-3-stalls check). Includes PENDING and PAID. */
     /** Count active reservations for a user (for the max-3-stalls check). Includes PENDING_PAYMENT and PAID. */
-    @Query("SELECT COUNT(r) FROM Reservation r WHERE r.user.id = :userId AND (r.status = 'PAID' OR r.status = 'PENDING_PAYMENT')")
+    @Query("SELECT COUNT(r) FROM Reservation r WHERE r.user.id = :userId AND (r.status = com.bookfair.features.reservation.Reservation.ReservationStatus.PAID OR r.status = com.bookfair.features.reservation.Reservation.ReservationStatus.PENDING_PAYMENT)")
     long countByUserIdAndStatusActive(Long userId);
 
-    @Query("SELECT COUNT(r) FROM Reservation r WHERE r.user.id = :userId AND r.eventStall.event.id = :eventId AND (r.status = 'PAID' OR r.status = 'PENDING_PAYMENT')")
+    @Query("SELECT COUNT(r) FROM Reservation r WHERE r.user.id = :userId AND r.eventStall.event.id = :eventId AND (r.status = com.bookfair.features.reservation.Reservation.ReservationStatus.PAID OR r.status = com.bookfair.features.reservation.Reservation.ReservationStatus.PENDING_PAYMENT)")
     long countByUserIdAndEventIdAndStatusActive(Long userId, Long eventId);
 
     /** Check if a stall already has an active reservation. */
-    @Query("SELECT COUNT(r) > 0 FROM Reservation r WHERE r.eventStall.id = :stallId AND (r.status = 'PAID' OR r.status = 'PENDING_PAYMENT')")
+    @Query("SELECT COUNT(r) > 0 FROM Reservation r WHERE r.eventStall.id = :stallId AND (r.status = com.bookfair.features.reservation.Reservation.ReservationStatus.PAID OR r.status = com.bookfair.features.reservation.Reservation.ReservationStatus.PENDING_PAYMENT)")
     boolean isStallReserved(Long stallId);
 
-    @Query("SELECT COALESCE(SUM(r.eventStall.finalPriceCents), 0) FROM Reservation r WHERE r.status = 'PAID'")
-    long sumTotalRevenueCents();
+    @Query("SELECT COALESCE(SUM(r.eventStall.finalPriceCents), 0) FROM Reservation r WHERE r.status = :status")
+    long sumTotalRevenueCents(@org.springframework.data.repository.query.Param("status") Reservation.ReservationStatus status);
 
-    @Query("SELECT COUNT(DISTINCT r.user.id) FROM Reservation r WHERE r.status = 'PAID' OR r.status = 'PENDING_PAYMENT'")
-    long countActiveVendors();
+    @Query("SELECT COUNT(DISTINCT r.user.id) FROM Reservation r WHERE r.status = :s1 OR r.status = :s2")
+    long countActiveVendors(
+        @org.springframework.data.repository.query.Param("s1") Reservation.ReservationStatus s1,
+        @org.springframework.data.repository.query.Param("s2") Reservation.ReservationStatus s2
+    );
 
     @Query("SELECT COUNT(r) FROM Reservation r WHERE r.status IN :statuses")
     long countByStatusIn(@org.springframework.data.repository.query.Param("statuses") List<Reservation.ReservationStatus> statuses);

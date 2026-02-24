@@ -26,6 +26,7 @@ public class StallService {
     
     private final ReservationRepository reservationRepository;
     private final com.bookfair.repository.EventStallRepository eventStallRepository;
+    private final com.bookfair.repository.MapInfluenceRepository mapInfluenceRepository;
     private final PricingService pricingService;
     private final com.fasterxml.jackson.databind.ObjectMapper objectMapper;
     
@@ -33,8 +34,9 @@ public class StallService {
     
     public List<com.bookfair.dto.response.StallResponse> getByEventId(Long eventId) {
         List<com.bookfair.entity.EventStall> stalls = eventStallRepository.findByEvent_Id(eventId);
+        List<com.bookfair.entity.MapInfluence> influences = mapInfluenceRepository.findByEvent_Id(eventId);
         Map<Long, Reservation> activeReservationMap = buildActiveReservationMap(eventId);
-        return stalls.stream().map(s -> mapToResponse(s, activeReservationMap)).collect(Collectors.toList());
+        return stalls.stream().map(s -> mapToResponse(s, activeReservationMap, influences)).collect(Collectors.toList());
     }
 
     public List<com.bookfair.dto.response.StallResponse> getAll(String sizeStr, Boolean available) {
@@ -42,21 +44,24 @@ public class StallService {
         // Filtering could be added here if needed for V4
         
         Map<Long, Reservation> activeReservationMap = buildActiveReservationMap();
-        return stalls.stream().map(s -> mapToResponse(s, activeReservationMap)).collect(Collectors.toList());
+        return stalls.stream().map(s -> mapToResponse(s, activeReservationMap, java.util.Collections.emptyList())).collect(Collectors.toList());
     }
 
     public List<com.bookfair.dto.response.StallResponse> getAvailable() {
         Map<Long, Reservation> activeReservationMap = buildActiveReservationMap();
         return eventStallRepository.findAll().stream()
                 .filter(s -> !activeReservationMap.containsKey(s.getId()))
-                .map(s -> mapToResponse(s, activeReservationMap)).collect(Collectors.toList());
+                .map(s -> mapToResponse(s, activeReservationMap, java.util.Collections.emptyList())).collect(Collectors.toList());
     }
 
     public com.bookfair.dto.response.StallResponse getById(Long id) {
         com.bookfair.entity.EventStall stall = eventStallRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("EventStall not found"));
+        List<com.bookfair.entity.MapInfluence> influences = stall.getEvent() != null ? 
+                                                            mapInfluenceRepository.findByEvent_Id(stall.getEvent().getId()) : 
+                                                            java.util.Collections.emptyList();
         Map<Long, Reservation> activeReservationMap = buildActiveReservationMap();
-        return mapToResponse(stall, activeReservationMap);
+        return mapToResponse(stall, activeReservationMap, influences);
     }
 
     /**
@@ -85,13 +90,14 @@ public class StallService {
                 ));
     }
 
-    private com.bookfair.dto.response.StallResponse mapToResponse(com.bookfair.entity.EventStall eventStall, Map<Long, Reservation> activeReservationMap) {
+    private com.bookfair.dto.response.StallResponse mapToResponse(com.bookfair.entity.EventStall eventStall, Map<Long, Reservation> activeReservationMap, List<com.bookfair.entity.MapInfluence> influences) {
         com.bookfair.dto.response.StallResponse response = new com.bookfair.dto.response.StallResponse();
         response.setId(eventStall.getId());
         
         com.bookfair.entity.StallTemplate template = eventStall.getStallTemplate();
         if (template != null) {
             response.setName(template.getName());
+            response.setTemplateName(template.getName());
             if (template.getHall() != null) {
                 response.setHallName(template.getHall().getName());
                 response.setHallCategory(template.getHall().getMainCategory() != null ? 
@@ -100,39 +106,30 @@ public class StallService {
             response.setSize(template.getSize().name());
             response.setType(template.getType().name());
             response.setProximityScore(template.getDefaultProximityScore());
-            // Prioritize EventStall geometry (custom for event) then template
-            response.setGeometry(eventStall.getGeometry() != null ? 
-                                 eventStall.getGeometry() : 
-                                 template.getGeometry());
+            
+            // Map structured coordinates
+            response.setPosX(eventStall.getPosX() != null ? eventStall.getPosX() : template.getPosX());
+            response.setPosY(eventStall.getPosY() != null ? eventStall.getPosY() : template.getPosY());
+            response.setWidth(eventStall.getWidth() != null ? eventStall.getWidth() : template.getWidth());
+            response.setHeight(eventStall.getHeight() != null ? eventStall.getHeight() : template.getHeight());
         }
         
         response.setPriceCents(eventStall.getFinalPriceCents());
         
-        // V6: Spatial Scoring Algorithm (Now centralized in PricingService)
         java.util.Map<String, Object> breakdown = new java.util.HashMap<>();
         int calculatedScore = 0;
         
         try {
             if (eventStall.getEvent() != null) {
-                String eventLayout = eventStall.getEvent().getLayoutConfig();
-                String hallLayout = eventStall.getStallTemplate().getHall() != null ? 
-                                    eventStall.getStallTemplate().getHall().getStaticLayout() : null;
-                
-                String activeLayout = (eventLayout != null && !eventLayout.trim().isEmpty() && !eventLayout.equals("{}"))
-                                      ? eventLayout : hallLayout;
-
-                if (activeLayout != null && !activeLayout.trim().isEmpty() && !activeLayout.equals("{}")) {
-                    com.fasterxml.jackson.databind.JsonNode layoutNode = objectMapper.readTree(activeLayout);
-                    breakdown = pricingService.calculatePriceBreakdown(eventStall, layoutNode);
-                    calculatedScore = (int) breakdown.getOrDefault("calculatedScore", 0);
-                }
+                breakdown = pricingService.calculatePriceBreakdown(eventStall, influences);
+                calculatedScore = ((Number) breakdown.getOrDefault("calculatedScore", 0)).intValue();
             }
         } catch (Exception e) {
-            log.error("Spatial scoring lookup failed: " + e.getMessage());
+            log.error("Spatial scoring fallback failed: " + e.getMessage());
         }
         
         response.setPricingBreakdown(breakdown);
-        response.setProximityScore(calculatedScore / SCORE_SCALE_DIVISOR); // Scale 0-100 to 1-5
+        response.setProximityScore(calculatedScore / SCORE_SCALE_DIVISOR);
 
         Reservation reservation = activeReservationMap.get(eventStall.getId());
         boolean isTemplateBlocked = (template != null && Boolean.FALSE.equals(template.getIsAvailable()));
