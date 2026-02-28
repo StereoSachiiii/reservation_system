@@ -38,6 +38,7 @@ public class SecurityConfig {
     private final UserDetailsServiceImpl userDetailsService;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final RateLimitingFilter rateLimitingFilter;
+    private final org.springframework.web.cors.CorsConfigurationSource corsConfigurationSource;
 
     /**
      * Configures the authentication provider that verifies login credentials.
@@ -109,7 +110,7 @@ public class SecurityConfig {
     // will be after jwtauth tags a user with either a role or anonymous
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http.cors(cors -> {})
+        http.cors(cors -> cors.configurationSource(corsConfigurationSource))
             .csrf(AbstractHttpConfigurer::disable)
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> 
@@ -130,7 +131,8 @@ public class SecurityConfig {
                     
                     // Authenticated users (Vendors/Employees/Admins)
                     .requestMatchers("/api/v1/vendor/**").authenticated()
-                    .requestMatchers("/api/v1/notifications/**", "/api/v1/notifications").authenticated()
+                    .requestMatchers("/api/v1/notifications", "/api/v1/notifications/**").authenticated()
+                    .requestMatchers("/api/v1/payments/**").authenticated()
                     
                     .anyRequest().authenticated()
             );

@@ -1,7 +1,7 @@
 package com.bookfair.service;
 
-import com.bookfair.entity.Reservation;
-import com.bookfair.repository.ReservationRepository;
+import com.bookfair.features.reservation.Reservation;
+import com.bookfair.features.reservation.ReservationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import com.bookfair.exception.ResourceNotFoundException;

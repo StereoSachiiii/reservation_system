@@ -1,4 +1,4 @@
-package com.bookfair.dto.request;
+package com.bookfair.features.reservation.dto;
 
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;

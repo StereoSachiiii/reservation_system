@@ -2,6 +2,8 @@ package com.bookfair.service;
 
 import com.bookfair.entity.*;
 import com.bookfair.repository.*;
+import com.bookfair.features.reservation.Reservation;
+import com.bookfair.features.reservation.ReservationRepository;
 import com.bookfair.dto.response.AdminDashboardStats;
 import com.bookfair.exception.ResourceNotFoundException;
 import com.bookfair.exception.BadRequestException;
@@ -268,7 +270,7 @@ public class AdminService {
     }
 
     @Transactional(readOnly = true)
-    public Map<String, Object> getEventStats(Long eventId) {
+    public com.bookfair.dto.response.EventStatsResponse getEventStats(Long eventId) {
         List<EventStall> stalls = eventStallRepository.findByEvent_Id(eventId);
         long total    = stalls.size();
         long reserved = stalls.stream().filter(s -> s.getStatus() == EventStallStatus.RESERVED).count();
@@ -278,21 +280,21 @@ public class AdminService {
                 .filter(s -> s.getStatus() == EventStallStatus.RESERVED)
                 .mapToLong(s -> s.getFinalPriceCents() != null ? s.getFinalPriceCents() : 0).sum();
 
-        return Map.of(
-            "eventId", eventId,
-            "totalStalls", total,
-            "reservedStalls", reserved,
-            "availableStalls", available,
-            "blockedStalls", blocked,
-            "fillRate", total > 0 ? (double) reserved / total * 100.0 : 0.0,
-            "projectedRevenueCents", revenueReserved
-        );
+        return com.bookfair.dto.response.EventStatsResponse.builder()
+            .eventId(eventId)
+            .totalStalls(total)
+            .reservedStalls(reserved)
+            .availableStalls(available)
+            .blockedStalls(blocked)
+            .fillRate(total > 0 ? (double) reserved / total * 100.0 : 0.0)
+            .projectedRevenueCents(revenueReserved)
+            .build();
     }
 
     // ─── PRICING ─────────────────────────────────────────────────
 
     @Transactional
-    public Map<String, Object> updateStallPrice(Long stallId, Map<String, Object> request) {
+    public com.bookfair.dto.response.StallPriceResponse updateStallPrice(Long stallId, Map<String, Object> request) {
         EventStall stall = eventStallRepository.findById(stallId)
                 .orElseThrow(() -> new ResourceNotFoundException("EventStall not found: " + stallId));
 
@@ -308,19 +310,16 @@ public class AdminService {
         eventStallRepository.save(stall);
         logAudit("PRICE_OVERRIDE", "EVENT_STALL", stallId, request);
 
-        return Map.of("stallId", stallId, "finalPriceCents", stall.getFinalPriceCents());
+        return com.bookfair.dto.response.StallPriceResponse.builder()
+                .stallId(stallId)
+                .finalPriceCents(stall.getFinalPriceCents())
+                .build();
     }
 
     // ─── REFUNDS ─────────────────────────────────────────────────
 
-    /**
-     * Marks a reservation as cancelled for refund purposes.
-     * Opens up the stall for the public.
-     * NOTE: This does NOT issue an actual Stripe refund — refunds must be processed
-     * manually through the Stripe dashboard. This is by design for this project scope.
-     */
     @Transactional
-    public Map<String, Object> refundReservation(Long reservationId, String reason) {
+    public com.bookfair.dto.response.RefundResponse refundReservation(Long reservationId, String reason) {
         Reservation reservation = getReservationById(reservationId);
         
         if (reservation.getStatus() != Reservation.ReservationStatus.PENDING_REFUND &&
@@ -339,19 +338,19 @@ public class AdminService {
         reservationRepository.save(reservation);
         logAudit("REFUND_ISSUED", "RESERVATION", reservationId, Map.of("reason", reason != null ? reason : ""));
 
-        return Map.of(
-            "id", reservationId,
-            "status", "CANCELLED_PENDING_MANUAL_REFUND",
-            "refundTxId", "MANUAL-" + reservationId,
-            "refundedAt", java.time.LocalDateTime.now().toString(),
-            "reason", reason != null ? reason : ""
-        );
+        return com.bookfair.dto.response.RefundResponse.builder()
+            .id(reservationId)
+            .status("CANCELLED_PENDING_MANUAL_REFUND")
+            .refundTxId("MANUAL-" + reservationId)
+            .refundedAt(java.time.LocalDateTime.now().toString())
+            .reason(reason != null ? reason : "")
+            .build();
     }
 
     // ─── AUDIT LOGS ───────────────────────────────────────────────
 
     @Transactional(readOnly = true)
-    public Map<String, Object> getAuditLogs(String entityType, Long actorId, int page, int size) {
+    public com.bookfair.dto.response.PageResponse<com.bookfair.dto.response.AuditLogResponse> getAuditLogs(String entityType, Long actorId, int page, int size) {
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by("timestamp").descending());
         Page<AuditLog> result = auditLogRepository.findFiltered(
             entityType != null && !entityType.isEmpty() ? entityType : null,
@@ -359,23 +358,23 @@ public class AdminService {
             pageRequest
         );
 
-        List<Map<String, Object>> content = result.getContent().stream().map(log -> Map.<String, Object>of(
-            "id", log.getId(),
-            "actorId", log.getActor() != null ? log.getActor().getId() : 0,
-            "action", log.getAction(),
-            "entityType", log.getEntityType(),
-            "entityId", log.getEntityId() != null ? log.getEntityId() : 0,
-            "timestamp", log.getTimestamp().toString(),
-            "metadata", log.getMetadata() != null ? log.getMetadata() : ""
-        )).collect(Collectors.toList());
+        List<com.bookfair.dto.response.AuditLogResponse> content = result.getContent().stream().map(log -> com.bookfair.dto.response.AuditLogResponse.builder()
+            .id(log.getId())
+            .actorId(log.getActor() != null ? log.getActor().getId() : 0)
+            .action(log.getAction())
+            .entityType(log.getEntityType())
+            .entityId(log.getEntityId() != null ? log.getEntityId() : 0)
+            .timestamp(log.getTimestamp().toString())
+            .metadata(log.getMetadata() != null ? log.getMetadata() : "")
+            .build()).collect(Collectors.toList());
 
-        return Map.of(
-            "content", content,
-            "totalElements", result.getTotalElements(),
-            "totalPages", result.getTotalPages(),
-            "size", result.getSize(),
-            "number", result.getNumber()
-        );
+        return com.bookfair.dto.response.PageResponse.<com.bookfair.dto.response.AuditLogResponse>builder()
+            .content(content)
+            .totalElements(result.getTotalElements())
+            .totalPages(result.getTotalPages())
+            .size(result.getSize())
+            .number(result.getNumber())
+            .build();
     }
 
     // ─── INTERNAL: AUDIT LOG WRITER ──────────────────────────────

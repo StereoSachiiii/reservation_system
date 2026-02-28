@@ -1,4 +1,4 @@
-import { Reservation } from '../types/api';
+import { Reservation } from '../types';
 
 interface ReservationTimelineProps {
   reservation: Reservation;

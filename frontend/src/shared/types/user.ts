@@ -2,9 +2,10 @@ export interface User {
     id: number
     username: string
     email: string
+    role: 'ADMIN' | 'VENDOR' | 'EMPLOYEE'
     businessName: string
-    contactNumber: string
-    role: 'ADMIN' | 'VENDOR'
+    categories?: string[]
+    contactNumber?: string
 }
 
 export interface AuthResponse {

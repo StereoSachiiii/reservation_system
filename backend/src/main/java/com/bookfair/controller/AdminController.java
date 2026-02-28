@@ -26,15 +26,19 @@ public class AdminController {
     private final com.bookfair.repository.HallRepository hallRepository;
 
     // ─── VENUE & BUILDING MANAGEMENT ─────────────────────────────
-
+    
     @GetMapping("/venues")
-    public ResponseEntity<List<Venue>> getAllVenues() {
-        return ResponseEntity.ok(venueRepository.findAll());
+    public ResponseEntity<List<com.bookfair.dto.response.VenueAdminResponse>> getAllVenues() {
+        return ResponseEntity.ok(venueRepository.findAll().stream()
+                .map(this::mapToVenueAdminResponse)
+                .collect(java.util.stream.Collectors.toList()));
     }
 
     @GetMapping("/venues/{id}/buildings")
-    public ResponseEntity<List<Building>> getBuildingsByVenue(@PathVariable Long id) {
-        return ResponseEntity.ok(buildingRepository.findByVenue_Id(id));
+    public ResponseEntity<List<com.bookfair.dto.response.BuildingAdminResponse>> getBuildingsByVenue(@PathVariable Long id) {
+        return ResponseEntity.ok(buildingRepository.findByVenue_Id(id).stream()
+                .map(this::mapToBuildingAdminResponse)
+                .collect(java.util.stream.Collectors.toList()));
     }
 
     @GetMapping("/buildings/{id}/halls")
@@ -88,11 +92,14 @@ public class AdminController {
     }
 
     @PostMapping("/halls/{id}/static-layout")
-    public ResponseEntity<Map<String, Object>> updateHallLayout(
+    public ResponseEntity<com.bookfair.dto.response.GenericActionResponse> updateHallLayout(
             @PathVariable Long id,
             @RequestBody Map<String, String> payload) {
         adminService.updateHallLayout(id, payload.get("staticLayout"));
-        return ResponseEntity.ok(Map.of("updated", true));
+        return ResponseEntity.ok(com.bookfair.dto.response.GenericActionResponse.builder()
+                .success(true)
+                .message("Hall layout updated successfully")
+                .build());
     }
 
     // ─── STALL INVENTORY ────────────────────────────────────────
@@ -118,11 +125,14 @@ public class AdminController {
 
     /** Adjust all stall prices in a hall by a percentage */
     @PostMapping("/halls/{id}/price-adjust")
-    public ResponseEntity<Map<String, Object>> bulkPriceAdjust(
+    public ResponseEntity<com.bookfair.dto.response.GenericActionResponse> bulkPriceAdjust(
             @PathVariable Long id,
             @jakarta.validation.Valid @RequestBody com.bookfair.dto.request.BulkPriceAdjustRequest request) {
         adminStallService.applyBulkPriceIncrease(id, request.getPercentage());
-        return ResponseEntity.ok(Map.of("adjusted", true, "percentage", request.getPercentage()));
+        return ResponseEntity.ok(com.bookfair.dto.response.GenericActionResponse.builder()
+                .success(true)
+                .message("Prices adjusted by " + request.getPercentage() + "%")
+                .build());
     }
 
     /** Block / unblock a single stall template */
@@ -156,11 +166,11 @@ public class AdminController {
     // ─── EVENT / MAP MANAGEMENT ──────────────────────────────────
 
     @PostMapping("/events/{id}/map")
-    public ResponseEntity<Map<String, String>> uploadMap(
+    public ResponseEntity<com.bookfair.dto.response.UrlResponse> uploadMap(
             @PathVariable Long id,
             @RequestParam("file") MultipartFile file) {
         String url = adminService.uploadVenueMap(id, file);
-        return ResponseEntity.ok(Map.of("url", url));
+        return ResponseEntity.ok(com.bookfair.dto.response.UrlResponse.builder().url(url).build());
     }
 
     @PostMapping("/events/{id}/stalls")
@@ -180,38 +190,44 @@ public class AdminController {
     }
 
     @GetMapping("/events/{id}/stats")
-    public ResponseEntity<Map<String, Object>> getEventStats(@PathVariable Long id) {
+    public ResponseEntity<com.bookfair.dto.response.EventStatsResponse> getEventStats(@PathVariable Long id) {
         return ResponseEntity.ok(adminService.getEventStats(id));
     }
 
     // ─── RESERVATION MANAGEMENT ──────────────────────────────────
 
     @GetMapping("/reservations")
-    public ResponseEntity<List<com.bookfair.dto.response.ReservationResponse>> getAllReservations() {
+    public ResponseEntity<List<com.bookfair.features.reservation.dto.ReservationResponse>> getAllReservations() {
         return ResponseEntity.ok(adminService.getAllReservations().stream()
-                .map(ReservationController::mapToResponse)
+                .map(com.bookfair.features.reservation.ReservationController::mapToResponse)
                 .collect(java.util.stream.Collectors.toList()));
     }
 
     @GetMapping("/reservations/{id}")
-    public ResponseEntity<com.bookfair.dto.response.ReservationResponse> getReservationById(@PathVariable Long id) {
-        return ResponseEntity.ok(ReservationController.mapToResponse(adminService.getReservationById(id)));
+    public ResponseEntity<com.bookfair.features.reservation.dto.ReservationResponse> getReservationById(@PathVariable Long id) {
+        return ResponseEntity.ok(com.bookfair.features.reservation.ReservationController.mapToResponse(adminService.getReservationById(id)));
     }
 
     /** Confirm payment for a PENDING_PAYMENT reservation (admin override) */
     @PostMapping("/reservations/{id}/confirm")
-    public ResponseEntity<Map<String, Object>> confirmPayment(@PathVariable Long id) {
+    public ResponseEntity<com.bookfair.dto.response.GenericActionResponse> confirmPayment(@PathVariable Long id) {
         adminService.adminConfirmPayment(id);
-        return ResponseEntity.ok(Map.of("confirmed", true, "reservationId", id));
+        return ResponseEntity.ok(com.bookfair.dto.response.GenericActionResponse.builder()
+                .success(true)
+                .message("Payment confirmed for reservation " + id)
+                .build());
     }
 
     /** Cancel any reservation (admin override) */
     @DeleteMapping("/reservations/{id}")
-    public ResponseEntity<Map<String, Object>> cancelReservation(
+    public ResponseEntity<com.bookfair.dto.response.GenericActionResponse> cancelReservation(
             @PathVariable Long id,
             @RequestParam(defaultValue = "Admin cancelled") String reason) {
         adminService.adminCancelReservation(id, reason);
-        return ResponseEntity.ok(Map.of("cancelled", true, "reservationId", id));
+        return ResponseEntity.ok(com.bookfair.dto.response.GenericActionResponse.builder()
+                .success(true)
+                .message("Reservation " + id + " cancelled")
+                .build());
     }
 
     /** Export all reservations as CSV */
@@ -227,7 +243,7 @@ public class AdminController {
     // ─── PRICING ─────────────────────────────────────────────────
 
     @PatchMapping("/stalls/{stallId}/price")
-    public ResponseEntity<Map<String, Object>> updateStallPrice(
+    public ResponseEntity<com.bookfair.dto.response.StallPriceResponse> updateStallPrice(
             @PathVariable Long stallId,
             @jakarta.validation.Valid @RequestBody com.bookfair.dto.request.StallPriceUpdateRequest request) {
         // Adapt DTO to Map for service (temporary, Service should eventually be updated too)
@@ -240,7 +256,7 @@ public class AdminController {
     // ─── PAYMENTS / REFUNDS ──────────────────────────────────────
 
     @PostMapping("/payments/refund")
-    public ResponseEntity<Map<String, Object>> refundReservation(@jakarta.validation.Valid @RequestBody com.bookfair.dto.request.RefundRequest request) {
+    public ResponseEntity<com.bookfair.dto.response.RefundResponse> refundReservation(@jakarta.validation.Valid @RequestBody com.bookfair.dto.request.RefundRequest request) {
         return ResponseEntity.ok(adminService.refundReservation(request.getReservationId(), request.getReason()));
     }
 
@@ -266,7 +282,7 @@ public class AdminController {
     // ─── AUDIT LOGS ───────────────────────────────────────────────
 
     @GetMapping("/audit/logs")
-    public ResponseEntity<Map<String, Object>> getAuditLogs(
+    public ResponseEntity<com.bookfair.dto.response.PageResponse<com.bookfair.dto.response.AuditLogResponse>> getAuditLogs(
             @RequestParam(required = false) String entityType,
             @RequestParam(required = false) Long actorId,
             @RequestParam(defaultValue = "0") int page,
@@ -353,6 +369,22 @@ public class AdminController {
                 .finalPriceCents(es.getFinalPriceCents())
                 .geometry(es.getGeometry())
                 .pricingVersion(es.getPricingVersion())
+                .build();
+    }
+
+    private com.bookfair.dto.response.VenueAdminResponse mapToVenueAdminResponse(Venue v) {
+        return com.bookfair.dto.response.VenueAdminResponse.builder()
+                .id(v.getId())
+                .name(v.getName())
+                .address(v.getAddress())
+                .build();
+    }
+
+    private com.bookfair.dto.response.BuildingAdminResponse mapToBuildingAdminResponse(Building b) {
+        return com.bookfair.dto.response.BuildingAdminResponse.builder()
+                .id(b.getId())
+                .name(b.getName())
+                .gpsCoordinates(b.getGpsCoordinates())
                 .build();
     }
 }

@@ -2,7 +2,7 @@ import Hero from '@/apps/public/components/Hero'
 import VisionMission from '@/apps/public/components/VisionMission'
 import Services from '@/apps/public/components/Services'
 import UpcomingEvents from '@/apps/public/components/UpcomingEvents'
-import ReservationList from '@/shared/components/ReservationList'
+import { ReservationList } from '@/features/reservations'
 
 import { useQuery } from '@tanstack/react-query'
 import { reservationApi } from '@/shared/api'

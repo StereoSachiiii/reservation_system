@@ -36,6 +36,10 @@ public class JwtUtils {
     }
     
     private Key key() {
+        // If the secret is 64 chars long and contains only hex chars, it's likely HEX encoded (256 bits)
+        if (jwtSecret != null && jwtSecret.length() == 64 && jwtSecret.matches("^[0-9a-fA-F]+$")) {
+            return Keys.hmacShaKeyFor(java.util.HexFormat.of().parseHex(jwtSecret));
+        }
         return Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtSecret));
     }
 

@@ -1,13 +1,14 @@
-package com.bookfair.service;
+package com.bookfair.features.reservation;
 
-import com.bookfair.dto.request.ReservationRequest;
+import com.bookfair.features.reservation.dto.ReservationRequest;
 import com.bookfair.entity.User;
-import com.bookfair.entity.Reservation;
-import com.bookfair.entity.Reservation;
-import com.bookfair.repository.ReservationRepository;
 import com.bookfair.exception.ResourceNotFoundException;
 import com.bookfair.exception.ConflictException;
 import com.bookfair.exception.BadRequestException;
+import com.bookfair.service.EmailService;
+import com.bookfair.service.NotificationService;
+import com.bookfair.service.QrService;
+import com.bookfair.service.UserService;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

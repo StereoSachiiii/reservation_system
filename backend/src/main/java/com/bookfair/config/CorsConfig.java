@@ -20,14 +20,15 @@ public class CorsConfig {
     private String allowedOrigin;
 
     @Bean
-    public CorsFilter corsFilter() {
+    public org.springframework.web.cors.CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.addAllowedOrigin(allowedOrigin); // Use property-verified origin
-        config.addAllowedHeader("*");     //allows all header authroization, content-type, etc
-        config.addAllowedMethod("*");
+        config.setAllowedOrigins(java.util.List.of(allowedOrigin));
+        config.setAllowedHeaders(java.util.List.of("*"));
+        config.setAllowedMethods(java.util.List.of("*"));
+        config.setAllowCredentials(true);
         
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/api/**", config);
-        return new CorsFilter(source);
+        source.registerCorsConfiguration("/**", config);
+        return source;
     }
 }

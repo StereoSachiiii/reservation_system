@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements } from '@stripe/react-stripe-js';
 import { useQuery } from '@tanstack/react-query';
-import { reservationApi } from '@/shared/api/reservationApi';
+import { reservationApi } from '@/features/reservations';
 import { APP_CONFIG } from '@/config';
 
 // Sub-components

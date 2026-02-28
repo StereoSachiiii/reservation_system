@@ -1,4 +1,7 @@
-package com.bookfair.entity;
+package com.bookfair.features.reservation;
+
+import com.bookfair.entity.User;
+import com.bookfair.entity.EventStall;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;

@@ -1,0 +1,71 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: bookfair
+      POSTGRES_USER: bookfair
+      POSTGRES_PASSWORD: bookfair
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - bookfair-net
+
+  redis:
+    image: redis:7-alpine
+    networks:
+      - bookfair-net
+
+  backend:
+    image: bookfair-backend
+    ports:
+      - "8080:8080"
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/bookfair
+      DB_USERNAME: bookfair
+      DB_PASSWORD: bookfair
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+      JWT_EXPIRATION_MS: 86400000
+      FRONTEND_URL: http://localhost:5173
+      BACKEND_URL: http://localhost:8080
+      MAIL_USERNAME: paulaabdul1209@gmail.com
+      MAIL_PASSWORD: ticsealyhhmsbloh
+      STRIPE_SECRET_KEY: sk_test_51T2S87FVluswMdju5707MryCminq0NqQV4hYjr7pfz785ZMwC8HBgrqW4m46rGeZpv4qIWg4GQ4IUuUG34mDE5ES00WC5BPHa8
+      STRIPE_PUBLIC_KEY: pk_test_51T2S87FVluswMdjunBn1GRh1MlSSLUTzQ3ww5JtMB1BAK7HdWW0yF74o47pu13Gbb5dterWz4Egw46M4Kf5bOQbO00sjYLBHsp
+      FILE_UPLOAD_DIR: uploads/
+      MAX_STALLS: 3
+      STALL_SMALL_PRICE: 500000
+      STALL_MEDIUM_PRICE: 1000000
+      STALL_LARGE_PRICE: 2000000
+      VIP_MULTIPLIER: 1.2
+      SEED_ADMIN_USER: admin
+      SEED_ADMIN_PASS: admin123
+      SEED_VENDOR_USER: vendor
+      SEED_VENDOR_PASS: vendor123
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - bookfair-net
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    image: bookfair-frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+    networks:
+      - bookfair-net
+
+networks:
+  bookfair-net:
+
+
+volumes:
+  postgres_data:

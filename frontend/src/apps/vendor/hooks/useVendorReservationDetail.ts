@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { reservationApi } from '@/shared/api/reservationApi';
+import { reservationApi } from '@/features/reservations';
 import { vendorApi } from '@/shared/api/vendorApi';
 
 export function useVendorReservationDetail(reservationId: number) {

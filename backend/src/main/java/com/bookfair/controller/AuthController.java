@@ -56,8 +56,8 @@ public class AuthController {
     }
 
     @org.springframework.web.bind.annotation.GetMapping("/me")
-    public ResponseEntity<com.bookfair.entity.User> getCurrentUser(java.security.Principal principal) {
-        return ResponseEntity.ok(userService.getByUsernameForServices(principal.getName()));
+    public ResponseEntity<com.bookfair.dto.response.UserResponse> getCurrentUser(java.security.Principal principal) {
+        return ResponseEntity.ok(userService.getByUsername(principal.getName()));
     }
 }
 

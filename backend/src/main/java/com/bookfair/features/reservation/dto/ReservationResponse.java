@@ -1,4 +1,4 @@
-package com.bookfair.dto.response;
+package com.bookfair.features.reservation.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

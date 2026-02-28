@@ -1,5 +1,5 @@
-import api from './client'
-import type { Reservation, ReservationRequest } from '../types'
+import api from '@/shared/api/client'
+import type { Reservation, ReservationRequest } from './types'
 
 /**
  * Reservation API calls

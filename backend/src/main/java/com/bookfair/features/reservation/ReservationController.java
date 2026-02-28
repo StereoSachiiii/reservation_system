@@ -1,18 +1,17 @@
-package com.bookfair.controller;
+package com.bookfair.features.reservation;
 
-import com.bookfair.dto.request.ReservationRequest;
-import com.bookfair.dto.response.ReservationResponse;
-import com.bookfair.entity.Reservation;
-import com.bookfair.service.ReservationService;
+import com.bookfair.features.reservation.dto.ReservationRequest;
+import com.bookfair.features.reservation.dto.ReservationResponse;
+import com.bookfair.service.QrService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import java.security.Principal;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import com.bookfair.service.QrService;
 
 /**
 

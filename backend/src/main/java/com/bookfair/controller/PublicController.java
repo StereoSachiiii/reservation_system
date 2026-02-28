@@ -58,7 +58,7 @@ public class PublicController {
     }
 
     @GetMapping("/events/{id}/map")
-    public ResponseEntity<Object> getEventMap(@PathVariable Long id) {
+    public ResponseEntity<com.bookfair.dto.response.EventMapResponse> getEventMap(@PathVariable Long id) {
         // API.md 4.3 Format: { eventId, eventName, stalls: [...], layout: { ... } }
         com.bookfair.entity.Event event = eventService.getEventById(id);
         List<StallResponse> stalls = stallService.getByEventId(id);
@@ -102,15 +102,14 @@ public class PublicController {
                 });
         }
 
-        java.util.Map<String, Object> response = new java.util.HashMap<>();
-        response.put("eventId", id);
-        response.put("eventName", event.getName());
-        response.put("stalls", stalls);
-        response.put("layout", layout);
-        response.put("halls", hallMetadata.values()); // Return list of hall objects
-        response.put("zones", event.getLayoutConfig());
-        
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(com.bookfair.dto.response.EventMapResponse.builder()
+                .eventId(id)
+                .eventName(event.getName())
+                .stalls(stalls)
+                .layout(layout)
+                .halls(new java.util.ArrayList<>(hallMetadata.values()))
+                .zones(event.getLayoutConfig())
+                .build());
     }
 
     private VenueResponse mapToVenueResponse(Venue venue) {

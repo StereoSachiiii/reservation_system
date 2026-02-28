@@ -1,6 +1,6 @@
 package com.bookfair.service;
 
-import com.bookfair.entity.Reservation;
+import com.bookfair.features.reservation.Reservation;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.mail.util.ByteArrayDataSource;
 import lombok.RequiredArgsConstructor;

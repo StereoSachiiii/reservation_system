@@ -2,6 +2,8 @@ package com.bookfair.service;
 
 import com.bookfair.entity.*;
 import com.bookfair.repository.*;
+import com.bookfair.features.reservation.Reservation;
+import com.bookfair.features.reservation.ReservationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import com.bookfair.constant.LayoutConstants;

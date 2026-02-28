@@ -4,6 +4,7 @@ import com.bookfair.dto.request.EventStallUpdateRequest;
 import com.bookfair.entity.*;
 import com.bookfair.exception.ResourceNotFoundException;
 import com.bookfair.repository.*;
+import com.bookfair.features.reservation.ReservationRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
