@@ -30,7 +30,10 @@ jobs:
 
       - name: Build and push frontend
         run: |
-          docker build -t ${{ secrets.ECR_REGISTRY }}/bookfair-frontend:latest ./frontend
+          docker build \
+            --build-arg VITE_API_URL=https://eazyfair.duckdns.org/api/v1 \
+            --build-arg VITE_STRIPE_KEY=${{ secrets.STRIPE_PUBLIC_KEY }} \
+            -t ${{ secrets.ECR_REGISTRY }}/bookfair-frontend:latest ./frontend
           docker push ${{ secrets.ECR_REGISTRY }}/bookfair-frontend:latest
 
       - name: Deploy to EC2

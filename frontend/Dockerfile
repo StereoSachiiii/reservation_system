@@ -6,6 +6,12 @@ COPY package*.json ./
 RUN npm install
 
 COPY . .
+
+ARG VITE_API_URL
+ARG VITE_STRIPE_KEY
+ENV VITE_API_URL=$VITE_API_URL
+ENV VITE_STRIPE_KEY=$VITE_STRIPE_KEY
+
 RUN npm run build
 
 FROM nginx:stable-alpine

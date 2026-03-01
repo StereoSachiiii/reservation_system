@@ -55,6 +55,9 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        VITE_API_URL: https://eazyfair.duckdns.org/api/v1
+        VITE_STRIPE_KEY: ${STRIPE_PUBLIC_KEY}
     image: bookfair-frontend
     ports:
       - "80:80"
