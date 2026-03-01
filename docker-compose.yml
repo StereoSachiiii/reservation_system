@@ -29,8 +29,8 @@ services:
       REDIS_PORT: 6379
       JWT_SECRET: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
       JWT_EXPIRATION_MS: 86400000
-      FRONTEND_URL: http://localhost:5173
-      BACKEND_URL: http://localhost:8080
+      FRONTEND_URL: https://eazyfair.duckdns.org
+      BACKEND_URL: https://eazyfair.duckdns.org
       MAIL_USERNAME: paulaabdul1209@gmail.com
       MAIL_PASSWORD: ticsealyhhmsbloh
       STRIPE_SECRET_KEY: sk_test_51T2S87FVluswMdju5707MryCminq0NqQV4hYjr7pfz785ZMwC8HBgrqW4m46rGeZpv4qIWg4GQ4IUuUG34mDE5ES00WC5BPHa8
@@ -57,7 +57,10 @@ services:
       dockerfile: Dockerfile
     image: bookfair-frontend
     ports:
-      - "5173:80"
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /etc/letsencrypt:/etc/letsencrypt:ro
     depends_on:
       - backend
     networks:
