@@ -26,6 +26,7 @@ public class StallService {
     
     private final ReservationRepository reservationRepository;
     private final com.bookfair.repository.EventStallRepository eventStallRepository;
+    private final PricingService pricingService;
     private final com.fasterxml.jackson.databind.ObjectMapper objectMapper;
     
     // Seeding logic moved to DataSeeder.java
@@ -107,94 +108,28 @@ public class StallService {
         
         response.setPriceCents(eventStall.getFinalPriceCents());
         
-        // V6: Spatial Scoring Algorithm (Narrative Value)
+        // V6: Spatial Scoring Algorithm (Now centralized in PricingService)
         java.util.Map<String, Object> breakdown = new java.util.HashMap<>();
-        breakdown.put("Base Rate", eventStall.getBaseRateCents());
-        
         int calculatedScore = 0;
-        java.util.List<java.util.Map<String, Object>> drivers = new java.util.ArrayList<>();
-
+        
         try {
             if (eventStall.getEvent() != null) {
                 String eventLayout = eventStall.getEvent().getLayoutConfig();
                 String hallLayout = eventStall.getStallTemplate().getHall() != null ? 
                                     eventStall.getStallTemplate().getHall().getStaticLayout() : null;
                 
-                // Prioritize Event layoutConfig (saved from Designer), fallback to Hall static layout
                 String activeLayout = (eventLayout != null && !eventLayout.trim().isEmpty() && !eventLayout.equals("{}"))
                                       ? eventLayout : hallLayout;
 
                 if (activeLayout != null && !activeLayout.trim().isEmpty() && !activeLayout.equals("{}")) {
                     com.fasterxml.jackson.databind.JsonNode layoutNode = objectMapper.readTree(activeLayout);
-                    com.fasterxml.jackson.databind.JsonNode influences = layoutNode.get("influences");
-                    
-                    double canvasWidth = layoutNode.has("width") ? layoutNode.get("width").asDouble() : 1000.0;
-                    double canvasHeight = layoutNode.has("height") ? layoutNode.get("height").asDouble() : 800.0;
-                    
-                    String geometryStr = eventStall.getGeometry();
-                    if (geometryStr == null || geometryStr.trim().isEmpty()) {
-                        geometryStr = eventStall.getStallTemplate().getGeometry();
-                    }
-
-                    if (geometryStr != null && !geometryStr.trim().isEmpty()) {
-                        com.fasterxml.jackson.databind.JsonNode stallGeom = objectMapper.readTree(geometryStr); //name conflict
-                        if (stallGeom.has("x") && stallGeom.has("y")) {
-                            double stallX = stallGeom.get("x").asDouble() + (stallGeom.has("w") ? stallGeom.get("w").asDouble() / 2 : 0);
-                            double stallY = stallGeom.get("y").asDouble() + (stallGeom.has("h") ? stallGeom.get("h").asDouble() / 2 : 0);
-
-                            if (influences != null && influences.isArray()) {
-                                for (com.fasterxml.jackson.databind.JsonNode influence : influences) {
-                                    double infX = influence.get("x").asDouble();
-                                    double infY = influence.get("y").asDouble();
-                                    double radius = influence.get("radius").asDouble();
-                                    int intensity = influence.get("intensity").asInt();
-                                    String typeStr = influence.get("type").asText();
-                                    String falloffStr = influence.get("falloff").asText();
-
-                                    double normStallX = (stallX / 100.0) * canvasWidth;
-                                    double normStallY = (stallY / 100.0) * canvasHeight;
-
-                                    double dist = Math.sqrt(Math.pow(normStallX - infX, 2) + Math.pow(normStallY - infY, 2));
-
-                                    if (dist < radius) {
-                                        double factor = 1.0 - (dist / radius);
-                                        if ("EXPONENTIAL".equals(falloffStr)) factor = Math.pow(factor, 2);
-                                        
-                                        int contribution = (int) (intensity * factor);
-                                        if (contribution > 0) {
-                                            calculatedScore += contribution;
-                                            java.util.Map<String, Object> driver = new java.util.HashMap<>();
-                                            driver.put("label", typeStr + " Proximity");
-                                            driver.put("value", "+" + contribution);
-                                            drivers.add(driver);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    breakdown = pricingService.calculatePriceBreakdown(eventStall, layoutNode);
+                    calculatedScore = (int) breakdown.getOrDefault("calculatedScore", 0);
                 }
             }
         } catch (Exception e) {
-            log.error("Spatial scoring failed: " + e.getMessage());
-            calculatedScore = eventStall.getStallTemplate().getDefaultProximityScore() * DEFAULT_PROXIMITY_MULTIPLIER;
+            log.error("Spatial scoring lookup failed: " + e.getMessage());
         }
-
-        // Apply Edge distance penalty (simplified)
-        String geomStr = eventStall.getGeometry() != null ? eventStall.getGeometry() : eventStall.getStallTemplate().getGeometry();
-        if (geomStr != null && (geomStr.contains("\"x\": 0") || geomStr.contains("\"x\": 0.0") ||
-            geomStr.contains("\"y\": 0") || geomStr.contains("\"y\": 0.0"))) {
-            calculatedScore -= EDGE_DISTANCE_PENALTY;
-            java.util.Map<String, Object> penalty = new java.util.HashMap<>();
-            penalty.put("label", "Edge Distance");
-            penalty.put("value", "-" + EDGE_DISTANCE_PENALTY);
-            drivers.add(penalty);
-        }
-
-        calculatedScore = Math.min(MAX_SCORE, Math.max(MIN_SCORE, calculatedScore));
-        
-        breakdown.put("Visibility Score", calculatedScore + "/100");
-        breakdown.put("Value Drivers", drivers);
         
         response.setPricingBreakdown(breakdown);
         response.setProximityScore(calculatedScore / SCORE_SCALE_DIVISOR); // Scale 0-100 to 1-5

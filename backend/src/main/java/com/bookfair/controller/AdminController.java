@@ -20,6 +20,7 @@ public class AdminController {
     private final AdminService adminService;
     private final AdminHallService adminHallService;
     private final AdminStallService adminStallService;
+    private final PricingService pricingService;
     private final com.bookfair.service.UserService userService;
     private final com.bookfair.repository.VenueRepository venueRepository;
     private final com.bookfair.repository.BuildingRepository buildingRepository;
@@ -192,6 +193,15 @@ public class AdminController {
     @GetMapping("/events/{id}/stats")
     public ResponseEntity<com.bookfair.dto.response.EventStatsResponse> getEventStats(@PathVariable Long id) {
         return ResponseEntity.ok(adminService.getEventStats(id));
+    }
+
+    @PostMapping("/events/{id}/recalculate-prices")
+    public ResponseEntity<com.bookfair.dto.response.GenericActionResponse> recalculatePrices(@PathVariable Long id) {
+        pricingService.recalculateEventPrices(id);
+        return ResponseEntity.ok(com.bookfair.dto.response.GenericActionResponse.builder()
+                .success(true)
+                .message("Prices recalculated for event " + id)
+                .build());
     }
 
     // ─── RESERVATION MANAGEMENT ──────────────────────────────────

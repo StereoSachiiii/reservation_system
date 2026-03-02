@@ -53,6 +53,7 @@ public class EventStall {
     private Long finalPriceCents;
 
     @Enumerated(EnumType.STRING)
+    @Builder.Default
     private EventStallStatus status = EventStallStatus.AVAILABLE;
 
     private String pricingVersion;

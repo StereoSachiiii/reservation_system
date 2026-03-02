@@ -72,6 +72,9 @@ public class EmailService {
            mimeMessageHelper.addInline("qrCode", new ByteArrayDataSource(qrBytes, "image/png"));
 
            mailSender.send(mimeMessage);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to send confirmation email", e);
+        }
     }
     
     public void sendReminderEmail(Reservation reservation) {

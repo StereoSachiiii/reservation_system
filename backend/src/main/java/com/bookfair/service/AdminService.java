@@ -38,6 +38,7 @@ public class AdminService {
     private final HallRepository hallRepository;
     private final UserRepository userRepository;
     private final AuditLogRepository auditLogRepository;
+    private final PricingService pricingService;
     private final ObjectMapper objectMapper;
 
     // ─── MAP UPLOAD ───────────────────────────────────────────────
@@ -147,7 +148,12 @@ public class AdminService {
             return null;
         }).filter(java.util.Objects::nonNull).collect(Collectors.toList());
 
-        return eventStallRepository.saveAll(updatedItems);
+        eventStallRepository.saveAll(updatedItems);
+        
+        // Trigger automated price recalculation
+        pricingService.recalculateEventPrices(eventId);
+        
+        return updatedItems;
     }
 
     @Transactional
