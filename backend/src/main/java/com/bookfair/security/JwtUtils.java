@@ -60,6 +60,8 @@ public class JwtUtils {
             log.error("JWT token is unsupported: {}", e.getMessage());
         } catch (IllegalArgumentException e) {
             log.error("JWT claims string is empty: {}", e.getMessage());
+        } catch (io.jsonwebtoken.security.SignatureException e) {
+            log.error("JWT signature is invalid: {}", e.getMessage());
         }
 
         return false;
