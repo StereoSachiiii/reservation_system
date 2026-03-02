@@ -21,6 +21,12 @@ public class EmailControllerTest {
     @MockBean
     private EmailService emailService;
 
+    @MockBean
+    private com.bookfair.security.JwtUtils jwtUtils;
+
+    @MockBean
+    private org.springframework.security.core.userdetails.UserDetailsService userDetailsService;
+
     @Test
     void sendTest_shouldReturnOkAndInvokeService() throws Exception {
         String address = "foo@bar.com";

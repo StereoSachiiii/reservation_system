@@ -20,6 +20,7 @@ public class AdminStallService {
     private final StallTemplateRepository stallTemplateRepository;
     private final EventStallRepository eventStallRepository;
     private final HallRepository hallRepository;
+    private final RealTimeUpdateService realTimeUpdateService;
 
     @Transactional
     public List<StallTemplate> bulkGenerateStalls(Long hallId, int count, StallSize size, StallCategory category, Long basePriceCents) {
@@ -77,7 +78,12 @@ public class AdminStallService {
         StallTemplate stall = stallTemplateRepository.findById(stallId)
                 .orElseThrow(() -> new ResourceNotFoundException("Stall not found: " + stallId));
         stall.setIsAvailable(available);
-        return stallTemplateRepository.save(stall);
+        StallTemplate saved = stallTemplateRepository.save(stall);
+        
+        // Broadcast update (assuming blocking makes it 'reserved/occupied' in map terms)
+        realTimeUpdateService.broadcastStallUpdate(saved.getId(), !available, available ? null : "BLOCKED", null);
+        
+        return saved;
     }
 
     /** Export stall inventory as CSV bytes */

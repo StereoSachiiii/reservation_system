@@ -15,17 +15,35 @@ import { MapCanvas } from '@/shared/components/MapCanvas'
 import { StallTooltip } from '@/shared/components/StallTooltip'
 import { BookingPanel } from '@/apps/public/components/BookingPanel'
 
-//custom hooks
 import { useMapData } from '../hooks/useMapData'
 import { useStallSelection } from '../hooks/useStallSelection'
+import { useStallUpdates } from '@/hooks/useStallUpdates'
+import { useQueryClient } from '@tanstack/react-query'
 
 //types
-import { MapStall } from '@/shared/types/stallMap.utils'
+import { MapStall, RawEventMap } from '@/shared/types/stallMap.utils'
 
 export default function StallMapPage() {
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const { eventId: urlEventId } = useParams()
   const eventId = urlEventId ? parseInt(urlEventId, 10) : null
+
+  // ── Real-time Updates ─────────────────────────────────────────────────────
+  useStallUpdates(useCallback((update) => {
+    queryClient.setQueryData(['stalls', eventId], (oldData: RawEventMap | undefined) => {
+      if (!oldData) return oldData;
+      return {
+        ...oldData,
+        stalls: oldData.stalls.map(s => s.id === update.stallId ? {
+          ...s,
+          reserved: update.reserved,
+          occupiedBy: update.occupiedBy,
+          publisherCategory: update.publisherCategory
+        } : s)
+      };
+    });
+  }, [queryClient, eventId]));
 
   useEffect(() => {
     if (!eventId) {

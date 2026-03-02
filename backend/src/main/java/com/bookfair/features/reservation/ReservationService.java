@@ -36,6 +36,7 @@ public class ReservationService {
     private final QrService qrService;
     private final EmailService emailService;
     private final NotificationService notificationService;
+    private final com.bookfair.service.RealTimeUpdateService realTimeUpdateService;
     
     @org.springframework.beans.factory.annotation.Value("${app.reservation.max-stalls:3}")
     private int maxStallsPerPublisher;
@@ -82,7 +83,11 @@ public class ReservationService {
             
             reservation = reservationRepository.save(reservation);
             reservation.setQrCode("RES-" + reservation.getId());
-            reservations.add(reservationRepository.save(reservation));
+            Reservation saved = reservationRepository.save(reservation);
+            reservations.add(saved);
+            
+            // Real-time broadcast
+            realTimeUpdateService.broadcastFromReservation(saved);
         }
 
         // Trigger Notification
@@ -111,6 +116,9 @@ public class ReservationService {
 
         reservation.setStatus(Reservation.ReservationStatus.PAID);
         reservationRepository.save(reservation);
+
+        // Real-time broadcast
+        realTimeUpdateService.broadcastFromReservation(reservation);
 
         // Trigger Notification
         notificationService.createNotification(
@@ -203,6 +211,9 @@ public class ReservationService {
         reservation.setStatus(Reservation.ReservationStatus.CANCELLED);
         reservationRepository.save(reservation);
 
+        // Real-time broadcast
+        realTimeUpdateService.broadcastStallUpdate(reservation.getEventStall().getId(), false, null, null);
+
         // Trigger Notification if not cancelled by owner (e.g. by admin)
         if (!reservation.getUser().getId().equals(requester.getId())) {
              notificationService.createNotification(
@@ -233,6 +244,9 @@ public class ReservationService {
 
         reservation.setStatus(Reservation.ReservationStatus.PENDING_REFUND);
         reservationRepository.save(reservation);
+
+        // Real-time broadcast (mark as available while refund is pending if desired, for now just update)
+        realTimeUpdateService.broadcastStallUpdate(reservation.getEventStall().getId(), false, null, null);
 
         // Notify admins regarding the refund request
         // (In a real system, you'd probably send an email or internal admin dashboard alert)

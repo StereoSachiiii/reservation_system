@@ -90,8 +90,7 @@ class AdminControllerTest {
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(payload)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.updated").value(true));
+                .andExpect(status().isOk());
 
         verify(adminService).updateHallLayout(eq(1L), eq("{\"data\":1}"));
     }

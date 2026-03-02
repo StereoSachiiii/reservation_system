@@ -11,9 +11,11 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@stomp/stompjs": "^7.3.0",
     "@stripe/react-stripe-js": "^5.6.0",
     "@stripe/stripe-js": "^8.7.0",
     "@tanstack/react-query": "^5.90.21",
+    "@types/sockjs-client": "^1.5.4",
     "axios": "^1.6.0",
     "clsx": "^2.1.1",
     "html5-qrcode": "^2.3.8",
@@ -23,6 +25,7 @@
     "react-qr-code": "^2.0.18",
     "react-router-dom": "^6.30.3",
     "react-zoom-pan-pinch": "^3.7.0",
+    "sockjs-client": "^1.6.1",
     "tailwind-merge": "^3.5.0",
     "use-debounce": "^10.1.0"
   },

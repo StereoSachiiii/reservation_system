@@ -69,6 +69,9 @@ public class Reservation {
 
     private LocalDateTime deletedAt;
     
+    @Column(name = "reminder_sent_at")
+    private LocalDateTime reminderSentAt;
+    
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
