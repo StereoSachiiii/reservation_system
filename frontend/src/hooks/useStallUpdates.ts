@@ -9,7 +9,15 @@ export interface StallUpdateMessage {
     publisherCategory: string | null;
 }
 
-const SOCKET_URL = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/ws` : 'http://localhost:8080/ws';
+const getSocketUrl = () => {
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1';
+    // If apiUrl ends with /api/v1, strip it to get the root for /ws, 
+    // or just append /ws to the root.
+    const root = apiUrl.replace(/\/api\/v1\/?$/, '');
+    return `${root}/ws`;
+};
+
+const SOCKET_URL = getSocketUrl();
 
 export const useStallUpdates = (onUpdate: (message: StallUpdateMessage) => void) => {
     const stompClient = useRef<Client | null>(null);

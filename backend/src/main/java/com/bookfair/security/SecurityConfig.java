@@ -118,6 +118,7 @@ public class SecurityConfig {
                     .requestMatchers("/api/v1/auth/**").permitAll()
                     .requestMatchers("/api/v1/public/**").permitAll()
                     .requestMatchers("/uploads/**").permitAll()
+                    .requestMatchers("/ws/**").permitAll() // Allow WebSocket connections
                     .requestMatchers("/error").permitAll() // Allow Spring's internal error forwarding
                     
                     // System endpoints

@@ -29,6 +29,7 @@ export interface MapStall {
     geometry: StallGeometry | string
     pricingBreakdown?: PricingBreakdown
     occupiedBy?: string | null
+    publisherCategory?: string | null
 }
 
 /**
