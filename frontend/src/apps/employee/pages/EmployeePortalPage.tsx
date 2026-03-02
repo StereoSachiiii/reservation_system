@@ -29,6 +29,7 @@ export default function EmployeePortalPage() {
         handleLookup,
         handleAdmit,
         handleForceCheckIn,
+        directLookup,
         lookupLoading,
         lookupError,
         admitLoading,
@@ -80,6 +81,7 @@ export default function EmployeePortalPage() {
                         handleReset={handleReset}
                         setShowOverride={setShowOverride}
                         overrideLoading={overrideLoading}
+                        directLookup={directLookup}
                     />
                 )}
 

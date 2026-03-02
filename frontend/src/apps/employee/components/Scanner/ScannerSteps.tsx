@@ -1,36 +1,67 @@
+import { useState } from 'react';
+import { QrCameraScanner } from './QrCameraScanner';
+
 interface ScannerInputProps {
     qrInput: string;
     setQrInput: (val: string) => void;
     handleLookup: (e: React.FormEvent) => void;
     loading: boolean;
+    directLookup: (qrOrId: string) => void;
 }
 
-export const ScannerInput = ({ qrInput, setQrInput, handleLookup, loading }: ScannerInputProps) => (
-    <form onSubmit={handleLookup} className="mb-10">
-        <div className="space-y-4">
-            <div className="relative">
-                <input
-                    type="text"
-                    autoFocus
-                    value={qrInput}
-                    onChange={(e) => setQrInput(e.target.value)}
-                    placeholder="Scan QR or enter reservation ID..."
-                    className="w-full p-5 bg-slate-50 border-2 border-slate-100 rounded-2xl font-mono text-lg focus:border-blue-500 focus:ring-0 transition-all text-center"
+export const ScannerInput = ({ qrInput, setQrInput, handleLookup, loading, directLookup }: ScannerInputProps) => {
+    const [cameraMode, setCameraMode] = useState(false);
+
+    const handleScanSuccess = (decodedText: string) => {
+        setCameraMode(false);
+        directLookup(decodedText);
+    };
+
+    if (cameraMode) {
+        return (
+            <div className="mb-10">
+                <QrCameraScanner
+                    onScanSuccess={handleScanSuccess}
+                    onClose={() => setCameraMode(false)}
                 />
-                <div className="absolute inset-y-0 left-5 flex items-center pointer-events-none opacity-30">
-                    🔍
-                </div>
             </div>
-            <button
-                type="submit"
-                disabled={loading || !qrInput}
-                className="w-full py-5 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 text-white rounded-2xl font-black text-lg transition-all shadow-xl shadow-blue-200 active:scale-[0.98]"
-            >
-                {loading ? 'SEARCHING...' : 'LOOKUP'}
-            </button>
-        </div>
-    </form>
-);
+        );
+    }
+
+    return (
+        <form onSubmit={handleLookup} className="mb-10">
+            <div className="space-y-4">
+                <div className="relative">
+                    <input
+                        type="text"
+                        autoFocus
+                        value={qrInput}
+                        onChange={(e) => setQrInput(e.target.value)}
+                        placeholder="Scan QR or enter reservation ID..."
+                        className="w-full p-5 bg-slate-50 border-2 border-slate-100 rounded-2xl font-mono text-lg focus:border-blue-500 focus:ring-0 transition-all text-center"
+                    />
+                    <div className="absolute inset-y-0 left-5 flex items-center pointer-events-none opacity-30">
+                        🔍
+                    </div>
+                </div>
+                <button
+                    type="submit"
+                    disabled={loading || !qrInput}
+                    className="w-full py-5 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 text-white rounded-2xl font-black text-lg transition-all shadow-xl shadow-blue-200 active:scale-[0.98]"
+                >
+                    {loading ? 'SEARCHING...' : 'LOOKUP'}
+                </button>
+                <button
+                    type="button"
+                    onClick={() => setCameraMode(true)}
+                    className="w-full py-3 bg-slate-900 hover:bg-black text-white rounded-2xl font-bold transition-all flex items-center justify-center gap-2"
+                >
+                    <span>📷</span> Scan with Camera
+                </button>
+            </div>
+        </form>
+    );
+};
 
 interface ScannerResultCardProps {
     result: any;

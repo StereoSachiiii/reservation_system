@@ -15,6 +15,7 @@ interface ScannerViewProps {
     handleReset: () => void;
     setShowOverride: (val: boolean) => void;
     overrideLoading: boolean;
+    directLookup: (qrOrId: string) => void;
 }
 
 export const ScannerView: React.FC<ScannerViewProps> = ({
@@ -28,7 +29,8 @@ export const ScannerView: React.FC<ScannerViewProps> = ({
     handleAdmit,
     handleReset,
     setShowOverride,
-    overrideLoading
+    overrideLoading,
+    directLookup
 }) => {
     return (
         <div className="flex flex-col items-center">
@@ -44,6 +46,7 @@ export const ScannerView: React.FC<ScannerViewProps> = ({
                         setQrInput={setQrInput}
                         handleLookup={handleLookup}
                         loading={lookupLoading}
+                        directLookup={directLookup}
                     />
                 )}
 
