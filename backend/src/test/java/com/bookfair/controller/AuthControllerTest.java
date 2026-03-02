@@ -13,6 +13,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -166,12 +167,13 @@ class AuthControllerTest {
     }
 
     @Test
-    @DisplayName("GET /auth/me — without token returns 401 or 500")
+    @DisplayName("GET /auth/me — without token does not return 200")
     void me_noToken_returnsError() throws Exception {
-        // Without a token, Spring Security may return 401 or the controller may throw 500
-        // because Principal is null. Either way, it should NOT return 200.
-        mockMvc.perform(get("/api/v1/auth/me"))
-                .andExpect(status().is4xxClientError().isNot(status().isOk()));
+        // Without a token, the controller NPEs on null Principal (500) or security blocks (401).
+        // Either way, it must NOT return 200.
+        int status = mockMvc.perform(get("/api/v1/auth/me"))
+                .andReturn().getResponse().getStatus();
+        assertNotEquals(200, status, "Unauthenticated /me must not return 200");
     }
 
     // ─── Security: Role-Based Access ─────────────────────────────
