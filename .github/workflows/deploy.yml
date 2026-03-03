@@ -23,18 +23,29 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Build and push backend
-        run: |
-          docker build -t ${{ secrets.ECR_REGISTRY }}/bookfair-backend:latest ./backend
-          docker push ${{ secrets.ECR_REGISTRY }}/bookfair-backend:latest
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          push: true
+          tags: ${{ secrets.ECR_REGISTRY }}/bookfair-backend:latest
+          cache-from: type=gha,scope=backend
+          cache-to: type=gha,mode=max,scope=backend
 
       - name: Build and push frontend
-        run: |
-          docker build \
-            --build-arg VITE_API_URL=https://eazyfair.duckdns.org/api/v1 \
-            --build-arg VITE_STRIPE_KEY=${{ secrets.STRIPE_PUBLIC_KEY }} \
-            -t ${{ secrets.ECR_REGISTRY }}/bookfair-frontend:latest ./frontend
-          docker push ${{ secrets.ECR_REGISTRY }}/bookfair-frontend:latest
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          push: true
+          tags: ${{ secrets.ECR_REGISTRY }}/bookfair-frontend:latest
+          build-args: |
+            VITE_API_URL=https://eazyfair.duckdns.org/api/v1
+            VITE_STRIPE_KEY=${{ secrets.STRIPE_PUBLIC_KEY }}
+          cache-from: type=gha,scope=frontend
+          cache-to: type=gha,mode=max,scope=frontend
 
       - name: Deploy to EC2
         uses: appleboy/ssh-action@v1
