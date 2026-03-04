@@ -1,6 +1,8 @@
+import { useNavigate } from 'react-router-dom';
 import { useVendorProfile } from '../hooks/useVendorProfile';
 
 export default function VendorProfilePage() {
+    const navigate = useNavigate();
     const {
         formData,
         setFormData,
@@ -99,7 +101,7 @@ export default function VendorProfilePage() {
                 <div className="flex justify-end gap-4 pt-6">
                     <button
                         type="button"
-                        onClick={() => window.location.href = '/vendor/dashboard'}
+                        onClick={() => navigate('/vendor/dashboard')}
                         className="px-8 py-4 text-slate-400 font-black text-sm uppercase tracking-widest hover:text-slate-600 transition-colors"
                     >
                         Back to Dashboard

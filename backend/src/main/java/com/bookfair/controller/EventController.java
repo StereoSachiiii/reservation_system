@@ -71,9 +71,9 @@ public class EventController {
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> deleteEvent(@PathVariable Long id) {
+    public ResponseEntity<com.bookfair.dto.response.GenericActionResponse> deleteEvent(@PathVariable Long id) {
         eventService.deleteEvent(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(new com.bookfair.dto.response.GenericActionResponse(true, "Event deleted"));
     }
 
     private EventResponse mapToResponse(Event event) {

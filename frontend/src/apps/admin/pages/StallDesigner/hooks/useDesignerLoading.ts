@@ -29,7 +29,7 @@ export function useDesignerLoading(hallId: string | undefined) {
 
                 const venues = await adminApi.getAllVenues();
                 const currentVenue = venues.find(v =>
-                    v.buildings.some(b => b.halls.some(h => h.id === Number(hallId)))
+                    v.buildings?.some(b => b.halls?.some(h => h.id === Number(hallId)))
                 );
                 if (!currentVenue) throw new Error("Venue not found for this hall");
 
@@ -41,7 +41,7 @@ export function useDesignerLoading(hallId: string | undefined) {
                 const mapData = await publicApi.getEventMap(currentEvent.id).catch(() => ({ stalls: [] }));
                 setRawMapData(mapData);
 
-                const hallStalls = mapData.stalls
+                const hallStalls = (mapData?.stalls || [])
                     .filter((s: any) => s.hallName === currentHall.name)
                     .map((s: any) => ({
                         id: s.id,

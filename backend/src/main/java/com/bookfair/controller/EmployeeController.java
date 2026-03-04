@@ -267,8 +267,8 @@ public class EmployeeController {
      * Cancel a reservation at the gate (e.g. vendor requests cancellation in person).
      */
     @DeleteMapping("/reservations/{id}")
-    public ResponseEntity<Void> cancelReservation(@PathVariable Long id, java.security.Principal principal) {
+    public ResponseEntity<com.bookfair.dto.response.GenericActionResponse> cancelReservation(@PathVariable Long id, java.security.Principal principal) {
         reservationService.cancelReservation(id, principal.getName());
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(new com.bookfair.dto.response.GenericActionResponse(true, "Reservation cancelled"));
     }
 }

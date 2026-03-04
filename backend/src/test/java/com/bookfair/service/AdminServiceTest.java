@@ -40,6 +40,8 @@ class AdminServiceTest {
     private AuditLogRepository auditLogRepository;
     @Mock
     private ObjectMapper objectMapper;
+    @Mock
+    private PricingService pricingService;
 
     @InjectMocks
     private AdminService adminService;

@@ -52,9 +52,9 @@ public class ReservationController {
      * In a real app, this would be called by a Stripe webhook or Payment Gateway callback.
      */
     @PostMapping("/confirm-payment/{id}")
-    public ResponseEntity<Void> confirmPayment(@PathVariable Long id) {
+    public ResponseEntity<com.bookfair.dto.response.GenericActionResponse> confirmPayment(@PathVariable Long id) {
         reservationService.confirmPayment(id);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(new com.bookfair.dto.response.GenericActionResponse(true, "Payment confirmed"));
     }
 
     @GetMapping("/me")
@@ -160,9 +160,9 @@ public class ReservationController {
     }
     
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> cancel(@PathVariable Long id, Principal principal) {
+    public ResponseEntity<com.bookfair.dto.response.GenericActionResponse> cancel(@PathVariable Long id, Principal principal) {
         reservationService.cancelReservation(id, principal.getName());
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(new com.bookfair.dto.response.GenericActionResponse(true, "Reservation cancelled"));
     }
 
     /**
@@ -170,11 +170,11 @@ public class ReservationController {
      * Vendor requests a refund. Changes status from PAID to PENDING_REFUND
      */
     @PostMapping("/request-refund/{id}")
-    public ResponseEntity<Void> requestRefund(
+    public ResponseEntity<com.bookfair.dto.response.GenericActionResponse> requestRefund(
             @PathVariable Long id, 
             Principal principal,
             @RequestParam(required = false, defaultValue = "Vendor requested refund") String reason) {
         reservationService.requestRefund(id, principal.getName(), reason);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(new com.bookfair.dto.response.GenericActionResponse(true, "Refund requested"));
     }
 }

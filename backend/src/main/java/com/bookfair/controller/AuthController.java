@@ -44,15 +44,15 @@ public class AuthController {
     }
 
     @PostMapping("/forgot-password")
-    public ResponseEntity<Void> forgotPassword(@jakarta.validation.Valid @RequestBody com.bookfair.dto.request.ForgotPasswordRequest request) {
+    public ResponseEntity<com.bookfair.dto.response.GenericActionResponse> forgotPassword(@jakarta.validation.Valid @RequestBody com.bookfair.dto.request.ForgotPasswordRequest request) {
         authService.initiatePasswordReset(request.getEmail());
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(new com.bookfair.dto.response.GenericActionResponse(true, "Password reset initiated"));
     }
 
     @PostMapping("/reset-password")
-    public ResponseEntity<Void> resetPassword(@jakarta.validation.Valid @RequestBody com.bookfair.dto.request.ResetPasswordRequest request) {
+    public ResponseEntity<com.bookfair.dto.response.GenericActionResponse> resetPassword(@jakarta.validation.Valid @RequestBody com.bookfair.dto.request.ResetPasswordRequest request) {
         authService.completePasswordReset(request.getToken(), request.getNewPassword());
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(new com.bookfair.dto.response.GenericActionResponse(true, "Password reset successfully"));
     }
 
     @org.springframework.web.bind.annotation.GetMapping("/me")

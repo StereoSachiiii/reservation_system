@@ -80,16 +80,16 @@ public class AdminController {
 
     /** Archive (soft-delete) a hall */
     @DeleteMapping("/halls/{id}")
-    public ResponseEntity<Void> archiveHall(@PathVariable Long id) {
+    public ResponseEntity<com.bookfair.dto.response.GenericActionResponse> archiveHall(@PathVariable Long id) {
         adminHallService.archiveHall(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(new com.bookfair.dto.response.GenericActionResponse(true, "Hall archived"));
     }
 
     /** Hard-delete a DRAFT hall */
     @DeleteMapping("/halls/{id}/destroy")
-    public ResponseEntity<Void> deleteHall(@PathVariable Long id) {
+    public ResponseEntity<com.bookfair.dto.response.GenericActionResponse> deleteHall(@PathVariable Long id) {
         adminHallService.deleteHall(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(new com.bookfair.dto.response.GenericActionResponse(true, "Hall deleted"));
     }
 
     @PostMapping("/halls/{id}/static-layout")
@@ -202,6 +202,20 @@ public class AdminController {
                 .success(true)
                 .message("Prices recalculated for event " + id)
                 .build());
+    }
+
+    @PostMapping("/events/{id}/calculate-price-interactive")
+    public ResponseEntity<Map<String, Object>> calculatePriceInteractive(
+            @PathVariable Long id,
+            @RequestBody com.bookfair.dto.request.CalculatePriceRequest request) {
+        Map<String, Object> breakdown = pricingService.calculatePriceBreakdownStringConfig(
+                request.getGeometry(),
+                request.getBaseRateCents(),
+                request.getDefaultProximityScore(),
+                1.0, // multiplier is 1.0 for interactive calculation
+                request.getLayoutConfig()
+        );
+        return ResponseEntity.ok(breakdown);
     }
 
     // ─── RESERVATION MANAGEMENT ──────────────────────────────────

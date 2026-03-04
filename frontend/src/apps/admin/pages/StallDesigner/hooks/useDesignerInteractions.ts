@@ -1,7 +1,8 @@
 import { useRef } from 'react';
-import { toPercent } from '../types';
+import { toPercent, DesignerStall } from '../types';
 import { useDesignerDrawing } from './useDesignerDrawing';
 import { useDesignerDragging } from './useDesignerDragging';
+import { useDesigner } from '../DesignerContext';
 
 export function useDesignerInteractions() {
     const overlayRef = useRef<HTMLDivElement>(null);
@@ -41,6 +42,16 @@ export function useDesignerInteractions() {
 
         if (dragData) {
             updateDragging(pos);
+            const { stalls, zones, influences, calculatePrice } = useDesigner();
+            if (dragData.type === 'STALL') {
+                const targetStall = stalls.find((s: DesignerStall) => s.id === dragData.id);
+                if (targetStall) {
+                    const newX = pos.x - dragData.offsetX;
+                    const newY = pos.y - dragData.offsetY;
+                    const updatedStall = { ...targetStall, geometry: { ...targetStall.geometry, x: newX, y: newY } };
+                    calculatePrice(updatedStall, stalls.map((s: DesignerStall) => s.id === updatedStall.id ? updatedStall : s), zones, influences);
+                }
+            }
         } else if (isDrawing) {
             updateDrawing(pos);
         }

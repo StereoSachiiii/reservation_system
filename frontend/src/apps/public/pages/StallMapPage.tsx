@@ -110,7 +110,7 @@ export default function StallMapPage() {
 
       {selectedGenre && (
         <>
-          <section className="relative w-full" style={{ height: '100vh' }}>
+          <section className="relative w-full h-screen">
             <StallMapHeader
               eventName={rawEventMap?.eventName ?? 'Loading...'}
               halls={halls}
@@ -123,7 +123,7 @@ export default function StallMapPage() {
               selectedGenre={selectedGenre}
             />
 
-            <div className="absolute left-0 right-0 bottom-0" style={{ top: '56px' }}>
+            <div className="absolute left-0 right-0 bottom-0 top-[56px]">
               <MapCanvas
                 stalls={displayedStalls}
                 influences={displayedInfluences}

@@ -12,6 +12,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import org.springframework.security.test.context.support.WithMockUser;
+
 @WebMvcTest(EmailController.class)
 public class EmailControllerTest {
 
@@ -28,6 +30,7 @@ public class EmailControllerTest {
     private org.springframework.security.core.userdetails.UserDetailsService userDetailsService;
 
     @Test
+    @WithMockUser(roles = "ADMIN")
     void sendTest_shouldReturnOkAndInvokeService() throws Exception {
         String address = "foo@bar.com";
         doNothing().when(emailService).sendTestEmail(address);

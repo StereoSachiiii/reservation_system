@@ -54,9 +54,40 @@ public class PricingService {
      * Calculates the price for a single stall and updates its fields.
      */
     public Map<String, Object> calculatePriceBreakdown(EventStall stall, JsonNode layoutNode) {
+        String geometryStr = stall.getGeometry() != null ? stall.getGeometry() : stall.getStallTemplate().getGeometry();
+        long baseRateCents = stall.getBaseRateCents();
+        int defaultProximityScore = stall.getStallTemplate().getDefaultProximityScore();
+        double multiplier = stall.getMultiplier();
+
+        return calculatePriceBreakdown(geometryStr, baseRateCents, defaultProximityScore, multiplier, layoutNode);
+    }
+
+    /**
+     * Calculates the price for a single stall providing layout config as string
+     */
+    public Map<String, Object> calculatePriceBreakdownStringConfig(String geometryStr, long baseRateCents, int defaultProximityScore, double multiplier, String layoutConfig) {
+        try {
+            JsonNode layoutNode = objectMapper.readTree(layoutConfig);
+            return calculatePriceBreakdown(geometryStr, baseRateCents, defaultProximityScore, multiplier, layoutNode);
+        } catch (Exception e) {
+            log.error("Failed to parse layout config for interactive pricing: {}", e.getMessage());
+            Map<String, Object> breakdown = new HashMap<>();
+            breakdown.put("Base Rate", baseRateCents);
+            breakdown.put("calculateScore", defaultProximityScore * DEFAULT_PROXIMITY_MULTIPLIER);
+            breakdown.put("Visibility Score", (defaultProximityScore * DEFAULT_PROXIMITY_MULTIPLIER) + "/100");
+            double scoreFactor = 1.0 + ((defaultProximityScore * DEFAULT_PROXIMITY_MULTIPLIER) - 50) / 100.0;
+            long finalPriceCents = (long) (baseRateCents * scoreFactor * multiplier);
+            breakdown.put("Final Price", finalPriceCents);
+            return breakdown;
+        }
+    }
+
+    /**
+     * Calculates the price for a single stall without requiring a persisted entity.
+     */
+    public Map<String, Object> calculatePriceBreakdown(String geometryStr, long baseRateCents, int defaultProximityScore, double multiplier, JsonNode layoutNode) {
         Map<String, Object> breakdown = new HashMap<>();
-        long baseRate = stall.getBaseRateCents();
-        breakdown.put("Base Rate", baseRate);
+        breakdown.put("Base Rate", baseRateCents);
 
         int calculatedScore = 0;
         List<Map<String, Object>> drivers = new ArrayList<>();
@@ -66,7 +97,6 @@ public class PricingService {
             double canvasHeight = layoutNode.has("height") ? layoutNode.get("height").asDouble() : 800.0;
             
             JsonNode influences = layoutNode.get("influences");
-            String geometryStr = stall.getGeometry() != null ? stall.getGeometry() : stall.getStallTemplate().getGeometry();
 
             if (geometryStr != null && !geometryStr.trim().isEmpty()) {
                 JsonNode stallGeom = objectMapper.readTree(geometryStr);
@@ -117,8 +147,8 @@ public class PricingService {
             }
 
         } catch (Exception e) {
-            log.error("Price calculation failed for stall {}: {}", stall.getId(), e.getMessage());
-            calculatedScore = stall.getStallTemplate().getDefaultProximityScore() * DEFAULT_PROXIMITY_MULTIPLIER;
+            log.error("Price calculation failed for geometry string: {}", e.getMessage());
+            calculatedScore = defaultProximityScore * DEFAULT_PROXIMITY_MULTIPLIER;
         }
 
         calculatedScore = Math.min(MAX_SCORE, Math.max(MIN_SCORE, calculatedScore));
@@ -126,6 +156,10 @@ public class PricingService {
         breakdown.put("Visibility Score", calculatedScore + "/100");
         breakdown.put("Value Drivers", drivers);
         breakdown.put("calculatedScore", calculatedScore);
+
+        double scoreFactor = 1.0 + (calculatedScore - 50) / 100.0;
+        long finalPriceCents = (long) (baseRateCents * scoreFactor * multiplier);
+        breakdown.put("Final Price", finalPriceCents);
 
         return breakdown;
     }

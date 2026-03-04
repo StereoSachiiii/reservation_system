@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 public class PublicController {
 
     private final VenueRepository venueRepository;
+    private final com.bookfair.repository.HallRepository hallRepository;
     private final EventService eventService;
     private final StallService stallService;
 
@@ -31,6 +32,13 @@ public class PublicController {
                 .map(this::mapToVenueResponse)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(new org.springframework.data.domain.PageImpl<>(content));
+    }
+
+    @GetMapping("/halls/genres")
+    public ResponseEntity<List<String>> getHallGenres() {
+        return ResponseEntity.ok(hallRepository.findDistinctMainCategories().stream()
+                .map(Enum::name)
+                .collect(Collectors.toList()));
     }
 
     @GetMapping("/events/active")
@@ -102,7 +110,9 @@ public class PublicController {
                 });
         }
 
-        return ResponseEntity.ok(com.bookfair.dto.response.EventMapResponse.builder()
+        return ResponseEntity.ok()
+                .cacheControl(org.springframework.http.CacheControl.maxAge(5, java.util.concurrent.TimeUnit.MINUTES))
+                .body(com.bookfair.dto.response.EventMapResponse.builder()
                 .eventId(id)
                 .eventName(event.getName())
                 .stalls(stalls)

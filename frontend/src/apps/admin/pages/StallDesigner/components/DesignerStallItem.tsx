@@ -1,3 +1,4 @@
+import { useDesigner } from '../DesignerContext';
 import { DesignerStall, stallColor, formatPrice } from '../types';
 
 interface DesignerStallItemProps {
@@ -7,6 +8,9 @@ interface DesignerStallItemProps {
 }
 
 export function DesignerStallItem({ stall, isEditing, onMouseDown }: DesignerStallItemProps) {
+    const { calculatingPriceId } = useDesigner();
+    const isCalculating = calculatingPriceId === stall.id;
+
     return (
         <div
             onMouseDown={e => onMouseDown(e, stall.id, 'STALL', stall.geometry.x, stall.geometry.y)}
@@ -23,7 +27,11 @@ export function DesignerStallItem({ stall, isEditing, onMouseDown }: DesignerSta
         >
             <span className="font-black text-[9px] leading-none">{stall.name}</span>
             {stall.geometry.w > 4 && stall.geometry.h > 4 && (
-                <span className="text-[7px] font-bold opacity-60">{formatPrice(stall.priceCents)}</span>
+                isCalculating ? (
+                    <div className="w-3 h-3 border-2 border-white/40 border-t-white rounded-full animate-spin mt-0.5" />
+                ) : (
+                    <span className="text-[7px] font-bold opacity-60">{formatPrice(stall.priceCents)}</span>
+                )
             )}
         </div>
     );

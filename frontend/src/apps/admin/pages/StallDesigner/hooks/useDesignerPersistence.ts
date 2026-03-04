@@ -21,7 +21,7 @@ export function useDesignerPersistence() {
         setSaving(true);
         setMessage(null);
         try {
-            const otherStalls = rawMapData.stalls.filter((s: any) => s.hallName !== hall.name);
+            const otherStalls = (rawMapData?.stalls || []).filter((s: any) => s.hallName !== hall.name);
 
             const payload = [
                 ...otherStalls.map((s: any) => ({

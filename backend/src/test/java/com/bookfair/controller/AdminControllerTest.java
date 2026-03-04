@@ -4,6 +4,7 @@ import com.bookfair.dto.request.EventStallUpdateRequest;
 import com.bookfair.service.AdminService;
 import com.bookfair.service.AdminHallService;
 import com.bookfair.service.AdminStallService;
+import com.bookfair.service.PricingService;
 import com.bookfair.service.UserService;
 import com.bookfair.repository.VenueRepository;
 import com.bookfair.repository.BuildingRepository;
@@ -47,6 +48,9 @@ class AdminControllerTest {
 
     @MockBean
     private AdminStallService adminStallService;
+
+    @MockBean
+    private PricingService pricingService;
 
     @MockBean
     private UserService userService;

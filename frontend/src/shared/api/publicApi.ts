@@ -38,7 +38,7 @@ export const publicApi = {
         const response = await api.get<{ eventId: number; eventName: string; stalls: EventStall[]; layout?: Record<string, any>; zones?: string; halls?: any[] }>(`/public/events/${eventId}/map`);
 
         // Map and parse geometry JSON string into object for stalls
-        const stalls = response.data.stalls.map((stall: EventStall) => {
+        const stalls = (response.data.stalls || []).map((stall: EventStall) => {
             let parsedGeometry = { x: 0, y: 0, w: 10, h: 10 };
             if (stall.geometry) {
                 try {
