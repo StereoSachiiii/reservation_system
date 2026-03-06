@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom'
+
 function Services() {
     return (
         <section id="services" className="py-8">
@@ -20,7 +22,7 @@ function Services() {
                     </div>
                     <div className="p-6 flex-grow flex flex-col justify-between">
                         <p className="text-gray-500 text-sm mb-4">Book your perfect spot instantly.</p>
-                        <a href="/stalls" className="text-primary-600 font-bold text-sm hover:text-primary-700">Book Now →</a>
+                        <Link to="/events" className="text-primary-600 font-bold text-sm hover:text-primary-700">Book Now →</Link>
                     </div>
                 </div>
 
@@ -37,7 +39,7 @@ function Services() {
                     </div>
                     <div className="p-6 flex-grow flex flex-col justify-between">
                         <p className="text-gray-500 text-sm mb-4">View real-time floor plan availability.</p>
-                        <a href="/stalls" className="text-primary-600 font-bold text-sm hover:text-primary-700">View Map →</a>
+                        <Link to="/events" className="text-primary-600 font-bold text-sm hover:text-primary-700">View Map →</Link>
                     </div>
                 </div>
 
@@ -47,3 +49,4 @@ function Services() {
 }
 
 export default Services
+
