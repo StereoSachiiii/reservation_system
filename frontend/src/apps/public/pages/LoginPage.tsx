@@ -30,11 +30,17 @@ function LoginPage() {
     const mutation = useMutation({
         mutationFn: authApi.login,
         onSuccess: (data) => {
-            // Contextual Authentication: 
-            // If Admin/Employee logs in here, they are authenticated as a "User" for this session context.
-            // We do NOT block them or redirect them to Admin Portal.
             login(data.token, data.user);
-            navigate('/vendor/dashboard');
+            
+            // Contextual Redirection:
+            // Route users to their respective dashboards based on role
+            if (data.user.role === 'ADMIN') {
+                navigate('/admin/dashboard');
+            } else if (data.user.role === 'EMPLOYEE') {
+                navigate('/employee');
+            } else {
+                navigate('/vendor/dashboard');
+            }
         }
         // No onError needed if we use mutation.error directly, or we can keep it for logging
     })

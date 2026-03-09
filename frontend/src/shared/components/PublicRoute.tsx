@@ -30,12 +30,11 @@ const PublicRoute = ({ children }: PublicRouteProps) => {
             // If on a staff login page, send to staff dashboard
             if (role === 'ADMIN') return <Navigate to="/admin/dashboard" replace />;
             if (role === 'EMPLOYEE') return <Navigate to="/employee" replace />;
-            // If VENDOR is on staff login, they are technically unauthorized for this portal context
-            // But since they are authenticated, we redirect them to THEIR portal (User Portal)
             return <Navigate to="/vendor/dashboard" replace />;
         } else {
-            // If on a User/Vendor login page (/login or /), send to User Dashboard
-            // Even if Admin, we "Treat them as a regular customer" for this context
+            // If on a User/Vendor login page (/login or /), send to appropriate Dashboard
+            if (role === 'ADMIN') return <Navigate to="/admin/dashboard" replace />;
+            if (role === 'EMPLOYEE') return <Navigate to="/employee" replace />;
             return <Navigate to="/vendor/dashboard" replace />;
         }
     }

@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import type { Reservation } from '../types'
 import ReservationTicket from './ReservationTicket'
 
@@ -19,9 +20,9 @@ export default function ReservationList({ reservations, isLoading }: Reservation
         return (
             <div className="bg-gray-50 border-2 border-dashed border-gray-200 p-8 rounded-3xl text-center">
                 <p className="text-gray-500 mb-4">You haven't reserved any stalls yet.</p>
-                <a href="/stalls" className="inline-block px-6 py-2 bg-primary-500 text-secondary font-bold rounded-lg shadow-md hover:shadow-lg transition-all">
+                <Link to="/events" className="inline-block px-6 py-2 bg-primary-500 text-secondary font-bold rounded-lg shadow-md hover:shadow-lg transition-all">
                     Browse Stalls
-                </a>
+                </Link>
             </div>
         )
     }
