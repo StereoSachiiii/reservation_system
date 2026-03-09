@@ -13,7 +13,7 @@ export function useDocuments() {
             setIsLoading(true);
             const docs = await documentApi.getDocuments();
             setDocuments(docs);
-        } catch (err) {
+        } catch {
             setError('Failed to load documents');
         } finally {
             setIsLoading(false);
@@ -33,7 +33,7 @@ export function useDocuments() {
         try {
             await documentApi.delete(id);
             setDocuments(prev => prev.filter(doc => doc.id !== id));
-        } catch (err) {
+        } catch {
             alert('Failed to delete document');
         } finally {
             setIsDeleting(false);
@@ -50,7 +50,7 @@ export function useDocuments() {
             document.body.appendChild(link);
             link.click();
             link.remove();
-        } catch (err) {
+        } catch {
             alert('Failed to download document');
         }
     };

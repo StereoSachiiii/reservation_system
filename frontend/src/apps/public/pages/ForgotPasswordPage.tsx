@@ -14,8 +14,8 @@ const ForgotPasswordPage: React.FC = () => {
         onSuccess: () => {
             setIsSubmitted(true);
         },
-        onError: (err: any) => {
-            setError(err.response?.data?.message || 'Failed to send reset link');
+        onError: (err: Error) => {
+            setError(err.message || 'Failed to send reset link');
         }
     });
 

@@ -67,5 +67,11 @@ export const vendorApi = {
     askQuestion: async (query: string): Promise<{ answer: string }> => {
         const response = await api.post<{ answer: string }>('/public/help/ask', { query });
         return response.data;
+    },
+
+
+    helpBotAvailability: async (): Promise<{ online: boolean }> => {
+        const response = await api.get<{ online: boolean }>('/public/help');
+        return response.data;
     }
 };

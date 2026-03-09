@@ -22,4 +22,9 @@ public class HelpController {
         }
         return ResponseEntity.ok(helpService.askHelp(query));
     }
+
+    @GetMapping
+    public ResponseEntity<Map<String, Object>> checkStatus() {
+        return ResponseEntity.ok(helpService.checkAvailability());
+    }
 }

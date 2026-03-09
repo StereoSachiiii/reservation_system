@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { adminApi } from '@/shared/api/adminApi';
 import { publicApi } from '@/shared/api/publicApi';
-import { Event, Hall } from '@/shared/types/api';
+import { Event, Hall, EventStall } from '@/shared/types/api';
 import { DesignerStall, DesignerZone, DesignerInfluence } from '../types';
-import { normalizeMapData, NormalizedInfluence, NormalizedZone } from '@/shared/types/stallMap.utils';
+import { normalizeMapData, NormalizedInfluence, NormalizedZone, RawEventMap, adaptToDesignerStall } from '@/shared/types/stallMap.utils';
 
 export function useDesignerLoading(hallId: string | undefined) {
     const [loading, setLoading] = useState(true);
@@ -12,7 +12,7 @@ export function useDesignerLoading(hallId: string | undefined) {
     const [initialStalls, setInitialStalls] = useState<DesignerStall[]>([]);
     const [initialZones, setInitialZones] = useState<DesignerZone[]>([]);
     const [initialInfluences, setInitialInfluences] = useState<DesignerInfluence[]>([]);
-    const [rawMapData, setRawMapData] = useState<any>(null);
+    const [rawMapData, setRawMapData] = useState<RawEventMap | null>(null);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
@@ -38,34 +38,23 @@ export function useDesignerLoading(hallId: string | undefined) {
                 if (!currentEvent) throw new Error("No active event assigned to this venue");
                 setEvent(currentEvent);
 
-                const [mapDataRaw, adminStallsRaw] = await Promise.all([
-                    publicApi.getEventMap(currentEvent.id).catch(() => ({ stalls: [], zones: [], influences: [] })),
-                    adminApi.getEventStalls(currentEvent.id).catch(() => [])
+                const [mapDataRaw, adminStallsRaw, templatesRaw] = await Promise.all([
+                    publicApi.getEventMap(currentEvent.id).catch(() => ({ eventId: currentEvent.id, eventName: currentEvent.name, stalls: [], zones: [], influences: [] })),
+                    adminApi.getEventStalls(currentEvent.id).catch(() => []),
+                    adminApi.getStallsByHall(currentHall.id).catch(() => [])
                 ]);
-                const mapData = mapDataRaw as any;
+                const mapData = mapDataRaw as RawEventMap;
                 setRawMapData(mapData);
 
                 const adminStallsMap = new Map(adminStallsRaw.map(s => [s.id, s]));
+                const templatesMap = new Map(templatesRaw.map(t => [t.id, t]));
 
                 const hallStalls: DesignerStall[] = (mapData?.stalls || [])
-                    .filter((s: any) => s.hallName === currentHall.name)
-                    .map((s: any) => {
+                    .filter((s: EventStall) => s.hallName === currentHall.name)
+                    .map((s: EventStall) => {
                         const adminInfo = adminStallsMap.get(s.id);
-                        return {
-                            id: s.id,
-                            name: s.name,
-                            posX: s.posX || 0,
-                            posY: s.posY || 0,
-                            width: s.width || 8,
-                            height: s.height || 8,
-                            priceCents: Math.round(Number(s.priceCents)) || 0,
-                            baseRateCents: adminInfo ? Math.round(Number(adminInfo.baseRateCents)) : Math.round(Number(s.priceCents)),
-                            pricingVersion: adminInfo?.pricingVersion || "LEGACY",
-                            size: s.size || 'MEDIUM',
-                            category: s.category || 'RETAIL',
-                            isAvailable: !s.reserved,
-                            sqFt: s.sqFt,
-                        };
+                        const template = templatesMap.get(s.id) || Array.from(templatesMap.values()).find(t => t.name === s.templateName);
+                        return adaptToDesignerStall(s, adminInfo, template);
                     });
 
                 setInitialStalls(hallStalls);
@@ -75,9 +64,9 @@ export function useDesignerLoading(hallId: string | undefined) {
                     .filter((inf: NormalizedInfluence) => !inf.hallName || inf.hallName === currentHall.name)
                     .map((inf: NormalizedInfluence) => ({
                         id: inf.id,
-                        type: inf.type as any,
+                        type: inf.type as DesignerInfluence['type'],
                         intensity: inf.intensity,
-                        falloff: inf.falloff as any,
+                        falloff: inf.falloff as DesignerInfluence['falloff'],
                         posX: inf.cx,
                         posY: inf.cy,
                         radius: inf.r
@@ -88,7 +77,7 @@ export function useDesignerLoading(hallId: string | undefined) {
                     .filter((z: NormalizedZone) => !z.hallName || z.hallName === currentHall.name)
                     .map((z: NormalizedZone) => ({
                         id: crypto.randomUUID(),
-                        type: z.type as any,
+                        type: z.type as DesignerZone['type'],
                         posX: z.x,
                         posY: z.y,
                         width: z.w,
@@ -97,8 +86,12 @@ export function useDesignerLoading(hallId: string | undefined) {
                     }));
                 setInitialZones(hallZones);
 
-            } catch (err: any) {
-                setError(err.message);
+            } catch (err: unknown) {
+                if (err instanceof Error) {
+                    setError(err.message);
+                } else {
+                    setError('An unknown error occurred');
+                }
             } finally {
                 setLoading(false);
             }

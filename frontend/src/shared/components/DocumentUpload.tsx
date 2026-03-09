@@ -32,8 +32,11 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({
             if (fileInputRef.current) {
                 fileInputRef.current.value = '';
             }
-        } catch (err: any) {
-            setError(err.response?.data?.message || 'Failed to upload document');
+        } catch (err: unknown) {
+            const message = (err && typeof err === 'object' && 'response' in err)
+                ? (err as { response: { data?: { message?: string } } }).response?.data?.message
+                : (err instanceof Error ? err.message : null);
+            setError(message || 'Failed to upload document');
         } finally {
             setIsUploading(false);
         }

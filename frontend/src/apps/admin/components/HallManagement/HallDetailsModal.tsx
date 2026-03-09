@@ -1,7 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { X, AlertCircle } from 'lucide-react';
 import { Hall, Venue, Building, PublisherCategory } from '@/shared/types/api';
 import { HALL_TIERS, PUBLISHER_GENRES, NOISE_LEVELS } from '@/shared/constants';
+
+export interface HallFormData {
+    name: string;
+    tier: string;
+    floorLevel: string;
+    totalSqFt: string;
+    capacity: string;
+    mainCategory: PublisherCategory;
+    isIndoor: boolean;
+    isAirConditioned: boolean;
+    isGroundFloor: boolean;
+    expectedFootfall: string;
+    noiseLevel: string;
+    distanceFromEntrance: string;
+    distanceFromParking: string;
+    nearbyFacilities: string;
+}
 
 interface HallDetailsModalProps {
     isOpen: boolean;
@@ -9,7 +26,7 @@ interface HallDetailsModalProps {
     editingHall: Hall | null;
     selectedVenue: Venue | null;
     selectedBuilding: Building | null;
-    onSave: (data: any) => Promise<void>;
+    onSave: (data: HallFormData) => Promise<void>;
     isSaving: boolean;
     error: string | null;
 }
@@ -24,7 +41,7 @@ export const HallDetailsModal: React.FC<HallDetailsModalProps> = ({
     isSaving,
     error
 }) => {
-    const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState<HallFormData>({
         name: '',
         tier: 'STANDARD',
         floorLevel: '1',
@@ -41,7 +58,11 @@ export const HallDetailsModal: React.FC<HallDetailsModalProps> = ({
         nearbyFacilities: ''
     });
 
-    useEffect(() => {
+    const [prevHallId, setPrevHallId] = useState<number | string | null>(null);
+    const currentId = editingHall?.id || 'new';
+
+    if (isOpen && currentId !== prevHallId) {
+        setPrevHallId(currentId);
         if (editingHall) {
             setFormData({
                 name: editingHall.name || '',
@@ -77,7 +98,7 @@ export const HallDetailsModal: React.FC<HallDetailsModalProps> = ({
                 nearbyFacilities: ''
             });
         }
-    }, [editingHall, isOpen]);
+    }
 
     if (!isOpen) return null;
 
@@ -85,7 +106,7 @@ export const HallDetailsModal: React.FC<HallDetailsModalProps> = ({
         onSave(formData);
     };
 
-    const handleChange = (field: string, value: any) => {
+    const handleChange = (field: string, value: string | number | boolean) => {
         setFormData(prev => ({ ...prev, [field]: value }));
     };
 

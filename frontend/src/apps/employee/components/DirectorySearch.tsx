@@ -1,9 +1,10 @@
 import React from 'react';
+import { PageEnvelope, Reservation } from '@/shared/types/api';
 
 interface DirectorySearchProps {
     searchQuery: string;
     setSearchQuery: (val: string) => void;
-    searchResults: any;
+    searchResults: PageEnvelope<Reservation> | null;
     handleSearch: (e: React.FormEvent) => void;
 }
 
@@ -24,7 +25,7 @@ export const DirectorySearch: React.FC<DirectorySearchProps> = ({ searchQuery, s
             </form>
 
             <div className="space-y-4">
-                {searchResults?.content.map((res: any) => (
+                {searchResults?.content.map((res: Reservation) => (
                     <div key={res.id} className="p-5 border border-slate-100 rounded-2xl flex justify-between items-center hover:bg-slate-50 transition-all group">
                         <div>
                             <div className="font-black text-slate-800">#{res.id} • {res.vendor}</div>
@@ -36,7 +37,7 @@ export const DirectorySearch: React.FC<DirectorySearchProps> = ({ searchQuery, s
                         </div>
                     </div>
                 ))}
-                {searchResults?.content.length === 0 && (
+                {(!searchResults || searchResults.content.length === 0) && (
                     <div className="text-center py-12 text-slate-400 font-bold italic">
                         Enter a query to browse reservations.
                     </div>

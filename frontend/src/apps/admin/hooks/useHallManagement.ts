@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { adminApi } from '@/shared/api/adminApi';
-import { Hall, Event, Venue, Building } from '@/shared/types/api';
+import { Hall, Event, Venue, Building, PublisherCategory } from '@/shared/types/api';
 
 export type ViewMode = 'EVENTS' | 'VENUES' | 'BUILDINGS' | 'HALLS';
 
@@ -54,7 +54,7 @@ export function useHallManagement() {
                         setViewMode(mode);
                     }
                 }
-            } catch (err) {
+            } catch {
                 setError('Failed to load initial data.');
             } finally {
                 setLoading(false);
@@ -94,7 +94,7 @@ export function useHallManagement() {
             } else {
                 setViewMode('VENUES');
             }
-        } catch (err) {
+        } catch {
             setError('Failed to load venue data.');
         } finally {
             setLoading(false);
@@ -108,7 +108,7 @@ export function useHallManagement() {
             const data = await adminApi.getBuildingsByVenue(venue.id);
             setBuildings(data);
             setViewMode('BUILDINGS');
-        } catch (err) {
+        } catch {
             setError('Failed to load buildings.');
         } finally {
             setLoading(false);
@@ -122,7 +122,7 @@ export function useHallManagement() {
             const data = await adminApi.getHallsByBuilding(building.id);
             setHalls(data);
             setViewMode('HALLS');
-        } catch (err) {
+        } catch {
             setError('Failed to load halls.');
         } finally {
             setLoading(false);
@@ -155,7 +155,22 @@ export function useHallManagement() {
         }
     };
 
-    const handleSave = async (data: any) => {
+    const handleSave = async (data: {
+        name: string;
+        tier: string;
+        floorLevel: string;
+        totalSqFt: string;
+        capacity: string;
+        mainCategory: PublisherCategory | undefined;
+        isIndoor: boolean;
+        isAirConditioned: boolean;
+        isGroundFloor: boolean;
+        expectedFootfall: string;
+        noiseLevel: string;
+        distanceFromEntrance: string;
+        distanceFromParking: string;
+        nearbyFacilities: string;
+    }) => {
         if (!selectedBuilding) return;
         setSaving(true);
         setError('');
@@ -169,15 +184,14 @@ export function useHallManagement() {
                 expectedFootfall: parseInt(data.expectedFootfall) || 0,
                 distanceFromEntrance: parseFloat(data.distanceFromEntrance) || 0,
                 distanceFromParking: parseFloat(data.distanceFromParking) || 0,
+                mainCategory: data.mainCategory || undefined
             };
 
             if (editingHall) {
                 const updated = await adminApi.updateHall(editingHall.id, {
                     ...payload,
-                    id: editingHall.id,
                     name: data.name,
-                    buildingId: selectedBuilding.id,
-                    status: editingHall.status as any
+                    status: editingHall.status as 'DRAFT' | 'PUBLISHED' | 'ARCHIVED'
                 });
                 setHalls(prev => prev.map(h => h.id === editingHall.id ? { ...h, ...updated } : h));
                 setSuccess(`Hall "${updated.name}" updated.`);
@@ -186,13 +200,14 @@ export function useHallManagement() {
                     ...payload,
                     name: data.name,
                     buildingId: selectedBuilding.id
-                } as any);
+                } as Parameters<typeof adminApi.createHall>[0]);
                 setHalls(prev => [...prev, created]);
                 setSuccess(`Hall "${created.name}" created.`);
             }
             setShowModal(false);
-        } catch (err: any) {
-            setError(err.response?.data?.message || 'Save failed.');
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : 'Save failed.';
+            setError(message);
         } finally {
             setSaving(false);
         }
@@ -205,7 +220,7 @@ export function useHallManagement() {
             await adminApi.changeHallStatus(hall.id, 'ARCHIVED');
             setSuccess('Hall archived.');
             setHalls(prev => prev.filter(h => h.id !== hall.id));
-        } catch (err: any) {
+        } catch {
             setError('Failed to archive hall.');
         }
     };
@@ -217,8 +232,8 @@ export function useHallManagement() {
             const updated = await adminApi.changeHallStatus(hall.id, 'PUBLISHED');
             setHalls(prev => prev.map(h => h.id === hall.id ? { ...h, status: updated.status } : h));
             setSuccess(`Hall "${hall.name}" published.`);
-        } catch (err: any) {
-            setError(err.response?.data?.message || 'Publish failed.');
+        } catch {
+            setError('Publish failed.');
         }
     };
 

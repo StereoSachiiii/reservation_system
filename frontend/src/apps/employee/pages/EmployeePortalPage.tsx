@@ -1,4 +1,4 @@
-import { useAuth } from '@/shared/context/AuthContext';
+import { useAuth } from '@/shared/context/useAuth';
 import { useEmployeeScanner } from '../hooks/useEmployeeScanner';
 import { useEmployeeDashboard } from '../hooks/useEmployeeDashboard';
 import { employeeApi } from '@/shared/api/employeeApi';
@@ -53,8 +53,9 @@ export default function EmployeePortalPage() {
             a.click();
             a.remove();
             window.URL.revokeObjectURL(url);
-        } catch (err: any) {
-            alert(err.message);
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : 'Export failed';
+            alert(message);
         }
     };
 

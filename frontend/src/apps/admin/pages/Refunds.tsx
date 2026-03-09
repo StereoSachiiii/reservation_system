@@ -61,10 +61,15 @@ export default function RefundsPage() {
             setRefundable(prev =>
                 prev.find(r => r.id === data.id) ? prev : [data, ...prev]
             );
-        } catch (err: any) {
-            setError(err.response?.status === 404
-                ? `No reservation found with ID: ${searchId}`
-                : err.response?.data?.message || 'Lookup failed.');
+        } catch (err: unknown) {
+            if (err && typeof err === 'object' && 'response' in err) {
+                const axiosErr = err as { response: { status: number, data?: { message?: string } } };
+                setError(axiosErr.response?.status === 404
+                    ? `No reservation found with ID: ${searchId}`
+                    : axiosErr.response?.data?.message || 'Lookup failed.');
+            } else {
+                setError('Lookup failed.');
+            }
         } finally {
             setSearchLoading(false);
             setSearchId('');
@@ -86,8 +91,11 @@ export default function RefundsPage() {
             setReasons(prev => { const n = { ...prev }; delete n[reservation.id]; return n; });
             setConfirmModal(null);
             setTimeout(() => setSuccessResponse(null), 5000);
-        } catch (err: any) {
-            setError(err.response?.data?.message || `Refund failed for RES-${reservation.id}.`);
+        } catch (err: unknown) {
+            const message = (err && typeof err === 'object' && 'response' in err)
+                ? (err as { response: { data?: { message?: string } } }).response?.data?.message
+                : (err instanceof Error ? err.message : null);
+            setError(message || `Refund failed for RES-${reservation.id}.`);
         } finally {
             setProcessingId(null);
         }

@@ -1,7 +1,7 @@
-import { useState, useEffect, FormEvent } from 'react';
+import { useState, FormEvent } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { vendorApi } from '@/shared/api/vendorApi';
-import { useAuth } from '@/shared/context/AuthContext';
+import { useAuth } from '@/shared/context/useAuth';
 
 export function useVendorProfile() {
     const { login } = useAuth();
@@ -22,17 +22,18 @@ export function useVendorProfile() {
         logoUrl: ''
     });
 
-    useEffect(() => {
-        if (profile) {
-            setFormData({
-                businessName: profile.businessName || '',
-                businessDescription: profile.businessDescription || '',
-                contactNumber: profile.contactNumber || '',
-                address: profile.address || '',
-                logoUrl: profile.logoUrl || ''
-            });
-        }
-    }, [profile]);
+    const [prevProfileId, setPrevProfileId] = useState<number | string | null>(null);
+
+    if (profile && profile.id !== prevProfileId) {
+        setPrevProfileId(profile.id);
+        setFormData({
+            businessName: profile.businessName || '',
+            businessDescription: profile.businessDescription || '',
+            contactNumber: profile.contactNumber || '',
+            address: profile.address || '',
+            logoUrl: profile.logoUrl || ''
+        });
+    }
 
     const updateMutation = useMutation({
         mutationFn: vendorApi.updateProfile,
@@ -46,8 +47,9 @@ export function useVendorProfile() {
             setError(null);
             window.scrollTo({ top: 0, behavior: 'smooth' });
         },
-        onError: (err: any) => {
-            setError(err.message || 'Failed to update profile');
+        onError: (err: { message?: string }) => {
+            const message = err.message || 'Failed to update profile';
+            setError(message);
             setSuccess(false);
         }
     });

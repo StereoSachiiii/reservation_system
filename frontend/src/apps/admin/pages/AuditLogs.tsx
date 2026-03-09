@@ -1,30 +1,24 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { adminApi } from '@/shared/api/adminApi';
 import AuditTable from '@/apps/admin/components/Audit/AuditTable';
 import AuditFilters from '@/apps/admin/components/Audit/AuditFilters';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { AuditLog, PageEnvelope } from '@/shared/types/api';
 
 export default function AuditLogsPage() {
-    const [logs, setLogs] = useState<any[]>([]);
-    const [pagination, setPagination] = useState<any>(null);
+    const [logs, setLogs] = useState<AuditLog[]>([]);
+    const [pagination, setPagination] = useState<PageEnvelope<AuditLog> | null>(null);
     const [page, setPage] = useState(0);
     const [entityType, setEntityType] = useState('');
     const [actorId, setActorId] = useState('');
     const [loading, setLoading] = useState(true);
-    const [selectedLog, setSelectedLog] = useState<any>(null);
+    const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
 
     useEffect(() => {
         setPage(0);
     }, [entityType, actorId]);
 
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            fetchLogs();
-        }, 500);
-        return () => clearTimeout(timer);
-    }, [page, entityType, actorId]);
-
-    const fetchLogs = async () => {
+    const fetchLogs = useCallback(async () => {
         if (actorId && isNaN(Number(actorId))) {
             setLogs([]);
             setPagination(null);
@@ -46,7 +40,14 @@ export default function AuditLogsPage() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [page, entityType, actorId]);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            fetchLogs();
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [fetchLogs]);
 
     return (
         <div className="space-y-8">
@@ -74,7 +75,7 @@ export default function AuditLogsPage() {
                 </div>
             ) : (
                 <>
-                    <AuditTable logs={logs} onViewDetail={setSelectedLog} />
+                    <AuditTable logs={logs} onViewDetail={(log) => setSelectedLog(log)} />
 
                     {/* Pagination */}
                     <div className="flex items-center justify-between px-2">

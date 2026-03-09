@@ -3,7 +3,7 @@ interface CancelReservationModalProps {
     onClose: () => void;
     onConfirm: () => void;
     isPending: boolean;
-    error: any;
+    error: { response?: { data?: { message?: string } } } | null;
     status: string;
 }
 

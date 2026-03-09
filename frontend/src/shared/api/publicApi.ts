@@ -5,7 +5,8 @@ import {
     Venue,
     EventStall,
     MapZone,
-    MapInfluence
+    MapInfluence,
+    Hall
 } from '@/shared/types/api';
 
 export const publicApi = {
@@ -42,7 +43,7 @@ export const publicApi = {
         stalls: EventStall[];
         zones: MapZone[];
         influences: MapInfluence[];
-        halls?: any[];
+        halls?: Hall[];
         mapUrl?: string;
         mapWidth?: number;
         mapHeight?: number;
@@ -53,7 +54,7 @@ export const publicApi = {
             stalls: EventStall[];
             zones: MapZone[];
             influences: MapInfluence[];
-            halls?: any[];
+            halls?: Hall[];
             mapUrl?: string;
             mapWidth?: number;
             mapHeight?: number;

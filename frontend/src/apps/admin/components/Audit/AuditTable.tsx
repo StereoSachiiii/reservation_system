@@ -1,13 +1,5 @@
 import { Search } from 'lucide-react';
-
-interface AuditLog {
-    id: number;
-    actorId: number;
-    action: string;
-    entityType: string;
-    entityId: number;
-    timestamp: string;
-}
+import { AuditLog } from '@/shared/types/api';
 
 interface AuditTableProps {
     logs: AuditLog[];

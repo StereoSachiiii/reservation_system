@@ -5,7 +5,7 @@ interface ReservationFiltersProps {
     searchTerm: string;
     onSearchChange: (value: string) => void;
     statusFilter: string;
-    onStatusChange: (status: any) => void;
+    onStatusChange: (status: 'ALL' | 'PAID' | 'PENDING_PAYMENT' | 'CANCELLED' | 'PENDING_REFUND') => void;
 }
 
 const STATUS_OPTIONS = ['ALL', 'PAID', 'PENDING_PAYMENT', 'CANCELLED', 'PENDING_REFUND'] as const;

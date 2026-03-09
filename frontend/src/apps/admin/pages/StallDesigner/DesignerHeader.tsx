@@ -1,4 +1,4 @@
-import { useDesigner } from './DesignerContext';
+import { useDesigner } from './useDesigner';
 
 export function DesignerHeader({
     onSave, saving, message
@@ -59,8 +59,8 @@ export function DesignerHeader({
                     )}
                     <div className="flex-shrink-0 ml-auto">
                         <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border ${hall.status === 'PUBLISHED' ? 'bg-green-50 text-green-700 border-green-200' :
-                                hall.status === 'ARCHIVED' ? 'bg-gray-100 text-gray-500 border-gray-200' :
-                                    'bg-yellow-50 text-yellow-700 border-yellow-200'
+                            hall.status === 'ARCHIVED' ? 'bg-gray-100 text-gray-500 border-gray-200' :
+                                'bg-yellow-50 text-yellow-700 border-yellow-200'
                             }`}>{hall.status}</span>
                     </div>
                 </div>

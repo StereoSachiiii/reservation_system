@@ -1,12 +1,12 @@
 import React from 'react';
-import { User } from '@/shared/types/api';
+import { User, Event } from '@/shared/types/api';
 
 interface EmployeeHeaderProps {
     user: User | null;
     activeTab: 'SCAN' | 'DASHBOARD' | 'SEARCH';
     setActiveTab: (tab: 'SCAN' | 'DASHBOARD' | 'SEARCH') => void;
     onExport: () => void;
-    events: any[];
+    events: Event[];
     selectedEventId: number | null;
     setSelectedEventId: (id: number) => void;
 }
@@ -31,7 +31,7 @@ export const EmployeeHeader: React.FC<EmployeeHeaderProps> = ({
                                     value={selectedEventId || ''}
                                     onChange={(e) => setSelectedEventId(Number(e.target.value))}
                                 >
-                                    {events.map((evt: any) => (
+                                    {events.map((evt: Event) => (
                                         <option key={evt.id} value={evt.id}>{evt.name}</option>
                                     ))}
                                 </select>
@@ -42,8 +42,6 @@ export const EmployeeHeader: React.FC<EmployeeHeaderProps> = ({
                 </div>
 
                 <nav className="flex bg-slate-100 p-1 rounded-xl">
-                    {(['SCAN', 'QR Scanner', '🔍'] as const, ['DASHBOARD', 'Monitoring', '📊'] as const, ['SEARCH', 'Directory', '📇'] as const).map(() => null)}
-                    {/* TypeScript mapping fix below */}
                     {[
                         { id: 'SCAN', label: 'QR Scanner', icon: '🔍' },
                         { id: 'DASHBOARD', label: 'Monitoring', icon: '📊' },
@@ -51,7 +49,7 @@ export const EmployeeHeader: React.FC<EmployeeHeaderProps> = ({
                     ].map((tab) => (
                         <button
                             key={tab.id}
-                            onClick={() => setActiveTab(tab.id as any)}
+                            onClick={() => setActiveTab(tab.id as 'SCAN' | 'DASHBOARD' | 'SEARCH')}
                             className={`px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 ${activeTab === tab.id
                                 ? 'bg-white text-blue-600 shadow-sm'
                                 : 'text-slate-500 hover:text-slate-700'

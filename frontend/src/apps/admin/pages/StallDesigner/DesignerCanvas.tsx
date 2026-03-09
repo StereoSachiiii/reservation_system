@@ -1,4 +1,4 @@
-import { useDesigner } from './DesignerContext';
+import { useDesigner } from './useDesigner';
 import { getDrawRect } from './types';
 import { useDesignerInteractions } from './hooks/useDesignerInteractions';
 import { DesignerZoneItem } from './components/DesignerZoneItem';
@@ -37,12 +37,12 @@ export function DesignerCanvas() {
             >
                 {/* 1. Base Layer (Zones) */}
                 {zones.map(z => (
-                    <DesignerZoneItem key={z.id} zone={z} onMouseDown={handleItemMouseDown as any} />
+                    <DesignerZoneItem key={z.id} zone={z} onMouseDown={handleItemMouseDown} />
                 ))}
 
                 {/* 2. Heatmap Layer (Influences) */}
                 {influences.map(inf => (
-                    <DesignerInfluenceItem key={inf.id} influence={inf} onMouseDown={handleItemMouseDown as any} />
+                    <DesignerInfluenceItem key={inf.id} influence={inf} onMouseDown={handleItemMouseDown} />
                 ))}
 
                 {/* 3. Stalls Layer */}
@@ -51,7 +51,7 @@ export function DesignerCanvas() {
                         key={stall.id}
                         stall={stall}
                         isEditing={editingStallId === stall.id}
-                        onMouseDown={handleItemMouseDown as any}
+                        onMouseDown={handleItemMouseDown}
                     />
                 ))}
 

@@ -1,15 +1,17 @@
+import React from 'react';
+import { ScannerResult } from '@/shared/types/api';
 import { ScannerInput, ScannerResultCard } from './Scanner/ScannerSteps';
 import { AdmitSuccessView, LookupErrorView } from './Scanner/ScannerStatus';
 
 interface ScannerViewProps {
     qrInput: string;
     setQrInput: (val: string) => void;
-    lookupResult: any;
-    setLookupResult: (val: any) => void;
+    lookupResult: ScannerResult | null;
+    setLookupResult: (val: ScannerResult | null) => void;
     admitSuccess: boolean;
     lookupLoading: boolean;
     admitLoading: boolean;
-    lookupError: any;
+    lookupError: Error | null;
     handleLookup: (e: React.FormEvent) => void;
     handleAdmit: () => void;
     handleReset: () => void;
@@ -68,7 +70,7 @@ export const ScannerView: React.FC<ScannerViewProps> = ({
                 {/* STEP 3: SUCCESS */}
                 {admitSuccess && (
                     <AdmitSuccessView
-                        businessName={lookupResult?.businessName}
+                        businessName={lookupResult?.businessName || ''}
                         handleReset={handleReset}
                     />
                 )}

@@ -2,12 +2,12 @@ import { useMemo, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { publicApi } from '@/shared/api/publicApi'
 import { vendorApi } from '@/shared/api/vendorApi'
-import { EventStall as Stall } from '@/shared/types/api';
+import { EventStall as Stall, User, Hall } from '@/shared/types/api';
 import { RawEventMap, normalizeMapData } from '@/shared/types/stallMap.utils';
 
 interface UseMapDataProps {
     eventId: number | null
-    user: any | null
+    user: User | null
     selectedGenre: string | null
     selectedHall: string | null
     setSelectedHall: (hall: string | null) => void
@@ -44,11 +44,11 @@ export function useMapData({
     const remainingSlots: number = limitData?.remaining ?? 3
 
     const { influences, zones } = useMemo(
-        () => normalizeMapData(rawEventMap?.zones || [], rawEventMap?.influences || [], rawEventMap?.halls || []),
-        [rawEventMap?.zones, rawEventMap?.influences, rawEventMap?.halls]
+        () => normalizeMapData(rawEventMap.zones || [], rawEventMap.influences || [], (rawEventMap.halls as Hall[]) || []),
+        [rawEventMap.zones, rawEventMap.influences, rawEventMap.halls]
     )
 
-    const allStalls: Stall[] = rawEventMap?.stalls ?? []
+    const allStalls: Stall[] = useMemo(() => rawEventMap?.stalls ?? [], [rawEventMap]);
 
     const halls = useMemo(
         () => Array.from(new Set(allStalls.map((s: Stall) => s.hallName).filter(Boolean))).sort() as string[],
@@ -58,12 +58,12 @@ export function useMapData({
     // Auto-select best hall on load — prefer genre-matched hall
     useEffect(() => {
         if (halls.length > 0 && (!selectedHall || !halls.includes(selectedHall))) {
-            const hallsMeta = rawEventMap.halls ?? [];
+            const hallsMeta = (rawEventMap.halls as Hall[]) ?? [];
             let best = halls[0];
             if (selectedGenre && selectedGenre !== 'ANY') {
                 const match = halls.find(h => {
-                    const meta = hallsMeta.find(m => (m as any).name === h);
-                    const cat = ((meta as any)?.mainCategory || (meta as any)?.category || '').toUpperCase();
+                    const meta = hallsMeta.find(m => m.name === h);
+                    const cat = (meta?.mainCategory || '').toUpperCase();
                     return cat === selectedGenre;
                 });
                 if (match) best = match;
@@ -72,7 +72,7 @@ export function useMapData({
         } else if (halls.length === 0) {
             setSelectedHall(null)
         }
-    }, [halls, selectedHall, selectedGenre, rawEventMap, setSelectedHall])
+    }, [halls, selectedHall, selectedGenre, rawEventMap.halls, setSelectedHall])
 
     const displayedStalls = useMemo(
         () => (selectedHall ? allStalls.filter((s: Stall) => s.hallName === selectedHall) : allStalls),
@@ -91,9 +91,9 @@ export function useMapData({
 
     const isRecommended = (hall: string): boolean => {
         if (selectedGenre === 'ANY' || !selectedGenre) return false;
-        const hallMeta = rawEventMap.halls?.find(h => (h as any).name === hall);
+        const hallMeta = (rawEventMap.halls as Hall[])?.find(h => h.name === hall);
         if (!hallMeta) return false;
-        const category = ((hallMeta as any).mainCategory || (hallMeta as any).category || '').toUpperCase();
+        const category = (hallMeta.mainCategory || '').toUpperCase();
         return category === selectedGenre;
     }
 

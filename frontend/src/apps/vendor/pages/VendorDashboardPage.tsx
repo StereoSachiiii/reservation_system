@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { vendorApi } from '@/shared/api/vendorApi';
 import { Reservation } from '@/shared/types/api';
-import { useAuth } from '@/shared/context/AuthContext';
+import { useAuth } from '@/shared/context/useAuth';
 
 // Sub-components
 import { DashboardHeader } from '../components/Dashboard/DashboardHeader';
@@ -37,8 +37,9 @@ export default function VendorDashboardPage() {
             ]);
             setReservations(resData);
             setLimits(limitData);
-        } catch (err: any) {
-            setError(err.message || 'Failed to load dashboard');
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : 'Failed to load dashboard';
+            setError(message);
         } finally {
             setLoading(false);
         }
@@ -63,8 +64,11 @@ export default function VendorDashboardPage() {
             }
             setShowCancelModal(false);
             loadDashboard();
-        } catch (err: any) {
-            setError(err.response?.data?.message || err.message || 'Action failed');
+        } catch (err: unknown) {
+            const message = (err && typeof err === 'object' && 'response' in err)
+                ? (err as { response: { data?: { message?: string } } }).response?.data?.message
+                : (err instanceof Error ? err.message : null);
+            setError(message || 'Action failed');
         } finally {
             setActionLoading(false);
         }

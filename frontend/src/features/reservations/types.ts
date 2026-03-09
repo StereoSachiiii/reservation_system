@@ -9,6 +9,9 @@ export interface Reservation {
     status: 'PENDING_PAYMENT' | 'PAID' | 'CANCELLED' | 'EXPIRED' | 'CHECKED_IN' | 'PENDING_REFUND'
     emailSent: boolean
     createdAt: string
+    created_at?: string
+    paidAt?: string
+    paid_at?: string
     event?: {
         id: number;
         name: string;

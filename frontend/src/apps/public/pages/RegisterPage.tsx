@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useMutation } from '@tanstack/react-query'
 import { authApi } from '@/shared/api/authApi'
-import { useAuth } from '@/shared/context/AuthContext'
+import { useAuth } from '@/shared/context/useAuth'
 import type { RegisterRequest } from '@/shared/api/authApi'
 import FormField from '@/shared/components/FormField'
 
@@ -24,7 +24,7 @@ function RegisterPage() {
     const [errors, setErrors] = useState<Partial<RegisterRequest & { contactNumber?: string }>>({})
 
     const validate = () => {
-        const newErrors: any = {}
+        const newErrors: Record<string, string> = {}
         if (!form.username) newErrors.username = 'Username is required'
         if (!form.password) newErrors.password = 'Password is required'
         else if (form.password.length < 6) newErrors.password = 'Password must be at least 6 characters'
@@ -48,13 +48,13 @@ function RegisterPage() {
             login(data.token, data.user)
             navigate('/home')
         },
-        onError: (err: any) => {
+        onError: (err: unknown) => {
+            const message = (err && typeof err === 'object' && 'response' in err)
+                ? (err as { response: { data?: { message?: string } } }).response?.data?.message
+                : (err instanceof Error ? err.message : null);
             setErrors(prev => ({
                 ...prev,
-                // key 'form' isn't explicitly on the UI, using username/general or alerting 
-                // actually we can put it in a general error or just alert for now if no specific field
-                // simpler to just put it in a known field or a generic usage
-                username: err.response?.data?.message || err.message || 'Registration failed'
+                username: message || 'Registration failed'
             }));
         }
     })
@@ -90,7 +90,7 @@ function RegisterPage() {
                 <form onSubmit={handleSubmit} className="space-y-5">
                     {mutation.isError && (
                         <div className="bg-red-50 text-red-600 p-3 rounded text-sm">
-                            {mutation.error?.message || "Registration failed. Please try again."}
+                            {(mutation.error as Error)?.message || "Registration failed. Please try again."}
                         </div>
                     )}
 
@@ -148,7 +148,7 @@ function RegisterPage() {
 
                     {mutation.isError && (
                         <div className="text-red-600 text-sm bg-red-50 border border-red-200 p-3 rounded-lg">
-                            {mutation.error.message}
+                            {(mutation.error as Error).message}
                         </div>
                     )}
 

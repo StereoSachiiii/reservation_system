@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { employeeApi } from '@/shared/api/employeeApi';
 import { publicApi } from '@/shared/api/publicApi';
-import { PageEnvelope, Reservation } from '@/shared/types/api';
+import { PageEnvelope, Reservation, Event as AppEvent } from '@/shared/types/api';
 
 export function useEmployeeDashboard() {
     const [activeTab, setActiveTab] = useState<'DASHBOARD' | 'SCAN' | 'SEARCH'>('SCAN');
@@ -16,12 +16,14 @@ export function useEmployeeDashboard() {
         queryFn: publicApi.getActiveEvents
     });
 
-    // Auto-select first event if none selected
-    useEffect(() => {
+    const [prevEvents, setPrevEvents] = useState<PageEnvelope<AppEvent> | undefined>(undefined);
+
+    if (events !== prevEvents) {
+        setPrevEvents(events);
         if (events && events.content && events.content.length > 0 && !selectedEventId) {
             setSelectedEventId(events.content[0].id);
         }
-    }, [events, selectedEventId]);
+    }
 
     // QUERY: Stats (Depends on selectedEventId)
     const { data: stats, isLoading: loadingStats } = useQuery({
@@ -44,7 +46,7 @@ export function useEmployeeDashboard() {
 
     return {
         activeTab, setActiveTab,
-        stats, loadingStats,
+        stats: stats || null, loadingStats,
         events: events?.content || [], loadingEvents,
         selectedEventId, setSelectedEventId,
 

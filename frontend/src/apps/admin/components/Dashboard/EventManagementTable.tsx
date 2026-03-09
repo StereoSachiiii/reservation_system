@@ -77,7 +77,7 @@ export const EventManagementTable = ({
                                     <td className="px-10 py-8">
                                         <select
                                             value={evt.status}
-                                            onChange={(e) => onUpdateStatus(evt.id, e.target.value as any)}
+                                            onChange={(e) => onUpdateStatus(evt.id, e.target.value as 'UPCOMING' | 'OPEN' | 'CLOSED')}
                                             className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border-2 transition-all cursor-pointer focus:ring-0 focus:outline-none ${evt.status === 'OPEN' ? 'border-emerald-100 bg-emerald-50 text-emerald-600 hover:border-emerald-500' :
                                                 evt.status === 'CLOSED' ? 'border-rose-100 bg-rose-50 text-rose-600 hover:border-rose-500' :
                                                     'border-slate-100 bg-slate-100 text-slate-500 hover:border-slate-400'

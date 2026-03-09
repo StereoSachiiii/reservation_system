@@ -1,4 +1,4 @@
-import { useDesigner } from '../DesignerContext';
+import { useDesigner } from '../useDesigner';
 import { getDrawRect, DesignerStall, DesignerZone, DesignerInfluence } from '../types';
 
 export function useDesignerDrawing() {

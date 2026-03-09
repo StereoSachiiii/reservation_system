@@ -1,5 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { DesignerProvider, useDesigner } from './DesignerContext';
+import { DesignerProvider } from './DesignerProvider';
+import { useDesigner } from './useDesigner';
 import { DesignerHeader } from './DesignerHeader';
 import { DesignerCanvas } from './DesignerCanvas';
 import { DesignerSidebar } from './DesignerSidebar';

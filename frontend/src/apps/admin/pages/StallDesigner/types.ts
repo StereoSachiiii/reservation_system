@@ -38,14 +38,29 @@ export interface DesignerStall {
     sqFt?: number;
 }
 
-export function parseGeometry(g: any): { x: number; y: number; w: number; h: number } {
-    if (!g) return { x: 0, y: 0, w: 5, h: 5 };
-    if (typeof g === 'string') {
-        try { return JSON.parse(g); } catch { return { x: 0, y: 0, w: 5, h: 5 }; }
+
+/* 
+This function parses the geometry of a stall
+
+@param geometryString - The geometry of the stall
+@returns The geometry of the stall
+*/
+export function parseGeometry(geometryString: string| null  ): { x: number; y: number; w: number; h: number } {
+    if (!geometryString) return { x: 0, y: 0, w: 5, h: 5 };
+    if (typeof geometryString === 'string') {
+        try { return JSON.parse(geometryString); } catch { return { x: 0, y: 0, w: 5, h: 5 }; }
     }
-    return g;
+    return geometryString;
 }
 
+
+/* 
+This function gets the draw rectangle of a stall
+
+@param start - The starting point of the stall
+@param end - The ending point of the stall
+@returns The draw rectangle of the stall
+*/
 export function getDrawRect(start: { x: number; y: number }, end: { x: number; y: number }) {
     return {
         x: Math.min(start.x, end.x), y: Math.min(start.y, end.y),
@@ -53,9 +68,9 @@ export function getDrawRect(start: { x: number; y: number }, end: { x: number; y
     };
 }
 
-export function toPercent(e: React.MouseEvent, el: HTMLElement) {
-    const r = el.getBoundingClientRect();
-    return { x: ((e.clientX - r.left) / r.width) * 100, y: ((e.clientY - r.top) / r.height) * 100 };
+export function toPercent(event: React.MouseEvent, element: HTMLElement) {
+    const r = element.getBoundingClientRect();
+    return { x: ((event.clientX - r.left) / r.width) * 100, y: ((event.clientY - r.top) / r.height) * 100 };
 }
 
 export function stallColor(cat: StallCategory, isSelected: boolean): string {
@@ -68,4 +83,11 @@ export function stallColor(cat: StallCategory, isSelected: boolean): string {
     }
 }
 
+
+/* 
+This function fromats the price from cents to LKR format
+
+@param cents - The price in cents
+@returns The price in LKR format
+*/
 export const formatPrice = (cents: number) => `LKR ${(cents / 100).toLocaleString()} `;

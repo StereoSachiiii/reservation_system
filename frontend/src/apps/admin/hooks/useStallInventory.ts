@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { adminApi } from '@/shared/api/adminApi';
 import { StallTemplate, Hall, StallSize, StallCategory } from '@/shared/types/api';
 
@@ -34,11 +34,7 @@ export function useStallInventory(hallId: string | undefined) {
     const [editForm, setEditForm] = useState<Partial<StallTemplate>>({});
     const [savingEdit, setSavingEdit] = useState(false);
 
-    useEffect(() => {
-        if (hallId) loadData();
-    }, [hallId]);
-
-    const loadData = async () => {
+    const loadData = useCallback(async () => {
         setLoading(true);
         try {
             const [halls, stallData] = await Promise.all([
@@ -48,12 +44,16 @@ export function useStallInventory(hallId: string | undefined) {
             const currentHall = halls.find((h) => h.id === Number(hallId));
             setHall(currentHall || null);
             setStalls(stallData);
-        } catch (err) {
+        } catch {
             setError('Failed to load inventory.');
         } finally {
             setLoading(false);
         }
-    };
+    }, [hallId]);
+
+    useEffect(() => {
+        if (hallId) loadData();
+    }, [hallId, loadData]);
 
     const handleBulkGenerate = async () => {
         if (!bulkForm.count || !bulkForm.basePriceCents) { setError('Count and price are required.'); return; }
@@ -69,8 +69,9 @@ export function useStallInventory(hallId: string | undefined) {
             setSuccess(`Generated ${bulkForm.count} stalls successfully!`);
             setShowBulkModal(false);
             await loadData();
-        } catch (err: any) {
-            setError(err.response?.data?.message || 'Bulk generate failed.');
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : 'Bulk generate failed.';
+            setError(message);
         } finally {
             setGenerating(false);
         }
@@ -87,8 +88,9 @@ export function useStallInventory(hallId: string | undefined) {
             setShowPriceModal(false);
             setBulkPercentage('');
             await loadData();
-        } catch (err: any) {
-            setError(err.response?.data?.message || 'Price adjustment failed.');
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : 'Price adjustment failed.';
+            setError(message);
         } finally {
             setAdjusting(false);
         }
@@ -116,8 +118,9 @@ export function useStallInventory(hallId: string | undefined) {
             setStalls(prev => prev.map(s => s.id === updated.id ? { ...s, ...updated } : s));
             setSuccess(`Stall ${updated.name} updated successfully.`);
             setShowEditModal(false);
-        } catch (err: any) {
-            setError(err.response?.data?.message || 'Failed to update stall.');
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : 'Failed to update stall.';
+            setError(message);
         } finally {
             setSavingEdit(false);
         }
@@ -128,16 +131,20 @@ export function useStallInventory(hallId: string | undefined) {
         try {
             const updated = await adminApi.setStallBlocked(Number(hallId), stall.id, stall.isAvailable);
             setStalls(prev => prev.map(s => s.id === stall.id ? { ...s, isAvailable: updated.isAvailable } : s));
-        } catch (err: any) {
-            setError(err.response?.data?.message || 'Failed to update stall status.');
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : 'Failed to update stall status.';
+            setError(message);
         }
     };
 
     const handleExportCsv = async () => {
         try {
             await adminApi.exportStallsCsv(Number(hallId));
-        } catch (err: any) {
-            setError('Failed to export CSV.');
+        } catch (err: unknown) {
+            const message = (err && typeof err === 'object' && 'response' in err)
+                ? (err as { response: { data?: { message?: string } } }).response?.data?.message
+                : (err instanceof Error ? err.message : null);
+            setError(message || 'Failed to export CSV.');
         }
     };
 

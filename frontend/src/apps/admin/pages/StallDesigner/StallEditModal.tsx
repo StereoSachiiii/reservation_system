@@ -1,4 +1,4 @@
-import { useDesigner } from './DesignerContext';
+import { useDesigner } from './useDesigner';
 import { STALL_SIZES, STALL_CATEGORIES } from '@/shared/constants';
 import { StallSize, StallCategory } from '@/shared/types/api';
 

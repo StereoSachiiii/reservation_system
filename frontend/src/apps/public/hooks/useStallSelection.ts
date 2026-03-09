@@ -2,10 +2,11 @@ import { useState, useCallback } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { vendorApi } from '@/shared/api/vendorApi'
+import { User } from '@/shared/types/api'
 
 interface UseStallSelectionProps {
     eventId: number | null
-    user: any | null
+    user: User | null
     remainingSlots: number
 }
 
@@ -31,8 +32,11 @@ export function useStallSelection({
                 navigate('/vendor/dashboard')
             }
         },
-        onError: (err: any) => {
-            setError(err.response?.data?.message || err.message || 'Reservation failed.')
+        onError: (err: unknown) => {
+            const message = (err && typeof err === 'object' && 'response' in err)
+                ? (err as { response: { data?: { message?: string } } }).response?.data?.message
+                : (err instanceof Error ? err.message : null);
+            setError(message || 'Reservation failed.');
         },
     })
 
@@ -58,7 +62,7 @@ export function useStallSelection({
     const handleConfirm = useCallback(() => {
         if (!user?.id) { setError('Session not ready.'); return }
         mutation.mutate({ userId: user.id, stallIds: selectedIds })
-    }, [user?.id, selectedIds, mutation])
+    }, [user, selectedIds, mutation])
 
     const handleClearSelection = useCallback(() => {
         setSelectedIds([])

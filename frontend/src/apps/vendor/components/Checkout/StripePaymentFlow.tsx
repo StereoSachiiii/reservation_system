@@ -66,16 +66,20 @@ const StripePaymentForm = ({ reservationId, amountCents, onSuccess }: StripePaym
                 try {
                     await paymentApi.confirmPayment(reservationId, paymentIntent.id);
                     onSuccess();
-                } catch (err: any) {
-                    setErrorMessage(err.response?.data?.message || 'Verification failed. Contact support.');
+                } catch (err: unknown) {
+                    const message = (err && typeof err === 'object' && 'response' in err)
+                        ? (err as { response: { data?: { message?: string } } }).response?.data?.message
+                        : (err instanceof Error ? err.message : null);
+                    setErrorMessage(message || 'Verification failed. Contact support.');
                     setIsProcessing(false);
                 }
             } else {
                 setErrorMessage(`Status: ${paymentIntent?.status}. Contact support.`);
                 setIsProcessing(false);
             }
-        } catch (fatalErr: any) {
-            setErrorMessage(fatalErr.message || "Critical error.");
+        } catch (fatalErr: unknown) {
+            const message = fatalErr instanceof Error ? fatalErr.message : "Critical error.";
+            setErrorMessage(message);
             setIsProcessing(false);
         }
     };

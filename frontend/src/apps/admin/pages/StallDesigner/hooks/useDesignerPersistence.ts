@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { adminApi } from '@/shared/api/adminApi';
 import { publicApi } from '@/shared/api/publicApi';
-import { Event, Hall } from '@/shared/types/api';
+import { Event, Hall, MapZone, MapInfluence, EventStall } from '@/shared/types/api';
 import { DesignerStall, DesignerZone, DesignerInfluence } from '../types';
+import { RawEventMap } from '@/shared/types/stallMap.utils';
 
 export function useDesignerPersistence() {
     const [saving, setSaving] = useState(false);
@@ -11,19 +12,19 @@ export function useDesignerPersistence() {
     const handleSave = async (
         event: Event,
         hall: Hall,
-        rawMapData: any,
+        rawMapData: RawEventMap | null,
         currentStalls: DesignerStall[],
         currentZones: DesignerZone[],
         currentInfluences: DesignerInfluence[],
-        onSuccess?: (freshMapData: any) => void
+        onSuccess?: (freshMapData: RawEventMap) => void
     ) => {
         setSaving(true);
         setMessage(null);
         try {
-            const otherStalls = (rawMapData?.stalls || []).filter((s: any) => s.hallName !== hall.name);
+            const otherStalls = (rawMapData?.stalls || []).filter((s: EventStall) => s.hallName !== hall.name);
 
             const payload = [
-                ...otherStalls.map((s: any) => ({
+                ...otherStalls.map((s: EventStall) => ({
                     id: s.id, name: s.name, hallName: s.hallName,
                     posX: s.posX, posY: s.posY, width: s.width, height: s.height,
                     finalPriceCents: s.priceCents,
@@ -37,11 +38,11 @@ export function useDesignerPersistence() {
             ];
 
             // 1. Save Stalls
-            await adminApi.saveLayout(event.id, payload as any);
+            await adminApi.saveLayout(event.id, payload);
 
             // 2. Save Zones
-            const zonePayload = [
-                ...(rawMapData?.zones || []).filter((z: any) => z.hallName !== hall.name),
+            const zonePayload: Partial<MapZone>[] = [
+                ...(rawMapData?.zones || []).filter((z: MapZone) => z.hallName !== hall.name),
                 ...currentZones.map(z => ({
                     hallName: hall.name,
                     type: z.type,
@@ -55,8 +56,8 @@ export function useDesignerPersistence() {
             await adminApi.saveZones(event.id, zonePayload);
 
             // 3. Save Influences
-            const influencePayload = [
-                ...(rawMapData?.influences || []).filter((inf: any) => inf.hallName !== hall.name),
+            const influencePayload: Partial<MapInfluence>[] = [
+                ...(rawMapData?.influences || []).filter((inf: MapInfluence) => inf.hallName !== hall.name),
                 ...currentInfluences.map(inf => ({
                     hallName: hall.name,
                     id: inf.id,
@@ -80,7 +81,7 @@ export function useDesignerPersistence() {
                 status: event.status,
                 imageUrl: event.imageUrl,
                 venueId: event.venueId
-            } as any);
+            });
 
             setMessage({ text: 'Layout & zones saved successfully!', type: 'success' });
 
@@ -88,8 +89,9 @@ export function useDesignerPersistence() {
             if (onSuccess) onSuccess(freshMapData);
 
             setTimeout(() => setMessage(null), 3000);
-        } catch (err: any) {
-            setMessage({ text: 'Save failed: ' + err.message, type: 'error' });
+        } catch (err) {
+            const error = err as Error;
+            setMessage({ text: 'Save failed: ' + error.message, type: 'error' });
         } finally {
             setSaving(false);
         }

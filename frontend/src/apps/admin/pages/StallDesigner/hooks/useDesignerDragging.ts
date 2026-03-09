@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { useDesigner } from '../DesignerContext';
+import { useDesigner } from '../useDesigner';
 
 export function useDesignerDragging() {
     const {

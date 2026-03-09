@@ -3,7 +3,7 @@ import { useState, useCallback, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
 //auth context
-import { useAuth } from '@/shared/context/AuthContext'
+import { useAuth } from '@/shared/context/useAuth'
 
 //sub componenets
 import { GenreGate } from '@/apps/public/components/GenreGate'
@@ -30,7 +30,7 @@ export default function StallMapPage() {
   const eventId = urlEventId ? parseInt(urlEventId, 10) : null
 
   // ── Real-time Updates ─────────────────────────────────────────────────────
-  useStallUpdates(useCallback((update) => {
+  useStallUpdates(useCallback((update: { stallId: number, reserved: boolean, occupiedBy: string | null, publisherCategory: string | null }) => {
     queryClient.setQueryData(['stalls', eventId], (oldData: RawEventMap | undefined) => {
       if (!oldData) return oldData;
       return {
@@ -150,7 +150,7 @@ export default function StallMapPage() {
           </div>
 
           {(() => {
-            const currentHall = rawEventMap?.halls?.find((h: any) => h.name === selectedHall);
+            const currentHall = rawEventMap?.halls?.find(h => h.name === selectedHall);
             return currentHall ? <HallInfo currentHall={currentHall} /> : null;
           })()}
 

@@ -8,21 +8,21 @@ export const ReservationTimeline = ({ reservation }: ReservationTimelineProps) =
   const timeline = [
     {
       label: 'Created',
-      date: (reservation as any).createdAt || (reservation as any).created_at,
+      date: reservation.createdAt || reservation.created_at,
       completed: true,
       icon: '✓'
     },
     {
       label: 'Payment Pending',
-      date: (reservation as any).paidAt || (reservation as any).paid_at || null,
+      date: reservation.paidAt || reservation.paid_at || null,
       completed: reservation.status === 'PAID' || reservation.status === 'CHECKED_IN',
       icon: reservation.status === 'PENDING_PAYMENT' ? '⏳' : '✓'
     },
     {
       label: 'Paid',
-      date: (reservation as any).paidAt || (reservation as any).paid_at,
+      date: reservation.paidAt || reservation.paid_at,
       completed: reservation.status === 'PAID' || reservation.status === 'CHECKED_IN',
-      icon: ((reservation as any).paidAt || (reservation as any).paid_at) ? '✓' : '○'
+      icon: (reservation.paidAt || reservation.paid_at) ? '✓' : '○'
     },
     {
       label: 'Checked In',

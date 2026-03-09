@@ -59,5 +59,5 @@ export const useStallUpdates = (onUpdate: (message: StallUpdateMessage) => void)
         };
     }, [onUpdate]);
 
-    return stompClient.current;
+    return stompClient;
 };

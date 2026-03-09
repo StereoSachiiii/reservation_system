@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { QrCameraScanner } from './QrCameraScanner';
+import { ScannerResult } from '@/shared/types/api';
 
 interface ScannerInputProps {
     qrInput: string;
@@ -64,7 +65,7 @@ export const ScannerInput = ({ qrInput, setQrInput, handleLookup, loading, direc
 };
 
 interface ScannerResultCardProps {
-    result: any;
+    result: ScannerResult;
     handleAdmit: () => void;
     handleOverride: () => void;
     handleClear: () => void;
@@ -81,7 +82,7 @@ export const ScannerResultCard = ({
     overrideLoading
 }: ScannerResultCardProps) => (
     <div className="space-y-6 mb-10">
-        <div className={`rounded-2xl p-6 border-2 ${result.valid ? 'bg-blue-50 border-blue-200' : 'bg-amber-50 border-amber-200'}`}>
+        <div className={`rounded - 2xl p - 6 border - 2 ${result.valid ? 'bg-blue-50 border-blue-200' : 'bg-amber-50 border-amber-200'} `}>
             <div className="space-y-3">
                 <div>
                     <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Business</h3>
@@ -93,7 +94,7 @@ export const ScannerResultCard = ({
                 </div>
                 <div className="flex justify-between items-center">
                     <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">Status</h3>
-                    <span className={`px-3 py-1 rounded-full text-xs font-black uppercase ${result.status === 'PAID' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>
+                    <span className={`px - 3 py - 1 rounded - full text - xs font - black uppercase ${result.status === 'PAID' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'} `}>
                         {result.status}
                     </span>
                 </div>

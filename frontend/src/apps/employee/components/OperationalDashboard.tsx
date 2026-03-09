@@ -1,7 +1,8 @@
 import React from 'react';
+import { DashboardStats } from '@/shared/types/api';
 
 interface OperationalDashboardProps {
-    stats: any;
+    stats: DashboardStats | null;
     loadingStats: boolean;
 }
 

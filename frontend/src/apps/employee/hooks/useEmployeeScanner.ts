@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { employeeApi } from '@/shared/api/employeeApi';
+import { ScannerResult } from '@/shared/types/api';
 
 export function useEmployeeScanner() {
     const queryClient = useQueryClient();
 
     // UI State
     const [qrInput, setQrInput] = useState('');
-    const [lookupResult, setLookupResult] = useState<any | null>(null);
+    const [lookupResult, setLookupResult] = useState<ScannerResult | null>(null);
     const [overrideCode, setOverrideCode] = useState('');
     const [overrideReason, setOverrideReason] = useState('');
     const [showOverride, setShowOverride] = useState(false);
@@ -35,11 +36,14 @@ export function useEmployeeScanner() {
 
     // MUTATION: Force Check-In (Admin Override)
     const forceCheckInMutation = useMutation({
-        mutationFn: () => employeeApi.forceCheckIn({
-            reservationId: lookupResult?.reservationId,
-            adminOverrideCode: overrideCode,
-            reason: overrideReason
-        }),
+        mutationFn: () => {
+            if (!lookupResult) throw new Error("No reservation selected");
+            return employeeApi.forceCheckIn({
+                reservationId: lookupResult.reservationId,
+                adminOverrideCode: overrideCode,
+                reason: overrideReason
+            });
+        },
         onSuccess: () => {
             setShowOverride(false);
             setLookupResult(null);
@@ -119,4 +123,3 @@ export function useEmployeeScanner() {
         handleReset
     };
 }
-

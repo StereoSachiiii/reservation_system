@@ -20,7 +20,7 @@ const VendorDocuments: React.FC = () => {
             try {
                 const docs = await documentApi.getDocuments();
                 setDocuments(docs);
-            } catch (err) {
+            } catch {
                 setError('Failed to fetch vendor documents');
             } finally {
                 setIsLoading(false);
@@ -39,7 +39,7 @@ const VendorDocuments: React.FC = () => {
             document.body.appendChild(link);
             link.click();
             link.remove();
-        } catch (err) {
+        } catch {
             alert('Failed to download document');
         }
     };

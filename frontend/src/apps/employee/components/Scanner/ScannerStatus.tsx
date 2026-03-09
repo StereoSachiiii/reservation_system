@@ -24,7 +24,7 @@ export const AdmitSuccessView = ({ businessName, handleReset }: AdmitSuccessView
 );
 
 interface LookupErrorViewProps {
-    error: any;
+    error: Error | null;
     handleReset: () => void;
 }
 

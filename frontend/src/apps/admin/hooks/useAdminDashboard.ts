@@ -70,8 +70,9 @@ export function useAdminDashboard() {
                 endDate: new Date().toISOString().split('T')[0] + 'T23:59:59'
             });
             loadInitialData();
-        } catch (e: any) {
-            alert(e.message);
+        } catch (e: unknown) {
+            const message = e instanceof Error ? e.message : 'Create event failed.';
+            alert(message);
         }
     };
 
@@ -80,8 +81,9 @@ export function useAdminDashboard() {
         try {
             await adminApi.deleteEvent(id);
             loadInitialData();
-        } catch (e: any) {
-            alert(e.message);
+        } catch (e: unknown) {
+            const message = e instanceof Error ? e.message : 'Delete event failed.';
+            alert(message);
         }
     };
 
@@ -89,8 +91,9 @@ export function useAdminDashboard() {
         try {
             await adminApi.changeEventStatus(id, status);
             loadInitialData();
-        } catch (e: any) {
-            alert(e.message);
+        } catch (e: unknown) {
+            const message = e instanceof Error ? e.message : 'Update status failed.';
+            alert(message);
         }
     };
 
@@ -113,8 +116,9 @@ export function useAdminDashboard() {
             await adminApi.updateEvent(eventData.id, payload);
             setShowEditModal(false);
             loadInitialData();
-        } catch (e: any) {
-            alert(e.message);
+        } catch (e: unknown) {
+            const message = e instanceof Error ? e.message : 'Update event failed.';
+            alert(message);
         }
     };
 

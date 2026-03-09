@@ -90,7 +90,7 @@ export const adminApi = {
     },
 
     // ─── LAYOUT MANAGEMENT ───────────────────────────────────────
-    saveLayout: async (eventId: number, stalls: any[]): Promise<void> => {
+    saveLayout: async (eventId: number, stalls: Partial<EventStall>[]): Promise<void> => {
         await api.post(`/admin/events/${eventId}/layout`, stalls);
     },
 

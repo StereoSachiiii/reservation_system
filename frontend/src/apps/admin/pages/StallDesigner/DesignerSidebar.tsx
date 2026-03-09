@@ -1,4 +1,4 @@
-import { useDesigner } from './DesignerContext';
+import { useDesigner } from './useDesigner';
 import { formatPrice } from './types';
 import { STALL_CATEGORIES } from '@/shared/constants';
 
@@ -35,8 +35,8 @@ export function DesignerSidebar() {
                         <button
                             key={mode}
                             onClick={() => setDrawMode(mode)}
-                            className={`flex-1 py-1.5 text-[10px] font-bold uppercase rounded-md transition-all ${drawMode === mode ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500 hover:text-gray-700'
-                                }`}
+                            className={`flex - 1 py - 1.5 text - [10px] font - bold uppercase rounded - md transition - all ${drawMode === mode ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500 hover:text-gray-700'
+                                } `}
                         >
                             {mode}
                         </button>
@@ -56,7 +56,7 @@ export function DesignerSidebar() {
                             ].map(s => (
                                 <div key={s.label} className="flex items-center justify-between">
                                     <span className="text-xs text-gray-500">{s.label}</span>
-                                    <span className={`text-sm font-black ${s.color}`}>{s.value}</span>
+                                    <span className={`text - sm font - black ${s.color} `}>{s.value}</span>
                                 </div>
                             ))}
                         </div>
@@ -90,13 +90,13 @@ export function DesignerSidebar() {
             {drawMode === 'ZONE' && (
                 <div className="space-y-4">
                     <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Select Zone to Draw</p>
-                    <button onClick={() => handleSelectZoneType('WALKWAY')} className={`w-full py-2 border text-xs font-bold rounded-lg transition-colors ${zoneType === 'WALKWAY' ? 'bg-gray-200 border-gray-400 text-gray-900' : 'bg-gray-50 hover:bg-gray-100 border-gray-200 text-gray-700'}`}>
+                    <button onClick={() => handleSelectZoneType('WALKWAY')} className={`w - full py - 2 border text - xs font - bold rounded - lg transition - colors ${zoneType === 'WALKWAY' ? 'bg-gray-200 border-gray-400 text-gray-900' : 'bg-gray-50 hover:bg-gray-100 border-gray-200 text-gray-700'} `}>
                         Walkway
                     </button>
-                    <button onClick={() => handleSelectZoneType('STAGE')} className={`w-full py-2 border text-xs font-bold rounded-lg transition-colors ${zoneType === 'STAGE' ? 'bg-purple-200 border-purple-400 text-purple-900' : 'bg-purple-50 hover:bg-purple-100 border-purple-200 text-purple-700'}`}>
+                    <button onClick={() => handleSelectZoneType('STAGE')} className={`w - full py - 2 border text - xs font - bold rounded - lg transition - colors ${zoneType === 'STAGE' ? 'bg-purple-200 border-purple-400 text-purple-900' : 'bg-purple-50 hover:bg-purple-100 border-purple-200 text-purple-700'} `}>
                         Stage Area
                     </button>
-                    <button onClick={() => handleSelectZoneType('ENTRANCE')} className={`w-full py-2 border text-xs font-bold rounded-lg transition-colors ${zoneType === 'ENTRANCE' ? 'bg-orange-200 border-orange-400 text-orange-900' : 'bg-orange-50 hover:bg-orange-100 border-orange-200 text-orange-700'}`}>
+                    <button onClick={() => handleSelectZoneType('ENTRANCE')} className={`w - full py - 2 border text - xs font - bold rounded - lg transition - colors ${zoneType === 'ENTRANCE' ? 'bg-orange-200 border-orange-400 text-orange-900' : 'bg-orange-50 hover:bg-orange-100 border-orange-200 text-orange-700'} `}>
                         Entrance
                     </button>
 
@@ -114,13 +114,13 @@ export function DesignerSidebar() {
             {drawMode === 'INFLUENCE' && (
                 <div className="space-y-4">
                     <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Select Heatmap to Draw</p>
-                    <button onClick={() => handleSelectInfluenceType('TRAFFIC')} className={`w-full py-2 border text-xs font-bold rounded-lg transition-colors ${influenceType === 'TRAFFIC' ? 'bg-green-200 border-green-400 text-green-900' : 'bg-green-50 hover:bg-green-100 border-green-200 text-green-700'}`}>
+                    <button onClick={() => handleSelectInfluenceType('TRAFFIC')} className={`w - full py - 2 border text - xs font - bold rounded - lg transition - colors ${influenceType === 'TRAFFIC' ? 'bg-green-200 border-green-400 text-green-900' : 'bg-green-50 hover:bg-green-100 border-green-200 text-green-700'} `}>
                         High Traffic Node
                     </button>
-                    <button onClick={() => handleSelectInfluenceType('NOISE')} className={`w-full py-2 border text-xs font-bold rounded-lg transition-colors ${influenceType === 'NOISE' ? 'bg-red-200 border-red-400 text-red-900' : 'bg-red-50 hover:bg-red-100 border-red-200 text-red-700'}`}>
+                    <button onClick={() => handleSelectInfluenceType('NOISE')} className={`w - full py - 2 border text - xs font - bold rounded - lg transition - colors ${influenceType === 'NOISE' ? 'bg-red-200 border-red-400 text-red-900' : 'bg-red-50 hover:bg-red-100 border-red-200 text-red-700'} `}>
                         Noise Source
                     </button>
-                    <button onClick={() => handleSelectInfluenceType('FACILITY')} className={`w-full py-2 border text-xs font-bold rounded-lg transition-colors ${influenceType === 'FACILITY' ? 'bg-blue-200 border-blue-400 text-blue-900' : 'bg-blue-50 hover:bg-blue-100 border-blue-200 text-blue-700'}`}>
+                    <button onClick={() => handleSelectInfluenceType('FACILITY')} className={`w - full py - 2 border text - xs font - bold rounded - lg transition - colors ${influenceType === 'FACILITY' ? 'bg-blue-200 border-blue-400 text-blue-900' : 'bg-blue-50 hover:bg-blue-100 border-blue-200 text-blue-700'} `}>
                         Core Facility
                     </button>
 

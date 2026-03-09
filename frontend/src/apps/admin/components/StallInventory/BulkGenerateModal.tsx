@@ -11,7 +11,7 @@ interface BulkGenerateModalProps {
         category: StallCategory;
         basePriceCents: string;
     };
-    onFormChange: (form: any) => void;
+    onFormChange: (form: BulkGenerateModalProps['bulkForm']) => void;
     onConfirm: () => void;
     isLoading: boolean;
     sizeOptions: string[];

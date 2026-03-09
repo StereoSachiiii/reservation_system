@@ -19,11 +19,11 @@ export default function FormField({ label, error, className = '', ...props }: Fo
                     {...props}
                     onFocus={(e) => {
                         setIsFocused(true);
-                        props.onFocus && props.onFocus(e);
+                        props.onFocus?.(e);
                     }}
                     onBlur={(e) => {
                         setIsFocused(false);
-                        props.onBlur && props.onBlur(e);
+                        props.onBlur?.(e);
                     }}
                     className={`
                         w-full bg-gray-100 text-gray-900 placeholder-gray-500

@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { useAuth } from '@/shared/context/AuthContext';
+import { useAuth } from '@/shared/context/useAuth';
 import NotificationBell from './NotificationBell';
 
 
@@ -64,7 +64,7 @@ export default function Navbar() {
                     <div className="flex items-center gap-6">
                         {user ? (
                             <div className="flex items-center gap-4 pl-6 border-l border-gray-100">
-                                {user.role === 'VENDOR' && <NotificationBell />}
+                                <NotificationBell />
                                 <div className="hidden sm:flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-full border border-gray-100 shadow-sm relative group cursor-pointer group-hover:bg-white transition-all">
                                     <div className="w-8 h-8 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center font-bold text-sm">
                                         {user.username.charAt(0).toUpperCase()}

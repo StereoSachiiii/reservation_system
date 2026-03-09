@@ -1,6 +1,33 @@
-import { EventStall as MapStall, PricingBreakdown, Hall, ValueDriver, MapZone, MapInfluence } from './api'
+import { EventStall as MapStall, PricingBreakdown, Hall, ValueDriver, MapZone, MapInfluence, StallTemplate, EventStallAdminResponse } from './api'
+import { DesignerStall } from '@/apps/admin/pages/StallDesigner/types';
 
 export type { MapStall, PricingBreakdown, ValueDriver };
+
+/**
+ * Adapter to transform raw API data into DesignerStall format.
+ * Merges public event data, admin pricing data, and base template data (for sqFt).
+ */
+export function adaptToDesignerStall(
+    publicStall: MapStall,
+    adminStall?: EventStallAdminResponse,
+    template?: StallTemplate
+): DesignerStall {
+    return {
+        id: publicStall.id,
+        name: publicStall.name,
+        posX: publicStall.posX ?? 0,
+        posY: publicStall.posY ?? 0,
+        width: publicStall.width || 8,
+        height: publicStall.height || 8,
+        priceCents: Math.round(Number(publicStall.priceCents)) || 0,
+        baseRateCents: adminStall ? Math.round(Number(adminStall.baseRateCents)) : Math.round(Number(publicStall.priceCents)),
+        pricingVersion: adminStall?.pricingVersion || "LEGACY",
+        size: publicStall.size || 'MEDIUM',
+        category: publicStall.category || 'RETAIL',
+        isAvailable: !publicStall.reserved,
+        sqFt: template?.sqFt || (publicStall.width !== undefined && publicStall.height !== undefined ? (publicStall.width * publicStall.height) : undefined),
+    };
+}
 
 export interface StallGeometry {
     x: number
@@ -85,7 +112,7 @@ export function parseGeometry(stall: MapStall): StallGeometry {
 /**
  * Normalize zones and influences from lists into internal types.
  */
-export function normalizeMapData(rawZones: MapZone[], rawInfluences: MapInfluence[], halls: any[] = []): ParsedZones {
+export function normalizeMapData(rawZones: MapZone[], rawInfluences: MapInfluence[], halls: Hall[] = []): ParsedZones {
     const influences: NormalizedInfluence[] = (rawInfluences ?? []).map(inf => ({
         hallName: inf.hallName,
         id: inf.id.toString(),
@@ -99,7 +126,7 @@ export function normalizeMapData(rawZones: MapZone[], rawInfluences: MapInfluenc
 
     const zones: NormalizedZone[] = (rawZones ?? []).map(z => ({
         hallName: z.hallName,
-        type: z.type as any,
+        type: z.type as NormalizedZone['type'],
         x: z.posX,
         y: z.posY,
         w: z.width,
@@ -110,10 +137,10 @@ export function normalizeMapData(rawZones: MapZone[], rawInfluences: MapInfluenc
     // Add structural constraints from halls
     halls.forEach(hall => {
         if (hall.constraints) {
-            hall.constraints.forEach((c: any) => {
+            hall.constraints.forEach(c => {
                 zones.push({
                     hallName: hall.name,
-                    type: c.type as any,
+                    type: c.type as NormalizedZone['type'],
                     x: c.posX,
                     y: c.posY,
                     w: c.width,

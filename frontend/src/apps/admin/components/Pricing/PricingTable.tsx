@@ -29,7 +29,7 @@ export default function PricingTable({ stalls, onUpdate }: PricingTableProps) {
         try {
             await onUpdate(id, editValues.base, editValues.mult);
             setEditingId(null);
-        } catch (err) {
+        } catch {
             alert("Update failed");
         } finally {
             setSaving(false);

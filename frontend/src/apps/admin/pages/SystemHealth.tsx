@@ -9,8 +9,10 @@ import {
     RefreshCw
 } from 'lucide-react';
 
+import { SystemHealth } from '@/shared/types/api';
+
 export default function SystemHealthPage() {
-    const [health, setHealth] = useState<any>(null);
+    const [health, setHealth] = useState<SystemHealth | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -22,7 +24,7 @@ export default function SystemHealthPage() {
         try {
             const h = await adminApi.getHealth();
             setHealth(h);
-        } catch (err) {
+        } catch {
             setHealth({ database: 'DOWN', paymentGateway: 'DOWN', mailService: 'DOWN', uptimeSeconds: 0 });
         } finally {
             setLoading(false);
@@ -122,7 +124,7 @@ export default function SystemHealthPage() {
 interface StatusCardProps {
     title: string;
     status: string;
-    icon: any;
+    icon: React.ComponentType<{ size?: number; className?: string }>;
     description: string;
 }
 

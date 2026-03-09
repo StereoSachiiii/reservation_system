@@ -1,10 +1,12 @@
 import { useState, useEffect, useMemo } from 'react';
 import { adminApi } from '@/shared/api/adminApi';
+import { publicApi } from '@/shared/api/publicApi';
+import { Event, EventStallAdminResponse } from '@/shared/types/api';
 
 export function useStallPricing() {
-    const [events, setEvents] = useState<any[]>([]);
+    const [events, setEvents] = useState<Event[]>([]);
     const [selectedEventId, setSelectedEventId] = useState<number | null>(null);
-    const [stalls, setStalls] = useState<any[]>([]);
+    const [stalls, setStalls] = useState<EventStallAdminResponse[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
@@ -15,14 +17,13 @@ export function useStallPricing() {
     const loadEvents = async () => {
         setLoading(true);
         try {
-            const response = await fetch('/api/v1/public/events');
-            const data = response.ok ? await response.json() : [];
-            const eventList = Array.isArray(data) ? data : data.content || [];
+            const data = await publicApi.getActiveEvents();
+            const eventList = data.content || [];
             setEvents(eventList);
             if (eventList.length > 0) {
                 setSelectedEventId(eventList[0].id);
             }
-        } catch (err) {
+        } catch {
             setError('Failed to load events.');
         } finally {
             setLoading(false);
@@ -37,11 +38,9 @@ export function useStallPricing() {
         setLoading(true);
         setError('');
         try {
-            const stallList = await fetch(`/api/v1/admin/events/${eventId}/stalls`, {
-                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-            }).then(r => r.json());
-            setStalls(Array.isArray(stallList) ? stallList : []);
-        } catch (err) {
+            const stallList = await adminApi.getEventStalls(eventId);
+            setStalls(stallList);
+        } catch {
             setError('Failed to load stalls for this event.');
             setStalls([]);
         } finally {
@@ -50,15 +49,11 @@ export function useStallPricing() {
     };
 
     const handleUpdate = async (id: number, base: number, mult: number) => {
-        try {
-            await adminApi.updateStallPrice(id, base, mult);
-            setStalls(prev => prev.map(s => s.id === id
-                ? { ...s, finalPriceCents: Math.round(base * mult), pricingVersion: 'MANUAL' }
-                : s
-            ));
-        } catch (err) {
-            throw err;
-        }
+        await adminApi.updateStallPrice(id, base, mult);
+        setStalls(prev => prev.map(s => s.id === id
+            ? { ...s, finalPriceCents: Math.round(base * mult), pricingVersion: 'MANUAL' }
+            : s
+        ));
     };
 
     const stats = useMemo(() => {

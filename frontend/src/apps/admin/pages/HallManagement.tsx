@@ -4,6 +4,7 @@ import { HallWizard } from '../components/HallManagement/HallWizard';
 import { HallList } from '../components/HallManagement/HallList';
 import { HallDetailsModal } from '../components/HallManagement/HallDetailsModal';
 import { LoadingState } from '@/shared/components/LoadingState';
+import { Hall } from '@/shared/types/api';
 
 export default function HallManagement() {
     const {
@@ -22,7 +23,7 @@ export default function HallManagement() {
         setShowModal(true);
     };
 
-    const handleOpenEdit = (hall: any) => {
+    const handleOpenEdit = (hall: Hall) => {
         setEditingHall(hall);
         setError('');
         setShowModal(true);

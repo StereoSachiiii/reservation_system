@@ -42,7 +42,7 @@ export function useAdminReservations() {
         try {
             const data = await adminApi.getAllReservations();
             setReservations(data);
-        } catch (err) {
+        } catch {
             setError('Failed to load reservations.');
         } finally {
             setLoading(false);
@@ -57,8 +57,9 @@ export function useAdminReservations() {
             await adminApi.confirmPayment(paymentModal.id);
             setReservations(prev => prev.map(r => r.id === paymentModal.id ? { ...r, status: 'PAID' } : r));
             setPaymentModal(null);
-        } catch (err: any) {
-            setError(err.response?.data?.message || 'Failed to confirm payment.');
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : 'Failed to confirm payment.';
+            setError(message);
         } finally {
             setActionLoading(null);
         }
@@ -73,8 +74,9 @@ export function useAdminReservations() {
             setReservations(prev => prev.map(r => r.id === cancelModal.id ? { ...r, status: 'CANCELLED' } : r));
             setCancelModal(null);
             setCancelReason('');
-        } catch (err: any) {
-            setError(err.response?.data?.message || 'Failed to cancel reservation.');
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : 'Failed to cancel reservation.';
+            setError(message);
         } finally {
             setActionLoading(null);
         }
@@ -89,8 +91,9 @@ export function useAdminReservations() {
             setReservations(prev => prev.map(r => r.id === refundModal.id ? { ...r, status: 'CANCELLED' } : r));
             setRefundModal(null);
             setRefundReason('');
-        } catch (err: any) {
-            setError(err.response?.data?.message || 'Failed to process refund.');
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : 'Failed to process refund.';
+            setError(message);
         } finally {
             setActionLoading(null);
         }
@@ -99,7 +102,7 @@ export function useAdminReservations() {
     const handleExport = async () => {
         try {
             await adminApi.exportReservationsCsv();
-        } catch (err: any) {
+        } catch {
             setError('Failed to export CSV.');
         }
     };

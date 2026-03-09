@@ -305,6 +305,14 @@ export interface CheckInResponse {
     timestamp: string;
 }
 
+export interface ScannerResult {
+    reservationId: number;
+    businessName: string;
+    stallName: string;
+    status: string;
+    valid: boolean;
+}
+
 export interface AuthResponse {
     token: string;
     user: User;

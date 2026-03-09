@@ -19,8 +19,11 @@ const ResetPasswordPage: React.FC = () => {
             alert('Password reset successfully! You can now login.');
             navigate('/login');
         },
-        onError: (err: any) => {
-            setError(err.response?.data?.message || 'Failed to reset password');
+        onError: (err: unknown) => {
+            const message = (err && typeof err === 'object' && 'response' in err)
+                ? (err as { response: { data?: { message?: string } } }).response?.data?.message
+                : (err instanceof Error ? err.message : null);
+            setError(message || 'Failed to reset password');
         }
     });
 

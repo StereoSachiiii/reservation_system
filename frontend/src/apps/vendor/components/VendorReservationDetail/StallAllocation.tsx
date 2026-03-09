@@ -11,7 +11,7 @@ export const StallAllocation = ({ reservation }: StallAllocationProps) => {
     if (stallDetails?.geometry) {
         try {
             geo = JSON.parse(stallDetails.geometry);
-        } catch (e) {
+        } catch {
             // ignore
         }
     }

@@ -41,4 +41,18 @@ public class HelpService {
             return errorResponse;
         }
     }
+
+    public Map<String, Object> checkAvailability() {
+        Map<String, Object> status = new HashMap<>();
+        try {
+            // Extract base URL from ragServiceUrl (e.g., http://localhost:8000)
+            String baseUrl = ragServiceUrl.substring(0, ragServiceUrl.lastIndexOf("/"));
+            restTemplate.getForObject(baseUrl, String.class);
+            status.put("online", true);
+        } catch (Exception e) {
+            status.put("online", false);
+            status.put("error", e.getMessage());
+        }
+        return status;
+    }
 }

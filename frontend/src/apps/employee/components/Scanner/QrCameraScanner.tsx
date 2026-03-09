@@ -37,11 +37,12 @@ export const QrCameraScanner: React.FC<QrCameraScannerProps> = ({ onScanSuccess,
             }
         ).then(() => {
             setIsStarting(false);
-        }).catch((err: any) => {
+        }).catch((err: unknown) => {
             setIsStarting(false);
-            if (err?.toString().includes('NotAllowedError')) {
+            const errStr = err instanceof Error ? err.message : String(err);
+            if (errStr.includes('NotAllowedError')) {
                 setError('Camera permission denied. Please allow camera access and try again.');
-            } else if (err?.toString().includes('NotFoundError')) {
+            } else if (errStr.includes('NotFoundError')) {
                 setError('No camera found on this device.');
             } else {
                 setError('Could not start camera. Please use manual entry instead.');
@@ -53,7 +54,7 @@ export const QrCameraScanner: React.FC<QrCameraScannerProps> = ({ onScanSuccess,
                 scannerRef.current.stop().catch(() => { });
             }
         };
-    }, []);
+    }, [onScanSuccess]);
 
     return (
         <div className="space-y-4">
