@@ -19,7 +19,6 @@ export function useEmployeeDashboard() {
     // Initialize selectedEventId when events are loaded
     useEffect(() => {
         if (events && events.content && events.content.length > 0 && !selectedEventId) {
-            // eslint-disable-next-line react-hooks/set-state-in-effect
             setSelectedEventId(events.content[0].id);
         }
     }, [events, selectedEventId]);
