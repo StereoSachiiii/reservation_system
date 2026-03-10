@@ -49,6 +49,7 @@ public class StallTemplate {
     @Column(length = 1000)
     private String imageUrl;
 
+    @Builder.Default
     private Boolean isAvailable = true;
 
     @Column(nullable = false)
