@@ -13,18 +13,25 @@ export default function AuditLogsPage() {
     const [debouncedActorId, setDebouncedActorId] = useState('');
     const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
 
-    // Debouncing Actor ID
+    // Handle filter changes
+    const handleEntityTypeChange = (type: string) => {
+        setEntityType(type);
+        setPage(0);
+    };
+
+    const handleActorIdChange = (id: string) => {
+        setActorId(id);
+        // Page reset is handled by the debounced text effect below
+    };
+
+    // Debouncing Actor ID and resetting page when it stabilizes
     useEffect(() => {
         const timer = setTimeout(() => {
             setDebouncedActorId(actorId);
+            setPage(0);
         }, 500);
         return () => clearTimeout(timer);
     }, [actorId]);
-
-    // Reset page on filter change
-    useEffect(() => {
-        setPage(0);
-    }, [entityType, debouncedActorId]);
 
     const isActorIdInvalid = actorId && isNaN(Number(actorId));
 
@@ -56,9 +63,9 @@ export default function AuditLogsPage() {
 
             <AuditFilters
                 entityType={entityType}
-                onEntityTypeChange={setEntityType}
+                onEntityTypeChange={handleEntityTypeChange}
                 actorId={actorId}
-                onActorIdChange={setActorId}
+                onActorIdChange={handleActorIdChange}
             />
 
             {logsQuery.isLoading ? (

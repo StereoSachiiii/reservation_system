@@ -73,6 +73,12 @@ export const EmployeeLayout = () => {
                 </div>
             </aside>
 
+            {/* Main Content */}
+            <main className="flex-1 ml-72 p-10">
+                <div className="max-w-7xl mx-auto">
+                    <Outlet />
+                </div>
+            </main>
         </div>
     );
 };

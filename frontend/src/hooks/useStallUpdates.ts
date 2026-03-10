@@ -10,11 +10,18 @@ export interface StallUpdateMessage {
 }
 
 const getSocketUrl = () => {
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1';
-    // If apiUrl ends with /api/v1, strip it to get the root for /ws, 
-    // or just append /ws to the root.
+    const apiUrl = import.meta.env.VITE_API_URL || '/api/v1';
+
+    // If it's a relative path, use the current origin
+    if (apiUrl.startsWith('/')) {
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const port = window.location.port ? `:${window.location.port}` : '';
+        const root = apiUrl.replace(/\/api\/v1\/?$/, '');
+        return `${protocol}//${window.location.hostname}${port}${root}/ws`;
+    }
+
     const root = apiUrl.replace(/\/api\/v1\/?$/, '');
-    return `${root}/ws`;
+    return root.replace(/^http/, 'ws') + '/ws';
 };
 
 const SOCKET_URL = getSocketUrl();

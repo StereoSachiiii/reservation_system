@@ -7,7 +7,7 @@ export function useAdminReservations() {
     const queryClient = useQueryClient();
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState<'ALL' | 'PAID' | 'PENDING_PAYMENT' | 'CANCELLED' | 'PENDING_REFUND'>('ALL');
-    
+
     // UI Specific State
     const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
     const [paymentModal, setPaymentModal] = useState<Reservation | null>(null);
@@ -38,7 +38,7 @@ export function useAdminReservations() {
     });
 
     const cancelMutation = useMutation({
-        mutationFn: ({ id, reason }: { id: number, reason: string }) => 
+        mutationFn: ({ id, reason }: { id: number, reason: string }) =>
             adminApi.cancelReservation(id, reason),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['admin-reservations'] });
@@ -49,7 +49,7 @@ export function useAdminReservations() {
     });
 
     const refundMutation = useMutation({
-        mutationFn: ({ id, reason }: { id: number, reason: string }) => 
+        mutationFn: ({ id, reason }: { id: number, reason: string }) =>
             adminApi.refundReservation(id, reason),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['admin-reservations'] });
@@ -68,10 +68,6 @@ export function useAdminReservations() {
         return () => clearTimeout(handler);
     }, [searchTerm]);
 
-    useEffect(() => {
-        setPage(0);
-    }, [searchTerm, statusFilter]);
-
     // ─── HANDLERS ─────────────────────────────────────────────────
 
     const executeConfirmPayment = async () => {
@@ -81,17 +77,17 @@ export function useAdminReservations() {
 
     const executeCancel = async () => {
         if (!cancelModal) return;
-        cancelMutation.mutate({ 
-            id: cancelModal.id, 
-            reason: cancelReason || 'Admin cancelled' 
+        cancelMutation.mutate({
+            id: cancelModal.id,
+            reason: cancelReason || 'Admin cancelled'
         });
     };
 
     const executeRefundApprove = async () => {
         if (!refundModal) return;
-        refundMutation.mutate({ 
-            id: refundModal.id, 
-            reason: refundReason || 'Refund Approved by Admin' 
+        refundMutation.mutate({
+            id: refundModal.id,
+            reason: refundReason || 'Refund Approved by Admin'
         });
     };
 
@@ -116,7 +112,7 @@ export function useAdminReservations() {
     // ─── DERIVED STATE ───────────────────────────────────────────
 
     const reservations = reservationsQuery.data || [];
-    
+
     const filteredReservations = useMemo(() => {
         const data = reservationsQuery.data || [];
         if (!Array.isArray(data)) return [];
@@ -136,18 +132,18 @@ export function useAdminReservations() {
     const totalPages = Math.ceil(filteredReservations.length / pageSize);
     const paginatedReservations = filteredReservations.slice(page * pageSize, (page + 1) * pageSize);
 
-    const error = reservationsQuery.error instanceof Error ? reservationsQuery.error.message : 
-                  confirmPaymentMutation.error instanceof Error ? confirmPaymentMutation.error.message :
-                  cancelMutation.error instanceof Error ? cancelMutation.error.message :
-                  refundMutation.error instanceof Error ? refundMutation.error.message : '';
+    const error = reservationsQuery.error instanceof Error ? reservationsQuery.error.message :
+        confirmPaymentMutation.error instanceof Error ? confirmPaymentMutation.error.message :
+            cancelMutation.error instanceof Error ? cancelMutation.error.message :
+                refundMutation.error instanceof Error ? refundMutation.error.message : '';
 
     return {
         reservations,
         loading: reservationsQuery.isLoading,
         error,
-        setError: () => {}, // Compatibility with old API if needed
-        searchTerm, setSearchTerm,
-        statusFilter, setStatusFilter,
+        setError: () => { }, // Compatibility with old API if needed
+        searchTerm, setSearchTerm: (val: string) => { setSearchTerm(val); setPage(0); },
+        statusFilter, setStatusFilter: (val: typeof statusFilter) => { setStatusFilter(val); setPage(0); },
         actionLoading: confirmPaymentMutation.isPending || cancelMutation.isPending || refundMutation.isPending,
         paymentModal, setPaymentModal,
         cancelModal, setCancelModal, cancelReason, setCancelReason,

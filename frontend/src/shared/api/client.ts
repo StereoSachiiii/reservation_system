@@ -67,7 +67,7 @@ api.interceptors.response.use(
             const errorMap: Record<string, string> = {
                 'LIMIT_EXCEEDED': 'You have reached the maximum booking limit (3 stalls).',
                 'TAXONOMY_DENIED': 'Your business category is not allowed in this specific hall/zone.',
-                'RESOURCE_CONFLICT': 'One or more selected stalls have just been booked by another user. Please refresh.',
+                'RESOURCE_CONFLICT': 'One or more selected stalls have just been booked by another user. Please refresh.', // not needed anymore because pubsub
                 'DUPLICATE_SCAN': 'This ticket has already been used/checked-in.',
                 'NOT_PAID': 'This reservation is PENDING PAYMENT. Please collect payment first.',
                 'INVALID_QR': 'The QR code is invalid or does not belong to this event.',

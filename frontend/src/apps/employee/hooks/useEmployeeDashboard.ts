@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { employeeApi } from '@/shared/api/employeeApi';
 import { publicApi } from '@/shared/api/publicApi';
-import { PageEnvelope, Reservation, Event as AppEvent } from '@/shared/types/api';
+import { PageEnvelope, Reservation } from '@/shared/types/api';
 
 export function useEmployeeDashboard() {
     const [activeTab, setActiveTab] = useState<'DASHBOARD' | 'SCAN' | 'SEARCH'>('SCAN');
@@ -16,14 +16,13 @@ export function useEmployeeDashboard() {
         queryFn: publicApi.getActiveEvents
     });
 
-    const [prevEvents, setPrevEvents] = useState<PageEnvelope<AppEvent> | undefined>(undefined);
-
-    if (events !== prevEvents) {
-        setPrevEvents(events);
+    // Initialize selectedEventId when events are loaded
+    useEffect(() => {
         if (events && events.content && events.content.length > 0 && !selectedEventId) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setSelectedEventId(events.content[0].id);
         }
-    }
+    }, [events, selectedEventId]);
 
     // QUERY: Stats (Depends on selectedEventId)
     const { data: stats, isLoading: loadingStats } = useQuery({
