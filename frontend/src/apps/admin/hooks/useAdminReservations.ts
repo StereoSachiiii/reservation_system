@@ -144,7 +144,9 @@ export function useAdminReservations() {
         setError: () => { }, // Compatibility with old API if needed
         searchTerm, setSearchTerm: (val: string) => { setSearchTerm(val); setPage(0); },
         statusFilter, setStatusFilter: (val: typeof statusFilter) => { setStatusFilter(val); setPage(0); },
-        actionLoading: confirmPaymentMutation.isPending || cancelMutation.isPending || refundMutation.isPending,
+        actionLoading: confirmPaymentMutation.isPending ? paymentModal?.id :
+            cancelMutation.isPending ? cancelModal?.id :
+                refundMutation.isPending ? refundModal?.id : null,
         paymentModal, setPaymentModal,
         cancelModal, setCancelModal, cancelReason, setCancelReason,
         refundModal, setRefundModal, refundReason, setRefundReason,

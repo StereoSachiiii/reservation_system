@@ -39,7 +39,7 @@ export default function AdminReservationManager() {
                 </div>
                 <div className="flex gap-3">
                     <button
-                        onClick={handleExport}
+                        onClick={() => handleExport()}
                         className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-gray-600 font-bold text-[10px] uppercase hover:bg-gray-50 transition-colors shadow-sm"
                     >
                         <Download size={14} />
@@ -51,7 +51,7 @@ export default function AdminReservationManager() {
             {error && (
                 <div className="bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold px-4 py-3 rounded-lg flex items-center gap-2">
                     <span>{error}</span>
-                    <button onClick={() => setError('')} className="ml-auto opacity-50 hover:opacity-100">
+                    <button onClick={() => setError()} className="ml-auto opacity-50 hover:opacity-100">
                         <Plus className="rotate-45" size={14} />
                     </button>
                 </div>
@@ -68,7 +68,7 @@ export default function AdminReservationManager() {
                 reservations={paginatedReservations}
                 onRowClick={(id) => navigate(`/admin/reservations/${id}`)}
                 onAction={handleAction}
-                actionLoading={actionLoading}
+                actionLoading={actionLoading ?? null}
                 page={page}
                 totalPages={totalPages}
                 onPageChange={setPage}

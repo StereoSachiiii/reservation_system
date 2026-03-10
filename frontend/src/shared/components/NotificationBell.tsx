@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Bell } from 'lucide-react';
 import { notificationApi } from '../api/notificationApi';
 import { useAuth } from '../context/AuthContext';

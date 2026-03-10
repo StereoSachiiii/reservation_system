@@ -1,4 +1,4 @@
-import React, { useState, ReactNode } from 'react';
+import { useState, ReactNode } from 'react';
 import { Event, Hall } from '@/shared/types/api';
 import { DesignerStall, DesignerZone, DesignerInfluence, DesignerDrawMode } from './types';
 import { usePriceCalculation } from './hooks/usePriceCalculation';
