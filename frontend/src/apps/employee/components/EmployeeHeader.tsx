@@ -11,23 +11,25 @@ interface EmployeeHeaderProps {
     setSelectedEventId: (id: number) => void;
 }
 
+import { Shield, QrCode, Activity, Search, Download } from 'lucide-react';
+
 export const EmployeeHeader: React.FC<EmployeeHeaderProps> = ({
     user, activeTab, setActiveTab, onExport,
     events, selectedEventId, setSelectedEventId
 }) => {
     return (
-        <header className="bg-white border-b border-slate-200">
-            <div className="max-w-7xl mx-auto px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
-                <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center text-white text-2xl shadow-lg shadow-blue-200">
-                        🛡️
+        <header className="bg-white border-b border-slate-100 sticky top-0 z-40 backdrop-blur-md bg-white/80">
+            <div className="max-w-7xl mx-auto px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-6">
+                <div className="flex items-center gap-5">
+                    <div className="w-12 h-12 bg-slate-900 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-slate-200">
+                        <Shield size={24} />
                     </div>
                     <div>
                         <div className="flex items-center gap-3">
-                            <h1 className="text-xl font-black tracking-tight text-slate-900">Operational Hub</h1>
+                            <h1 className="text-xl font-black tracking-tight text-slate-900 italic">OPS HUB</h1>
                             {events && events.length > 0 && (
                                 <select
-                                    className="bg-slate-100 border border-slate-200 text-slate-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-1.5 font-bold"
+                                    className="bg-slate-50 border-2 border-slate-100 text-slate-900 text-[10px] font-black uppercase tracking-widest rounded-xl focus:ring-slate-500 focus:border-slate-500 block px-3 py-1.5 outline-none"
                                     value={selectedEventId || ''}
                                     onChange={(e) => setSelectedEventId(Number(e.target.value))}
                                 >
@@ -37,35 +39,42 @@ export const EmployeeHeader: React.FC<EmployeeHeaderProps> = ({
                                 </select>
                             )}
                         </div>
-                        <p className="text-sm text-slate-500 font-medium uppercase tracking-wider mt-1">Operator: {user?.username}</p>
+                        <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.2em] mt-1.5 flex items-center gap-2">
+                            <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
+                            Operator: {user?.username}
+                        </p>
                     </div>
                 </div>
 
-                <nav className="flex bg-slate-100 p-1 rounded-xl">
+                <nav className="flex bg-slate-50 p-1.5 rounded-[1.25rem] border border-slate-100 shadow-inner">
                     {[
-                        { id: 'SCAN', label: 'QR Scanner', icon: '🔍' },
-                        { id: 'DASHBOARD', label: 'Monitoring', icon: '📊' },
-                        { id: 'SEARCH', label: 'Directory', icon: '📇' }
-                    ].map((tab) => (
-                        <button
-                            key={tab.id}
-                            onClick={() => setActiveTab(tab.id as 'SCAN' | 'DASHBOARD' | 'SEARCH')}
-                            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 ${activeTab === tab.id
-                                ? 'bg-white text-blue-600 shadow-sm'
-                                : 'text-slate-500 hover:text-slate-700'
-                                }`}
-                        >
-                            <span>{tab.icon}</span>
-                            {tab.label}
-                        </button>
-                    ))}
+                        { id: 'SCAN', label: 'Scanner', icon: QrCode },
+                        { id: 'DASHBOARD', label: 'Monitor', icon: Activity },
+                        { id: 'SEARCH', label: 'Directory', icon: Search }
+                    ].map((tab) => {
+                        const Icon = tab.icon;
+                        return (
+                            <button
+                                key={tab.id}
+                                onClick={() => setActiveTab(tab.id as 'SCAN' | 'DASHBOARD' | 'SEARCH')}
+                                className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2.5 ${activeTab === tab.id
+                                    ? 'bg-white text-slate-900 shadow-md shadow-slate-200 border border-slate-100'
+                                    : 'text-slate-400 hover:text-slate-600'
+                                    }`}
+                            >
+                                <Icon size={14} strokeWidth={3} />
+                                {tab.label}
+                            </button>
+                        );
+                    })}
                 </nav>
 
                 <button
                     onClick={onExport}
-                    className="px-5 py-2.5 bg-slate-900 text-white rounded-xl font-bold text-sm hover:bg-slate-800 transition-all flex items-center gap-2 shadow-sm"
+                    className="px-6 py-3 bg-slate-900 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-black transition-all flex items-center gap-3 shadow-xl shadow-slate-200 active:scale-95"
                 >
-                    <span>📥</span> Export Logs
+                    <Download size={14} />
+                    Export Batch
                 </button>
             </div>
         </header >

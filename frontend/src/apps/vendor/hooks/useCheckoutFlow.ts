@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useMutation } from '@tanstack/react-query';
 import { paymentApi } from '@/shared/api/paymentApi';
 
 interface UseCheckoutFlowProps {
@@ -12,32 +13,37 @@ export function useCheckoutFlow({
     paymentMethod,
     setPaymentMethod,
 }: UseCheckoutFlowProps) {
-    const [clientSecret, setClientSecret] = useState<string | null>(null);
-    const [intentError, setIntentError] = useState<string | null>(null);
     const [isSuccess, setIsSuccess] = useState(false);
+    const [manualClientSecret, setManualClientSecret] = useState<string | null>(null);
+    const [manualError, setManualError] = useState<string | null>(null);
 
-    useEffect(() => {
-        if (reservationId && paymentMethod === 'ONLINE' && !clientSecret && !intentError) {
-            paymentApi.createPaymentIntent(reservationId)
-                .then((data) => setClientSecret(data.clientSecret))
-                .catch((err) => setIntentError(err.response?.data?.message || "Failed to initialize secure payment."));
-        }
-    }, [reservationId, paymentMethod, clientSecret, intentError]);
+    const intentMutation = useMutation({
+        mutationKey: ['payment-intent', reservationId],
+        mutationFn: () => paymentApi.createPaymentIntent(reservationId),
+    });
 
     const handleSelectMethod = (method: 'ONLINE' | 'CASH') => {
+        setManualError(null);
         if (method === 'CASH') {
             setPaymentMethod('CASH');
-            setClientSecret('CASH_INIT');
+            setManualClientSecret('CASH_INIT');
         } else {
             setPaymentMethod('ONLINE');
+            if (!intentMutation.data?.clientSecret) {
+                intentMutation.mutate();
+            }
         }
     };
 
     const resetSelection = () => {
         setPaymentMethod('SELECT');
-        setClientSecret(null);
-        setIntentError(null);
+        setManualClientSecret(null);
+        setManualError(null);
+        intentMutation.reset();
     };
+
+    const clientSecret = paymentMethod === 'CASH' ? manualClientSecret : intentMutation.data?.clientSecret || null;
+    const intentError = manualError || (intentMutation.error instanceof Error ? intentMutation.error.message : null);
 
     return {
         clientSecret,
@@ -46,6 +52,7 @@ export function useCheckoutFlow({
         setIsSuccess,
         handleSelectMethod,
         resetSelection,
-        setIntentError,
+        setIntentError: setManualError,
+        loadingIntent: intentMutation.isPending
     };
 }

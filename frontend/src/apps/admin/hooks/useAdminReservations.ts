@@ -1,16 +1,14 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { adminApi } from '@/shared/api/adminApi';
 import { Reservation } from '@/shared/types/api';
 
 export function useAdminReservations() {
-    const [reservations, setReservations] = useState<Reservation[]>([]);
-    const [loading, setLoading] = useState(true);
+    const queryClient = useQueryClient();
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState<'ALL' | 'PAID' | 'PENDING_PAYMENT' | 'CANCELLED' | 'PENDING_REFUND'>('ALL');
-    const [error, setError] = useState('');
-    const [actionLoading, setActionLoading] = useState<number | null>(null);
-
-    // Modal States
+    
+    // UI Specific State
     const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
     const [paymentModal, setPaymentModal] = useState<Reservation | null>(null);
     const [cancelModal, setCancelModal] = useState<Reservation | null>(null);
@@ -18,13 +16,50 @@ export function useAdminReservations() {
     const [refundModal, setRefundModal] = useState<Reservation | null>(null);
     const [refundReason, setRefundReason] = useState('');
     const [vendorDocsModal, setVendorDocsModal] = useState<Reservation | null>(null);
-
     const [page, setPage] = useState(0);
     const pageSize = 10;
 
-    useEffect(() => {
-        loadReservations();
-    }, []);
+    // ─── QUERIES ──────────────────────────────────────────────────
+
+    const reservationsQuery = useQuery({
+        queryKey: ['admin-reservations'],
+        queryFn: adminApi.getAllReservations,
+    });
+
+    // ─── MUTATIONS ────────────────────────────────────────────────
+
+    const confirmPaymentMutation = useMutation({
+        mutationFn: adminApi.confirmPayment,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['admin-reservations'] });
+            queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
+            setPaymentModal(null);
+        },
+    });
+
+    const cancelMutation = useMutation({
+        mutationFn: ({ id, reason }: { id: number, reason: string }) => 
+            adminApi.cancelReservation(id, reason),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['admin-reservations'] });
+            queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
+            setCancelModal(null);
+            setCancelReason('');
+        },
+    });
+
+    const refundMutation = useMutation({
+        mutationFn: ({ id, reason }: { id: number, reason: string }) => 
+            adminApi.refundReservation(id, reason),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['admin-reservations'] });
+            queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
+            setRefundModal(null);
+            setRefundReason('');
+        },
+    });
+
+    // ─── EFFECTS ──────────────────────────────────────────────────
 
     useEffect(() => {
         const handler = setTimeout(() => {
@@ -37,73 +72,34 @@ export function useAdminReservations() {
         setPage(0);
     }, [searchTerm, statusFilter]);
 
-    const loadReservations = async () => {
-        setLoading(true);
-        try {
-            const data = await adminApi.getAllReservations();
-            setReservations(data);
-        } catch {
-            setError('Failed to load reservations.');
-        } finally {
-            setLoading(false);
-        }
-    };
+    // ─── HANDLERS ─────────────────────────────────────────────────
 
     const executeConfirmPayment = async () => {
         if (!paymentModal) return;
-        setActionLoading(paymentModal.id);
-        setError('');
-        try {
-            await adminApi.confirmPayment(paymentModal.id);
-            setReservations(prev => prev.map(r => r.id === paymentModal.id ? { ...r, status: 'PAID' } : r));
-            setPaymentModal(null);
-        } catch (err: unknown) {
-            const message = err instanceof Error ? err.message : 'Failed to confirm payment.';
-            setError(message);
-        } finally {
-            setActionLoading(null);
-        }
+        confirmPaymentMutation.mutate(paymentModal.id);
     };
 
     const executeCancel = async () => {
         if (!cancelModal) return;
-        setActionLoading(cancelModal.id);
-        setError('');
-        try {
-            await adminApi.cancelReservation(cancelModal.id, cancelReason || 'Admin cancelled');
-            setReservations(prev => prev.map(r => r.id === cancelModal.id ? { ...r, status: 'CANCELLED' } : r));
-            setCancelModal(null);
-            setCancelReason('');
-        } catch (err: unknown) {
-            const message = err instanceof Error ? err.message : 'Failed to cancel reservation.';
-            setError(message);
-        } finally {
-            setActionLoading(null);
-        }
+        cancelMutation.mutate({ 
+            id: cancelModal.id, 
+            reason: cancelReason || 'Admin cancelled' 
+        });
     };
 
     const executeRefundApprove = async () => {
         if (!refundModal) return;
-        setActionLoading(refundModal.id);
-        setError('');
-        try {
-            await adminApi.refundReservation(refundModal.id, refundReason || 'Refund Approved by Admin');
-            setReservations(prev => prev.map(r => r.id === refundModal.id ? { ...r, status: 'CANCELLED' } : r));
-            setRefundModal(null);
-            setRefundReason('');
-        } catch (err: unknown) {
-            const message = err instanceof Error ? err.message : 'Failed to process refund.';
-            setError(message);
-        } finally {
-            setActionLoading(null);
-        }
+        refundMutation.mutate({ 
+            id: refundModal.id, 
+            reason: refundReason || 'Refund Approved by Admin' 
+        });
     };
 
     const handleExport = async () => {
         try {
             await adminApi.exportReservationsCsv();
         } catch {
-            setError('Failed to export CSV.');
+            alert('Failed to export CSV.');
         }
     };
 
@@ -117,9 +113,14 @@ export function useAdminReservations() {
         }
     };
 
+    // ─── DERIVED STATE ───────────────────────────────────────────
+
+    const reservations = reservationsQuery.data || [];
+    
     const filteredReservations = useMemo(() => {
-        if (!Array.isArray(reservations)) return [];
-        return reservations.filter(res => {
+        const data = reservationsQuery.data || [];
+        if (!Array.isArray(data)) return [];
+        return data.filter(res => {
             const username = res.user?.username || '';
             const qrCode = res.qrCode || '';
             const fallbackId = `RES-${res.id}`;
@@ -130,16 +131,24 @@ export function useAdminReservations() {
             const matchesStatus = statusFilter === 'ALL' || res.status === statusFilter;
             return matchesSearch && matchesStatus;
         });
-    }, [reservations, debouncedSearchTerm, statusFilter]);
+    }, [reservationsQuery.data, debouncedSearchTerm, statusFilter]);
 
     const totalPages = Math.ceil(filteredReservations.length / pageSize);
     const paginatedReservations = filteredReservations.slice(page * pageSize, (page + 1) * pageSize);
 
+    const error = reservationsQuery.error instanceof Error ? reservationsQuery.error.message : 
+                  confirmPaymentMutation.error instanceof Error ? confirmPaymentMutation.error.message :
+                  cancelMutation.error instanceof Error ? cancelMutation.error.message :
+                  refundMutation.error instanceof Error ? refundMutation.error.message : '';
+
     return {
-        reservations, loading, error, setError,
+        reservations,
+        loading: reservationsQuery.isLoading,
+        error,
+        setError: () => {}, // Compatibility with old API if needed
         searchTerm, setSearchTerm,
         statusFilter, setStatusFilter,
-        actionLoading,
+        actionLoading: confirmPaymentMutation.isPending || cancelMutation.isPending || refundMutation.isPending,
         paymentModal, setPaymentModal,
         cancelModal, setCancelModal, cancelReason, setCancelReason,
         refundModal, setRefundModal, refundReason, setRefundReason,

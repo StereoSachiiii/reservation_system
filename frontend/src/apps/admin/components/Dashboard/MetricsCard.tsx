@@ -16,7 +16,7 @@ const colorMap = {
     purple: 'bg-purple-50 text-purple-600 border-purple-100',
 };
 
-export default function MetricsCard({ title, value, icon: Icon, subtitle, color = 'blue' }: MetricsCardProps) {
+export const MetricsCard = ({ title, value, icon: Icon, subtitle, color = 'blue' }: MetricsCardProps) => {
     return (
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 flex items-start gap-4">
             <div className={`p-3 rounded-md border ${colorMap[color]}`}>

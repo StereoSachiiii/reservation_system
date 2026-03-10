@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutGrid, Hash, Maximize2, IndianRupee, Edit, Lock, Unlock } from 'lucide-react';
+import { LayoutGrid, Hash, Maximize2, Edit, Lock, Unlock } from 'lucide-react';
 import { StallTemplate } from '@/shared/types/api';
 import { formatCurrency } from '@/shared/utils/format';
 import { StatusBadge } from '@/shared/components/StatusBadge';
@@ -24,9 +24,9 @@ export const StallTable: React.FC<StallTableProps> = ({
                     <thead className="bg-gray-50/50">
                         <tr>
                             <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-wider"><Hash size={12} className="inline mr-1" />Name</th>
-                            <th className="px-6 py-4 text-[10px) font-bold text-gray-400 uppercase tracking-wider">Category</th>
+                            <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Category</th>
                             <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-wider"><Maximize2 size={12} className="inline mr-1" />Size</th>
-                            <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-wider"><IndianRupee size={12} className="inline mr-1" />Price (LKR)</th>
+                            <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Price (LKR)</th>
                             <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Status</th>
                             <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-wider text-right">Actions</th>
                         </tr>

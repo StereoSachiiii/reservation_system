@@ -1,43 +1,31 @@
-import { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { documentApi } from '@/shared/api/documentApi';
 import { DocumentResponse } from '@/shared/types/api';
 
 export function useDocuments() {
-    const [documents, setDocuments] = useState<DocumentResponse[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [isDeleting, setIsDeleting] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+    const queryClient = useQueryClient();
 
-    const fetchDocuments = async () => {
-        try {
-            setIsLoading(true);
-            const docs = await documentApi.getDocuments();
-            setDocuments(docs);
-        } catch {
-            setError('Failed to load documents');
-        } finally {
-            setIsLoading(false);
+    const documentsQuery = useQuery({
+        queryKey: ['vendor-documents'],
+        queryFn: documentApi.getDocuments,
+    });
+
+    const deleteMutation = useMutation({
+        mutationFn: documentApi.delete,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['vendor-documents'] });
+        },
+        onError: () => {
+            alert('Failed to delete document');
         }
-    };
+    });
 
-    useEffect(() => {
-        fetchDocuments();
-    }, []);
-
-    const handleUploadSuccess = (newDoc: DocumentResponse) => {
-        setDocuments(prev => [...prev, newDoc]);
+    const handleUploadSuccess = () => {
+        queryClient.invalidateQueries({ queryKey: ['vendor-documents'] });
     };
 
     const handleDelete = async (id: number) => {
-        setIsDeleting(true);
-        try {
-            await documentApi.delete(id);
-            setDocuments(prev => prev.filter(doc => doc.id !== id));
-        } catch {
-            alert('Failed to delete document');
-        } finally {
-            setIsDeleting(false);
-        }
+        deleteMutation.mutate(id);
     };
 
     const handleDownload = async (doc: DocumentResponse) => {
@@ -50,16 +38,17 @@ export function useDocuments() {
             document.body.appendChild(link);
             link.click();
             link.remove();
+            window.URL.revokeObjectURL(url);
         } catch {
             alert('Failed to download document');
         }
     };
 
     return {
-        documents,
-        isLoading,
-        isDeleting,
-        error,
+        documents: documentsQuery.data || [],
+        isLoading: documentsQuery.isLoading,
+        isDeleting: deleteMutation.isPending,
+        error: documentsQuery.error instanceof Error ? documentsQuery.error.message : null,
         handleUploadSuccess,
         handleDelete,
         handleDownload

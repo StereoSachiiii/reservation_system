@@ -1,7 +1,8 @@
 import { useNavigate } from 'react-router-dom';
 import { useVendorProfile } from '../hooks/useVendorProfile';
+import { Building2, Sparkles, User, FileText, ImageIcon, MapPin, ArrowLeft, Save } from 'lucide-react';
 
-export default function VendorProfilePage() {
+export const VendorProfilePage = () => {
     const navigate = useNavigate();
     const {
         formData,
@@ -16,7 +17,7 @@ export default function VendorProfilePage() {
     if (isLoading) {
         return (
             <div className="min-h-screen flex items-center justify-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-900"></div>
+                <div className="animate-spin rounded-full h-10 w-10 border-4 border-slate-200 border-t-indigo-600"></div>
             </div>
         );
     }
@@ -25,7 +26,9 @@ export default function VendorProfilePage() {
         <div className="container mx-auto px-6 py-12 max-w-4xl">
             <header className="mb-12">
                 <div className="flex items-center gap-4 mb-2">
-                    <span className="text-3xl">🏢</span>
+                    <div className="bg-slate-900 text-white p-3 rounded-2xl shadow-lg">
+                        <Building2 size={32} />
+                    </div>
                     <h1 className="text-4xl font-black text-slate-900 tracking-tight">Business Profile</h1>
                 </div>
                 <p className="text-slate-500 font-medium">Manage how your publishing house appears to visitors and organizers.</p>
@@ -33,8 +36,10 @@ export default function VendorProfilePage() {
 
             {success && (
                 <div className="mb-8 bg-emerald-50 border-2 border-emerald-100 text-emerald-800 p-6 rounded-3xl flex items-center gap-4 animate-scale-in">
-                    <span className="text-2xl">✨</span>
-                    <p className="font-bold">Profile updated successfully! All changes are now live.</p>
+                    <div className="bg-emerald-600 text-white p-2 rounded-xl">
+                        <Sparkles size={20} />
+                    </div>
+                    <p className="font-bold text-sm tracking-tight text-emerald-900/80 uppercase">Profile updated successfully! All changes are now live.</p>
                 </div>
             )}
 
@@ -53,7 +58,9 @@ export default function VendorProfilePage() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Business Name</label>
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1 flex items-center gap-1.5">
+                                <User size={10} /> Business Name
+                            </label>
                             <input
                                 className="w-full p-4 bg-slate-50 border-2 border-slate-50 rounded-2xl font-bold text-slate-900 focus:bg-white focus:border-blue-600 transition-all outline-none"
                                 value={formData.businessName}
@@ -70,7 +77,9 @@ export default function VendorProfilePage() {
                             />
                         </div>
                         <div className="md:col-span-2 space-y-2">
-                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Business Description</label>
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1 flex items-center gap-1.5">
+                                <FileText size={10} /> Business Description
+                            </label>
                             <textarea
                                 className="w-full p-4 bg-slate-50 border-2 border-slate-50 rounded-2xl font-bold text-slate-900 focus:bg-white focus:border-blue-600 transition-all outline-none h-32 resize-none"
                                 value={formData.businessDescription}
@@ -79,7 +88,9 @@ export default function VendorProfilePage() {
                             />
                         </div>
                         <div className="md:col-span-2 space-y-2">
-                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Logo URL</label>
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1 flex items-center gap-1.5">
+                                <ImageIcon size={10} /> Logo URL
+                            </label>
                             <input
                                 className="w-full p-4 bg-slate-50 border-2 border-slate-50 rounded-2xl font-bold text-slate-900 focus:bg-white focus:border-blue-600 transition-all outline-none"
                                 value={formData.logoUrl}
@@ -88,7 +99,9 @@ export default function VendorProfilePage() {
                             />
                         </div>
                         <div className="md:col-span-2 space-y-2">
-                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Physical Address</label>
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1 flex items-center gap-1.5">
+                                <MapPin size={10} /> Physical Address
+                            </label>
                             <input
                                 className="w-full p-4 bg-slate-50 border-2 border-slate-50 rounded-2xl font-bold text-slate-900 focus:bg-white focus:border-blue-600 transition-all outline-none"
                                 value={formData.address}
@@ -102,15 +115,21 @@ export default function VendorProfilePage() {
                     <button
                         type="button"
                         onClick={() => navigate('/vendor/dashboard')}
-                        className="px-8 py-4 text-slate-400 font-black text-sm uppercase tracking-widest hover:text-slate-600 transition-colors"
+                        className="px-8 py-4 text-slate-400 font-black text-sm uppercase tracking-widest hover:text-slate-600 transition-colors flex items-center gap-2"
                     >
+                        <ArrowLeft size={16} />
                         Back to Dashboard
                     </button>
                     <button
                         type="submit"
                         disabled={isUpdating}
-                        className="px-10 py-4 bg-slate-900 text-white font-black text-sm uppercase tracking-widest rounded-2xl hover:bg-black hover:scale-105 active:scale-95 transition-all shadow-xl shadow-slate-200 disabled:opacity-50"
+                        className="px-10 py-4 bg-slate-900 text-white font-black text-sm uppercase tracking-widest rounded-2xl hover:bg-black hover:scale-105 active:scale-95 transition-all shadow-xl shadow-slate-200 disabled:opacity-50 flex items-center gap-2"
                     >
+                        {isUpdating ? (
+                            <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                        ) : (
+                            <Save size={16} />
+                        )}
                         {isUpdating ? 'Saving...' : 'Save Profile'}
                     </button>
                 </div>

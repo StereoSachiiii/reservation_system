@@ -1,26 +1,30 @@
-import { useState } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { adminApi } from '@/shared/api/adminApi';
-import { publicApi } from '@/shared/api/publicApi';
 import { Event, Hall, MapZone, MapInfluence, EventStall } from '@/shared/types/api';
 import { DesignerStall, DesignerZone, DesignerInfluence } from '../types';
 import { RawEventMap } from '@/shared/types/stallMap.utils';
 
-export function useDesignerPersistence() {
-    const [saving, setSaving] = useState(false);
-    const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
+interface SavePayload {
+    event: Event;
+    hall: Hall;
+    rawMapData: RawEventMap | null;
+    currentStalls: DesignerStall[];
+    currentZones: DesignerZone[];
+    currentInfluences: DesignerInfluence[];
+}
 
-    const handleSave = async (
-        event: Event,
-        hall: Hall,
-        rawMapData: RawEventMap | null,
-        currentStalls: DesignerStall[],
-        currentZones: DesignerZone[],
-        currentInfluences: DesignerInfluence[],
-        onSuccess?: (freshMapData: RawEventMap) => void
-    ) => {
-        setSaving(true);
-        setMessage(null);
-        try {
+export function useDesignerPersistence() {
+    const queryClient = useQueryClient();
+
+    const persistenceMutation = useMutation({
+        mutationFn: async ({
+            event,
+            hall,
+            rawMapData,
+            currentStalls,
+            currentZones,
+            currentInfluences
+        }: SavePayload) => {
             const otherStalls = (rawMapData?.stalls || []).filter((s: EventStall) => s.hallName !== hall.name);
 
             const payload = [
@@ -82,23 +86,33 @@ export function useDesignerPersistence() {
                 imageUrl: event.imageUrl,
                 venueId: event.venueId
             });
-
-            setMessage({ text: 'Layout & zones saved successfully!', type: 'success' });
-
-            const freshMapData = await publicApi.getEventMap(event.id, true);
-            if (onSuccess) onSuccess(freshMapData);
-
-            setTimeout(() => setMessage(null), 3000);
-        } catch (err) {
-            const error = err as Error;
-            setMessage({ text: 'Save failed: ' + error.message, type: 'error' });
-        } finally {
-            setSaving(false);
+        },
+        onSuccess: (_, variables) => {
+            queryClient.invalidateQueries({ queryKey: ['designer-data', String(variables.hall.id)] });
         }
+    });
+
+    const handleSave = async (
+        event: Event,
+        hall: Hall,
+        rawMapData: RawEventMap | null,
+        currentStalls: DesignerStall[],
+        currentZones: DesignerZone[],
+        currentInfluences: DesignerInfluence[]
+    ) => {
+        persistenceMutation.mutate({
+            event, hall, rawMapData, currentStalls, currentZones, currentInfluences
+        });
     };
 
+    const message = persistenceMutation.isError
+        ? { text: 'Save failed: ' + (persistenceMutation.error as Error).message, type: 'error' as const }
+        : persistenceMutation.isSuccess
+            ? { text: 'Layout & zones saved successfully!', type: 'success' as const }
+            : null;
+
     return {
-        saving,
+        saving: persistenceMutation.isPending,
         message,
         handleSave
     };

@@ -1,33 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { documentApi } from '@/shared/api/documentApi';
 import { DocumentResponse } from '@/shared/types/api';
 
 const VendorDocuments: React.FC = () => {
-    // Note: In a real app, you'd fetch by vendorId. 
-    // For now, let's assume we fetch all or the API supports filtering.
-    // The current documentApi.getDocuments() returns the logged-in user's docs.
-    // For Admin to see vendor docs, we might need a separate endpoint or param.
-    // Based on BACKEND_FUNCTIONALITY_AUDIT.md 2.6, GET /api/v1/documents lists user's files.
-    // We might need GET /api/v1/admin/documents/{vendorId} but it's not in the audit.
-    // Let's implement the UI assuming we'll list/download what the API provides.
-
-    const [documents, setDocuments] = useState<DocumentResponse[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-
-    useEffect(() => {
-        const fetchDocs = async () => {
-            try {
-                const docs = await documentApi.getDocuments();
-                setDocuments(docs);
-            } catch {
-                setError('Failed to fetch vendor documents');
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        fetchDocs();
-    }, []);
+    const documentsQuery = useQuery({
+        queryKey: ['admin-vendor-documents'],
+        queryFn: documentApi.getDocuments,
+    });
 
     const handleDownload = async (doc: DocumentResponse) => {
         try {
@@ -44,7 +24,10 @@ const VendorDocuments: React.FC = () => {
         }
     };
 
-    if (isLoading) return <div className="p-8">Loading documents...</div>;
+    if (documentsQuery.isLoading) return <div className="p-8">Loading documents...</div>;
+
+    const documents = documentsQuery.data || [];
+    const error = documentsQuery.error instanceof Error ? documentsQuery.error.message : null;
 
     return (
         <div className="p-8">

@@ -1,3 +1,5 @@
+import { Plus } from 'lucide-react';
+
 interface DashboardHeaderProps {
     businessName?: string;
     username: string;
@@ -17,11 +19,12 @@ export const DashboardHeader = ({ businessName, username, canBook, onBookClick }
             <button
                 onClick={onBookClick}
                 disabled={!canBook}
-                className={`group relative overflow-hidden px-8 py-4 rounded-2xl font-black uppercase text-xs tracking-widest transition-all shadow-2xl active:scale-95 ${canBook
+                className={`group relative overflow-hidden px-8 py-4 rounded-2xl font-black uppercase text-xs tracking-widest transition-all shadow-2xl active:scale-95 flex items-center gap-2 ${canBook
                         ? 'bg-slate-900 text-white hover:bg-slate-800 shadow-slate-200'
                         : 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
                     }`}
             >
+                {canBook && <Plus size={16} />}
                 <span className="relative z-10">{canBook ? 'Book New Stall' : 'Limit Reached'}</span>
                 {canBook && <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/0 via-indigo-500/10 to-indigo-500/0 -translate-x-full group-hover:animate-shimmer"></div>}
             </button>

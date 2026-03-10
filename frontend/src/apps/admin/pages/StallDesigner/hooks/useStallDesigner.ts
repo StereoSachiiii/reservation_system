@@ -12,7 +12,6 @@ export function useStallDesigner(hallId: string | undefined) {
         initialInfluences,
         rawMapData,
         error: loadingError,
-        setRawMapData
     } = useDesignerLoading(hallId);
 
     const {
@@ -29,10 +28,7 @@ export function useStallDesigner(hallId: string | undefined) {
             rawMapData,
             currentStalls,
             currentZones,
-            currentInfluences,
-            (freshMapData) => {
-                setRawMapData(freshMapData);
-            }
+            currentInfluences
         );
     };
 

@@ -1,9 +1,9 @@
 import { Outlet } from 'react-router-dom';
-import AdminSidebar from '../Sidebar/AdminSidebar';
+import { AdminSidebar } from '../Sidebar/AdminSidebar';
 import { useAuth } from '@/shared/context/useAuth';
 import { LogOut, User } from 'lucide-react';
 
-export default function AdminLayout() {
+export const AdminLayout = () => {
     const { user, logout } = useAuth();
 
     const handleLogout = () => {

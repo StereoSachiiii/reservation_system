@@ -1,53 +1,45 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { adminApi } from '@/shared/api/adminApi';
-import AuditTable from '@/apps/admin/components/Audit/AuditTable';
+import { AuditTable } from '@/apps/admin/components/Audit/AuditTable';
 import AuditFilters from '@/apps/admin/components/Audit/AuditFilters';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
-import { AuditLog, PageEnvelope } from '@/shared/types/api';
+import { AuditLog } from '@/shared/types/api';
 
 export default function AuditLogsPage() {
-    const [logs, setLogs] = useState<AuditLog[]>([]);
-    const [pagination, setPagination] = useState<PageEnvelope<AuditLog> | null>(null);
     const [page, setPage] = useState(0);
     const [entityType, setEntityType] = useState('');
     const [actorId, setActorId] = useState('');
-    const [loading, setLoading] = useState(true);
+    const [debouncedActorId, setDebouncedActorId] = useState('');
     const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
 
-    useEffect(() => {
-        setPage(0);
-    }, [entityType, actorId]);
-
-    const fetchLogs = useCallback(async () => {
-        if (actorId && isNaN(Number(actorId))) {
-            setLogs([]);
-            setPagination(null);
-            return;
-        }
-
-        setLoading(true);
-        try {
-            const data = await adminApi.getAuditLogs(
-                entityType || undefined,
-                page,
-                actorId ? Number(actorId) : undefined
-            );
-            setLogs(data.content);
-            setPagination(data);
-        } catch (err) {
-            console.error("Failed to fetch audit logs:", err);
-            // Fail silently on UI but log to console
-        } finally {
-            setLoading(false);
-        }
-    }, [page, entityType, actorId]);
-
+    // Debouncing Actor ID
     useEffect(() => {
         const timer = setTimeout(() => {
-            fetchLogs();
+            setDebouncedActorId(actorId);
         }, 500);
         return () => clearTimeout(timer);
-    }, [fetchLogs]);
+    }, [actorId]);
+
+    // Reset page on filter change
+    useEffect(() => {
+        setPage(0);
+    }, [entityType, debouncedActorId]);
+
+    const isActorIdInvalid = actorId && isNaN(Number(actorId));
+
+    const logsQuery = useQuery({
+        queryKey: ['audit-logs', entityType || 'ALL', page, debouncedActorId || 'ALL'],
+        queryFn: () => adminApi.getAuditLogs(
+            entityType || undefined,
+            page,
+            debouncedActorId ? Number(debouncedActorId) : undefined
+        ),
+        enabled: !isActorIdInvalid,
+    });
+
+    const logs = logsQuery.data?.content || [];
+    const pagination = logsQuery.data || null;
 
     return (
         <div className="space-y-8">
@@ -69,9 +61,13 @@ export default function AuditLogsPage() {
                 onActorIdChange={setActorId}
             />
 
-            {loading ? (
+            {logsQuery.isLoading ? (
                 <div className="p-20 text-center text-gray-400 font-bold text-xs uppercase">
                     Loading Records...
+                </div>
+            ) : isActorIdInvalid ? (
+                <div className="p-20 text-center text-red-400 font-bold text-xs uppercase">
+                    Invalid Actor ID
                 </div>
             ) : (
                 <>

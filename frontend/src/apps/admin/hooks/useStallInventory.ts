@@ -1,13 +1,10 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useMemo } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { adminApi } from '@/shared/api/adminApi';
-import { StallTemplate, Hall, StallSize, StallCategory } from '@/shared/types/api';
+import { StallTemplate, StallSize, StallCategory } from '@/shared/types/api';
 
 export function useStallInventory(hallId: string | undefined) {
-    const [stalls, setStalls] = useState<StallTemplate[]>([]);
-    const [hall, setHall] = useState<Hall | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
-    const [success, setSuccess] = useState('');
+    const queryClient = useQueryClient();
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('ALL');
     const [sizeFilter, setSizeFilter] = useState('ALL');
@@ -25,75 +22,83 @@ export function useStallInventory(hallId: string | undefined) {
         category: 'RETAIL',
         basePriceCents: '100000'
     });
-    const [generating, setGenerating] = useState(false);
-    const [adjusting, setAdjusting] = useState(false);
 
-    // Edit Modal State
     const [showEditModal, setShowEditModal] = useState(false);
     const [editingStall, setEditingStall] = useState<StallTemplate | null>(null);
     const [editForm, setEditForm] = useState<Partial<StallTemplate>>({});
-    const [savingEdit, setSavingEdit] = useState(false);
+    const [success, setSuccess] = useState('');
+    const [localError, setLocalError] = useState('');
 
-    const loadData = useCallback(async () => {
-        setLoading(true);
-        try {
-            const [halls, stallData] = await Promise.all([
-                adminApi.getAllHalls(),
-                adminApi.getStallsByHall(Number(hallId))
-            ]);
-            const currentHall = halls.find((h) => h.id === Number(hallId));
-            setHall(currentHall || null);
-            setStalls(stallData);
-        } catch {
-            setError('Failed to load inventory.');
-        } finally {
-            setLoading(false);
-        }
-    }, [hallId]);
+    // --- QUERIES ---
 
-    useEffect(() => {
-        if (hallId) loadData();
-    }, [hallId, loadData]);
+    const hallsQuery = useQuery({
+        queryKey: ['admin-halls'],
+        queryFn: adminApi.getAllHalls,
+        enabled: !!hallId,
+    });
 
-    const handleBulkGenerate = async () => {
-        if (!bulkForm.count || !bulkForm.basePriceCents) { setError('Count and price are required.'); return; }
-        setGenerating(true);
-        setError('');
-        try {
-            await adminApi.bulkGenerateStalls(Number(hallId), {
-                count: parseInt(bulkForm.count),
-                size: bulkForm.size,
-                category: bulkForm.category,
-                basePriceCents: parseInt(bulkForm.basePriceCents),
-            });
-            setSuccess(`Generated ${bulkForm.count} stalls successfully!`);
+    const stallsQuery = useQuery({
+        queryKey: ['admin-stalls', hallId],
+        queryFn: () => adminApi.getStallsByHall(Number(hallId)),
+        enabled: !!hallId,
+    });
+
+    // --- MUTATIONS ---
+
+    const bulkGenerateMutation = useMutation({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        mutationFn: (payload: Record<string, unknown>) => adminApi.bulkGenerateStalls(Number(hallId), payload as any),
+        onSuccess: (_, variables) => {
+            queryClient.invalidateQueries({ queryKey: ['admin-stalls', hallId] });
+            setSuccess(`Generated ${variables.count} stalls successfully!`);
             setShowBulkModal(false);
-            await loadData();
-        } catch (err: unknown) {
-            const message = err instanceof Error ? err.message : 'Bulk generate failed.';
-            setError(message);
-        } finally {
-            setGenerating(false);
         }
-    };
+    });
 
-    const handleBulkPriceAdjust = async () => {
-        const pct = parseFloat(bulkPercentage);
-        if (isNaN(pct)) { setError('Enter a valid percentage.'); return; }
-        setAdjusting(true);
-        setError('');
-        try {
-            await adminApi.bulkPriceAdjust(Number(hallId), pct);
+    const priceAdjustMutation = useMutation({
+        mutationFn: (pct: number) => adminApi.bulkPriceAdjust(Number(hallId), pct),
+        onSuccess: (pct) => {
+            queryClient.invalidateQueries({ queryKey: ['admin-stalls', hallId] });
             setSuccess(`All stall prices adjusted by ${pct}%.`);
             setShowPriceModal(false);
             setBulkPercentage('');
-            await loadData();
-        } catch (err: unknown) {
-            const message = err instanceof Error ? err.message : 'Price adjustment failed.';
-            setError(message);
-        } finally {
-            setAdjusting(false);
         }
+    });
+
+    const updateStallMutation = useMutation({
+        mutationFn: ({ id, data }: { id: number, data: Partial<StallTemplate> }) => 
+            adminApi.updateStallTemplate(Number(hallId), id, data),
+        onSuccess: (updated) => {
+            queryClient.invalidateQueries({ queryKey: ['admin-stalls', hallId] });
+            setSuccess(`Stall ${updated.name} updated successfully.`);
+            setShowEditModal(false);
+        }
+    });
+
+    const toggleBlockMutation = useMutation({
+        mutationFn: (stall: StallTemplate) => 
+            adminApi.setStallBlocked(Number(hallId), stall.id, stall.isAvailable),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['admin-stalls', hallId] });
+        }
+    });
+
+    // --- HANDLERS ---
+
+    const handleBulkGenerate = () => {
+        if (!bulkForm.count || !bulkForm.basePriceCents) { setLocalError('Count and price are required.'); return; }
+        bulkGenerateMutation.mutate({
+            count: parseInt(bulkForm.count),
+            size: bulkForm.size,
+            category: bulkForm.category,
+            basePriceCents: parseInt(bulkForm.basePriceCents),
+        });
+    };
+
+    const handleBulkPriceAdjust = () => {
+        const pct = parseFloat(bulkPercentage);
+        if (isNaN(pct)) { setLocalError('Enter a valid percentage.'); return; }
+        priceAdjustMutation.mutate(pct);
     };
 
     const handleOpenEdit = (stall: StallTemplate) => {
@@ -109,56 +114,53 @@ export function useStallInventory(hallId: string | undefined) {
         setShowEditModal(true);
     };
 
-    const handleSaveEdit = async () => {
+    const handleSaveEdit = () => {
         if (!editingStall) return;
-        setSavingEdit(true);
-        setError('');
-        try {
-            const updated = await adminApi.updateStallTemplate(Number(hallId), editingStall.id, editForm);
-            setStalls(prev => prev.map(s => s.id === updated.id ? { ...s, ...updated } : s));
-            setSuccess(`Stall ${updated.name} updated successfully.`);
-            setShowEditModal(false);
-        } catch (err: unknown) {
-            const message = err instanceof Error ? err.message : 'Failed to update stall.';
-            setError(message);
-        } finally {
-            setSavingEdit(false);
-        }
+        updateStallMutation.mutate({ id: editingStall.id, data: editForm });
     };
 
-    const handleToggleBlock = async (stall: StallTemplate) => {
-        setError('');
-        try {
-            const updated = await adminApi.setStallBlocked(Number(hallId), stall.id, stall.isAvailable);
-            setStalls(prev => prev.map(s => s.id === stall.id ? { ...s, isAvailable: updated.isAvailable } : s));
-        } catch (err: unknown) {
-            const message = err instanceof Error ? err.message : 'Failed to update stall status.';
-            setError(message);
-        }
+    const handleToggleBlock = (stall: StallTemplate) => {
+        toggleBlockMutation.mutate(stall);
     };
 
     const handleExportCsv = async () => {
         try {
             await adminApi.exportStallsCsv(Number(hallId));
         } catch (err: unknown) {
-            const message = (err && typeof err === 'object' && 'response' in err)
-                ? (err as { response: { data?: { message?: string } } }).response?.data?.message
-                : (err instanceof Error ? err.message : null);
-            setError(message || 'Failed to export CSV.');
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const message = err instanceof Error ? (err as any).response?.data?.message : 'Failed to export CSV.';
+            setLocalError(message || 'Failed to export CSV.');
         }
     };
 
-    const filteredStalls = stalls.filter(s => {
-        const matchesSearch = s.name?.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesStatus = statusFilter === 'ALL'
-            || (statusFilter === 'AVAILABLE' && s.isAvailable)
-            || (statusFilter === 'BLOCKED' && !s.isAvailable);
-        const matchesSize = sizeFilter === 'ALL' || s.size === sizeFilter;
-        return matchesSearch && matchesStatus && matchesSize;
-    });
+    // --- DERIVED STATE ---
+
+    const hall = useMemo(() => hallsQuery.data?.find(h => h.id === Number(hallId)) || null, [hallsQuery.data, hallId]);
+    const stalls = useMemo(() => stallsQuery.data || [], [stallsQuery.data]);
+
+    const filteredStalls = useMemo(() => {
+        return stalls.filter(s => {
+            const matchesSearch = s.name?.toLowerCase().includes(searchTerm.toLowerCase());
+            const matchesStatus = statusFilter === 'ALL'
+                || (statusFilter === 'AVAILABLE' && s.isAvailable)
+                || (statusFilter === 'BLOCKED' && !s.isAvailable);
+            const matchesSize = sizeFilter === 'ALL' || s.size === sizeFilter;
+            return matchesSearch && matchesStatus && matchesSize;
+        });
+    }, [stalls, searchTerm, statusFilter, sizeFilter]);
+
+    const error = localError || 
+                  (hallsQuery.error instanceof Error ? hallsQuery.error.message : '') ||
+                  (stallsQuery.error instanceof Error ? stallsQuery.error.message : '') ||
+                  (bulkGenerateMutation.error instanceof Error ? bulkGenerateMutation.error.message : '') ||
+                  (priceAdjustMutation.error instanceof Error ? priceAdjustMutation.error.message : '') ||
+                  (updateStallMutation.error instanceof Error ? updateStallMutation.error.message : '') ||
+                  (toggleBlockMutation.error instanceof Error ? toggleBlockMutation.error.message : '');
+
+    const loading = hallsQuery.isLoading || stallsQuery.isLoading;
 
     return {
-        stalls, hall, loading, error, setError, success, setSuccess,
+        stalls, hall, loading, error, setError: setLocalError, success, setSuccess,
         searchTerm, setSearchTerm,
         statusFilter, setStatusFilter,
         sizeFilter, setSizeFilter,
@@ -166,11 +168,12 @@ export function useStallInventory(hallId: string | undefined) {
         showPriceModal, setShowPriceModal,
         bulkPercentage, setBulkPercentage,
         bulkForm, setBulkForm,
-        generating, adjusting,
+        generating: bulkGenerateMutation.isPending,
+        adjusting: priceAdjustMutation.isPending,
         showEditModal, setShowEditModal,
         editingStall, setEditingStall,
         editForm, setEditForm,
-        savingEdit,
+        savingEdit: updateStallMutation.isPending,
         filteredStalls,
         handleBulkGenerate,
         handleBulkPriceAdjust,

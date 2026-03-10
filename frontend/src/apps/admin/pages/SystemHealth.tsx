@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { adminApi } from '@/shared/api/adminApi';
 import {
     Database,
@@ -12,26 +12,18 @@ import {
 import { SystemHealth } from '@/shared/types/api';
 
 export default function SystemHealthPage() {
-    const [health, setHealth] = useState<SystemHealth | null>(null);
-    const [loading, setLoading] = useState(true);
+    const healthQuery = useQuery({
+        queryKey: ['admin-health'],
+        queryFn: adminApi.getHealth,
+        refetchInterval: 30000, // Poll every 30 seconds
+    });
 
-    useEffect(() => {
-        loadHealth();
-    }, []);
-
-    const loadHealth = async () => {
-        setLoading(true);
-        try {
-            const h = await adminApi.getHealth();
-            setHealth(h);
-        } catch {
-            setHealth({ database: 'DOWN', paymentGateway: 'DOWN', mailService: 'DOWN', uptimeSeconds: 0 });
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    // Helper removed to fix lint
+    const health = healthQuery.data || { 
+        database: 'DOWN', 
+        paymentGateway: 'DOWN', 
+        mailService: 'DOWN', 
+        uptimeSeconds: 0 
+    } as SystemHealth;
 
     return (
         <div className="max-w-5xl mx-auto space-y-8">
@@ -41,10 +33,10 @@ export default function SystemHealthPage() {
                     <p className="text-gray-500 font-semibold uppercase text-[10px] mt-2">Real-time Infrastructure Status</p>
                 </div>
                 <button
-                    onClick={loadHealth}
+                    onClick={() => healthQuery.refetch()}
                     className="flex items-center gap-2 bg-white border border-gray-200 px-4 py-2 rounded-md font-bold text-[10px] uppercase hover:bg-gray-50 transition-colors shadow-sm"
                 >
-                    <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
+                    <RefreshCw size={14} className={healthQuery.isFetching ? 'animate-spin' : ''} />
                     Refresh Status
                 </button>
             </div>
@@ -52,19 +44,19 @@ export default function SystemHealthPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <StatusCard
                     title="Database"
-                    status={health?.database}
+                    status={health.database}
                     icon={Database}
                     description="Postgres Instance"
                 />
                 <StatusCard
                     title="Payments"
-                    status={health?.paymentGateway}
+                    status={health.paymentGateway}
                     icon={CreditCard}
                     description="Stripe Gateway"
                 />
                 <StatusCard
                     title="Mail Service"
-                    status={health?.mailService}
+                    status={health.mailService}
                     icon={Mail}
                     description="SMTP Server"
                 />
@@ -79,7 +71,7 @@ export default function SystemHealthPage() {
                     <div className="space-y-6">
                         <div className="flex justify-between items-end">
                             <span className="text-gray-400 font-bold uppercase text-[10px]">Continuous Uptime</span>
-                            <span className="text-3xl font-bold text-blue-600">{(health?.uptimeSeconds / 3600).toFixed(1)}h</span>
+                            <span className="text-3xl font-bold text-blue-600">{(health.uptimeSeconds / 3600).toFixed(1)}h</span>
                         </div>
                         <div className="w-full bg-blue-50 h-2 rounded-full overflow-hidden">
                             <div className="bg-blue-600 h-full w-[99%]" />
@@ -97,18 +89,18 @@ export default function SystemHealthPage() {
                         <div className="flex justify-between border-b border-white/10 pb-2">
                             <span className="text-gray-400">Memory Usage</span>
                             <span className="font-bold text-green-400">
-                                {health?.usedMemoryBytes
+                                {health.usedMemoryBytes
                                     ? `${Math.round(health.usedMemoryBytes / 1024 / 1024)}MB / ${Math.round(health.maxMemoryBytes / 1024 / 1024 / 1024)}GB`
                                     : '---'}
                             </span>
                         </div>
                         <div className="flex justify-between border-b border-white/10 pb-2">
                             <span className="text-gray-400">Active Threads</span>
-                            <span className="font-bold">{health?.activeThreads || 0} Active</span>
+                            <span className="font-bold">{health.activeThreads || 0} Active</span>
                         </div>
                         <div className="flex justify-between border-b border-white/10 pb-2">
                             <span className="text-gray-400">API Latency</span>
-                            <span className="font-bold text-blue-400">{health?.latencyMs || 0}ms</span>
+                            <span className="font-bold text-blue-400">{health.latencyMs || 0}ms</span>
                         </div>
                         <div className="flex justify-between border-b border-white/10 pb-2">
                             <span className="text-gray-400">Connectivity</span>
@@ -124,7 +116,7 @@ export default function SystemHealthPage() {
 interface StatusCardProps {
     title: string;
     status: string;
-    icon: React.ComponentType<{ size?: number; className?: string }>;
+    icon: React.ComponentType<{ size?: number | string; className?: string }>;
     description: string;
 }
 

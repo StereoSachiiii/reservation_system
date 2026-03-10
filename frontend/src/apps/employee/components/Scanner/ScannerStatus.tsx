@@ -3,43 +3,67 @@ interface AdmitSuccessViewProps {
     handleReset: () => void;
 }
 
-export const AdmitSuccessView = ({ businessName, handleReset }: AdmitSuccessViewProps) => (
-    <div className="bg-emerald-50 border-2 border-emerald-100 rounded-3xl p-8 text-center animate-bounce-in">
-        <div className="w-20 h-20 bg-emerald-500 rounded-full flex items-center justify-center text-white text-4xl mx-auto mb-4 shadow-lg shadow-emerald-200">
-            ✓
-        </div>
-        <h3 className="text-2xl font-black text-emerald-900 mb-1 leading-tight">ADMITTED</h3>
-        <p className="text-emerald-700 font-bold text-lg mb-4">{businessName}</p>
-        <div className="flex flex-col gap-1 text-emerald-600/60 text-xs font-bold tracking-widest uppercase">
-            <span>Check-in recorded</span>
-            <span>{new Date().toLocaleTimeString()}</span>
-        </div>
-        <button
-            onClick={handleReset}
-            className="w-full mt-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-bold transition-all"
-        >
-            Next
-        </button>
-    </div>
-);
+
+
+interface AdmitSuccessViewProps {
+    businessName: string;
+    handleReset: () => void;
+}
 
 interface LookupErrorViewProps {
     error: Error | null;
     handleReset: () => void;
 }
 
-export const LookupErrorView = ({ error, handleReset }: LookupErrorViewProps) => (
-    <div className="bg-rose-50 border-2 border-rose-100 rounded-3xl p-8 text-center animate-shake">
-        <div className="w-20 h-20 bg-rose-500 rounded-full flex items-center justify-center text-white text-4xl mx-auto mb-4 shadow-lg shadow-rose-200">
-            ✕
+import { Check, X, RefreshCcw, ChevronRight } from 'lucide-react';
+
+export const AdmitSuccessView = ({ businessName, handleReset }: AdmitSuccessViewProps) => (
+    <div className="bg-emerald-50/50 border-2 border-emerald-100 rounded-[2.5rem] p-10 text-center animate-in zoom-in-95 duration-500">
+        <div className="w-24 h-24 bg-emerald-500 rounded-full flex items-center justify-center text-white mx-auto mb-8 shadow-2xl shadow-emerald-200">
+            <Check size={48} strokeWidth={3} />
         </div>
-        <h3 className="text-2xl font-black text-rose-900 mb-2 leading-tight">NOT FOUND</h3>
-        <p className="text-rose-700 font-bold mb-6">{error?.message || "Reservation not found"}</p>
+        <h3 className="text-[10px] font-black text-emerald-600 uppercase tracking-[0.3em] mb-3">ACCESS GRANTED</h3>
+        <p className="text-3xl font-black text-emerald-900 tracking-tight mb-8">{businessName}</p>
+        
+        <div className="flex items-center justify-center gap-6 p-4 bg-emerald-100/30 rounded-2xl mb-10">
+            <div className="text-left">
+                <p className="text-[8px] font-black text-emerald-600 uppercase tracking-widest">Entry Time</p>
+                <p className="text-sm font-black text-emerald-800 tabular-nums">{new Date().toLocaleTimeString()}</p>
+            </div>
+            <div className="w-px h-8 bg-emerald-200"></div>
+            <div className="text-left">
+                <p className="text-[8px] font-black text-emerald-600 uppercase tracking-widest">Digital Pass</p>
+                <p className="text-sm font-black text-emerald-800">Verified</p>
+            </div>
+        </div>
+
         <button
             onClick={handleReset}
-            className="w-full py-3 bg-slate-900 text-white rounded-xl font-bold text-sm hover:bg-black transition-all"
+            className="w-full py-5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] transition-all shadow-xl shadow-emerald-200 active:scale-[0.98] flex items-center justify-center gap-2"
         >
-            TRY AGAIN
+            NEXT IN LINE
+            <ChevronRight size={14} />
+        </button>
+    </div>
+);
+
+export const LookupErrorView = ({ error, handleReset }: LookupErrorViewProps) => (
+    <div className="bg-rose-50/50 border-2 border-rose-100 rounded-[2.5rem] p-10 text-center animate-in shake-in duration-500">
+        <div className="w-24 h-24 bg-rose-500 rounded-full flex items-center justify-center text-white mx-auto mb-8 shadow-2xl shadow-rose-200">
+            <X size={48} strokeWidth={3} />
+        </div>
+        <h3 className="text-[10px] font-black text-rose-600 uppercase tracking-[0.3em] mb-3">SYSTEM DENIAL</h3>
+        <p className="text-xl font-black text-rose-900 tracking-tight mb-10 leading-relaxed uppercase">
+            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+            {(error as any)?.response?.data?.message || error?.message || "Internal Access Error"}
+        </p>
+
+        <button
+            onClick={handleReset}
+            className="w-full py-5 bg-slate-900 hover:bg-black text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] transition-all shadow-xl shadow-slate-200 active:scale-[0.98] flex items-center justify-center gap-3"
+        >
+            <RefreshCcw size={14} />
+            REBOOT LOOKUP
         </button>
     </div>
 );

@@ -1,5 +1,6 @@
 import React from 'react';
 import { DashboardStats } from '@/shared/types/api';
+import { Building2, ClipboardCheck, Users, Activity } from 'lucide-react';
 
 interface OperationalDashboardProps {
     stats: DashboardStats | null;
@@ -8,32 +9,39 @@ interface OperationalDashboardProps {
 
 export const OperationalDashboard: React.FC<OperationalDashboardProps> = ({ stats, loadingStats }) => {
     return (
-        <div className="space-y-8">
+        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {[
-                    { title: 'Total Stalls', val: stats?.totalStalls, icon: '🏢', color: 'bg-blue-500' },
-                    { title: 'Booked Stalls', val: stats?.reservedStalls, icon: '📑', color: 'bg-indigo-500' },
-                    { title: 'Checked In', val: stats?.checkedInCount || 0, icon: '🚶', color: 'bg-emerald-500' }
-                ].map((stat) => (
-                    <div key={stat.title} className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
-                        <div className={`absolute top-0 right-0 w-24 h-24 ${stat.color} opacity-5 rounded-bl-full`}></div>
-                        <div className="flex items-center gap-4 mb-4">
-                            <span className="text-3xl">{stat.icon}</span>
-                            <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest">{stat.title}</h3>
+                    { title: 'Total Stalls', val: stats?.totalStalls, icon: Building2, color: 'text-slate-600', bg: 'bg-slate-50' },
+                    { title: 'Reserved', val: stats?.reservedStalls, icon: ClipboardCheck, color: 'text-slate-600', bg: 'bg-slate-50' },
+                    { title: 'Checked In', val: stats?.checkedInCount || 0, icon: Users, color: 'text-emerald-600', bg: 'bg-emerald-50' }
+                ].map((stat) => {
+                    const Icon = stat.icon;
+                    return (
+                        <div key={stat.title} className="bg-white p-10 rounded-[2.5rem] border border-slate-100 shadow-sm relative overflow-hidden group hover:shadow-xl hover:shadow-slate-100 transition-all">
+                            <div className="flex items-center gap-5 mb-6">
+                                <div className={`w-14 h-14 ${stat.bg} ${stat.color} rounded-2xl flex items-center justify-center shadow-inner`}>
+                                    <Icon size={24} />
+                                </div>
+                                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-tight">{stat.title}</h3>
+                            </div>
+                            <div className="text-5xl font-black text-slate-900 tracking-tighter tabular-nums flex items-end gap-2">
+                                {loadingStats ? (
+                                    <div className="w-10 h-10 bg-slate-100 rounded-lg animate-pulse"></div>
+                                ) : stat.val}
+                                <span className="text-xs text-slate-300 font-bold uppercase tracking-widest mb-2">Units</span>
+                            </div>
                         </div>
-                        <div className="text-4xl font-black text-slate-900 tabular-nums">
-                            {loadingStats ? '...' : stat.val}
-                        </div>
-                    </div>
-                ))}
+                    );
+                })}
             </div>
 
-            <div className="bg-slate-900 rounded-3xl p-10 text-white relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -mr-20 -mt-20"></div>
+            <div className="bg-slate-950 rounded-[3rem] p-12 text-white relative overflow-hidden shadow-2xl shadow-slate-200 group">
+                <div className="absolute top-0 right-0 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl -mr-32 -mt-32 group-hover:bg-blue-600/20 transition-colors duration-1000"></div>
                 <div className="relative z-10">
-                    <h3 className="text-2xl font-black mb-6 flex items-center gap-3">
-                        <span className="w-2 h-8 bg-blue-500 rounded-full"></span>
-                        Occupancy Overview
+                    <h3 className="text-2xl font-black mb-10 flex items-center gap-4 italic italic">
+                        <Activity className="text-blue-500" size={28} />
+                        REAL-TIME FLOW
                     </h3>
                     <div className="space-y-6">
                         <div className="space-y-2">

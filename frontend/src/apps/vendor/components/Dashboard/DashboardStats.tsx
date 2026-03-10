@@ -1,3 +1,5 @@
+import { Layout, Calendar, CheckCircle2 } from 'lucide-react';
+
 interface DashboardStatsProps {
     limit: number;
     used: number;
@@ -7,8 +9,10 @@ interface DashboardStatsProps {
 export const DashboardStats = ({ limit, used, remaining }: DashboardStatsProps) => {
     return (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-12">
-            <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 relative overflow-hidden group">
-                <div className="absolute top-0 right-0 w-24 h-24 bg-slate-50 rounded-full -mr-8 -mt-8 group-hover:scale-110 transition-transform"></div>
+            <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 relative overflow-hidden group text-left">
+                <div className="absolute top-0 right-0 w-24 h-24 bg-slate-50 rounded-full -mr-8 -mt-8 group-hover:scale-110 transition-transform flex items-center justify-center p-6">
+                    <Layout className="text-slate-200" size={40} />
+                </div>
                 <div className="relative z-10">
                     <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Stall Limit</h3>
                     <div className="flex items-baseline gap-2">
@@ -18,8 +22,10 @@ export const DashboardStats = ({ limit, used, remaining }: DashboardStatsProps) 
                 </div>
             </div>
 
-            <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 relative overflow-hidden group">
-                <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-50 rounded-full -mr-8 -mt-8 group-hover:scale-110 transition-transform"></div>
+            <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 relative overflow-hidden group text-left">
+                <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-50 rounded-full -mr-8 -mt-8 group-hover:scale-110 transition-transform flex items-center justify-center p-6">
+                    <Calendar className="text-indigo-200" size={40} />
+                </div>
                 <div className="relative z-10">
                     <h3 className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-4">Active Bookings</h3>
                     <div className="flex items-baseline gap-2">
@@ -29,8 +35,10 @@ export const DashboardStats = ({ limit, used, remaining }: DashboardStatsProps) 
                 </div>
             </div>
 
-            <div className={`bg-white p-8 rounded-3xl shadow-sm border border-slate-100 relative overflow-hidden group ${remaining === 0 ? 'bg-rose-50/30' : ''}`}>
-                <div className={`absolute top-0 right-0 w-24 h-24 rounded-full -mr-8 -mt-8 group-hover:scale-110 transition-transform ${remaining === 0 ? 'bg-rose-50' : 'bg-emerald-50'}`}></div>
+            <div className={`bg-white p-8 rounded-3xl shadow-sm border border-slate-100 relative overflow-hidden group text-left ${remaining === 0 ? 'bg-rose-50/30' : ''}`}>
+                <div className={`absolute top-0 right-0 w-24 h-24 rounded-full -mr-8 -mt-8 group-hover:scale-110 transition-transform flex items-center justify-center p-6 ${remaining === 0 ? 'bg-rose-50 text-rose-200' : 'bg-emerald-50 text-emerald-200'}`}>
+                    <CheckCircle2 size={40} />
+                </div>
                 <div className="relative z-10">
                     <h3 className={`text-[10px] font-black uppercase tracking-widest mb-4 ${remaining === 0 ? 'text-rose-400' : 'text-emerald-400'}`}>Remaining Slots</h3>
                     <div className="flex items-baseline gap-2">

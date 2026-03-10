@@ -1,132 +1,123 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { adminApi } from '@/shared/api/adminApi';
-import { Hall, Event, Venue, Building, PublisherCategory } from '@/shared/types/api';
+import { Hall, Event, Venue, Building } from '@/shared/types/api';
 
 export type ViewMode = 'EVENTS' | 'VENUES' | 'BUILDINGS' | 'HALLS';
 
 export function useHallManagement() {
+    const queryClient = useQueryClient();
     const [viewMode, setViewMode] = useState<ViewMode>('EVENTS');
-
-    // Data states
-    const [events, setEvents] = useState<Event[]>([]);
-    const [venues, setVenues] = useState<Venue[]>([]);
-    const [buildings, setBuildings] = useState<Building[]>([]);
-    const [halls, setHalls] = useState<Hall[]>([]);
+    const [filterQuery, setFilterQuery] = useState('');
 
     // Selection states
     const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
     const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
     const [selectedBuilding, setSelectedBuilding] = useState<Building | null>(null);
 
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
-    const [success, setSuccess] = useState('');
-    const [filterQuery, setFilterQuery] = useState('');
-
     const [showModal, setShowModal] = useState(false);
     const [editingHall, setEditingHall] = useState<Hall | null>(null);
-    const [saving, setSaving] = useState(false);
+    const [success, setSuccess] = useState('');
+    const [localError, setLocalError] = useState('');
+
+    // --- QUERIES ---
+
+    const eventsQuery = useQuery({
+        queryKey: ['admin-events'],
+        queryFn: adminApi.getAllEvents,
+    });
+
+    const venuesQuery = useQuery({
+        queryKey: ['admin-venues'],
+        queryFn: adminApi.getAllVenues,
+        enabled: viewMode === 'VENUES' || !!selectedEvent,
+    });
+
+    const buildingsQuery = useQuery({
+        queryKey: ['admin-buildings', selectedVenue?.id],
+        queryFn: () => adminApi.getBuildingsByVenue(selectedVenue!.id),
+        enabled: !!selectedVenue,
+    });
+
+    const hallsQuery = useQuery({
+        queryKey: ['admin-halls-by-building', selectedBuilding?.id],
+        queryFn: () => adminApi.getHallsByBuilding(selectedBuilding!.id),
+        enabled: !!selectedBuilding,
+    });
+
+    // --- PERSISTENCE ---
 
     useEffect(() => {
-        const restoreState = async () => {
-            setLoading(true);
-            try {
-                const data = await adminApi.getAllEvents();
-                setEvents(data);
-
-                const saved = sessionStorage.getItem('admin_hall_state');
-                if (saved) {
-                    const { event, venue, building, mode } = JSON.parse(saved);
-                    if (event) {
-                        setSelectedEvent(event);
-                        const vs = await adminApi.getAllVenues();
-                        setVenues(vs);
-                        if (venue) {
-                            setSelectedVenue(venue);
-                            const bs = await adminApi.getBuildingsByVenue(venue.id);
-                            setBuildings(bs);
-                            if (building) {
-                                setSelectedBuilding(building);
-                                const hs = await adminApi.getHallsByBuilding(building.id);
-                                setHalls(hs);
-                            }
-                        }
-                        setViewMode(mode);
-                    }
-                }
-            } catch {
-                setError('Failed to load initial data.');
-            } finally {
-                setLoading(false);
-            }
-        };
-        restoreState();
+        const saved = sessionStorage.getItem('admin_hall_state');
+        if (saved) {
+            const { event, venue, building, mode } = JSON.parse(saved);
+            if (event) setSelectedEvent(event);
+            if (venue) setSelectedVenue(venue);
+            if (building) setSelectedBuilding(building);
+            if (mode) setViewMode(mode);
+        }
     }, []);
 
     useEffect(() => {
-        if (!loading) {
-            sessionStorage.setItem('admin_hall_state', JSON.stringify({
-                event: selectedEvent,
-                venue: selectedVenue,
-                building: selectedBuilding,
-                mode: viewMode
-            }));
-        }
-    }, [selectedEvent, selectedVenue, selectedBuilding, viewMode, loading]);
+        sessionStorage.setItem('admin_hall_state', JSON.stringify({
+            event: selectedEvent,
+            venue: selectedVenue,
+            building: selectedBuilding,
+            mode: viewMode
+        }));
+    }, [selectedEvent, selectedVenue, selectedBuilding, viewMode]);
 
-    const handleSelectEvent = async (event: Event) => {
-        setSelectedEvent(event);
-        setLoading(true);
-        try {
-            const allVenues = await adminApi.getAllVenues();
-            setVenues(allVenues);
+    // --- MUTATIONS ---
 
-            if (event.venueId) {
-                const venue = allVenues.find(v => v.id === event.venueId);
-                if (venue) {
-                    setSelectedVenue(venue);
-                    const buildings = await adminApi.getBuildingsByVenue(venue.id);
-                    setBuildings(buildings);
-                    setViewMode('BUILDINGS');
-                } else {
-                    setViewMode('VENUES');
-                }
-            } else {
-                setViewMode('VENUES');
+    const saveHallMutation = useMutation({
+        mutationFn: (payload: Record<string, unknown>) => {
+            if (editingHall) {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                return adminApi.updateHall(editingHall.id, payload as any);
             }
-        } catch {
-            setError('Failed to load venue data.');
-        } finally {
-            setLoading(false);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            return adminApi.createHall(payload as any);
+        },
+        onSuccess: (data) => {
+            queryClient.invalidateQueries({ queryKey: ['admin-halls-by-building', selectedBuilding?.id] });
+            setSuccess(editingHall ? `Hall "${data.name}" updated.` : `Hall "${data.name}" created.`);
+            setShowModal(false);
         }
+    });
+
+    const hallStatusMutation = useMutation({
+        mutationFn: ({ id, status }: { id: number, status: 'PUBLISHED' | 'ARCHIVED' }) => 
+            adminApi.changeHallStatus(id, status),
+        onSuccess: (_, variables) => {
+            queryClient.invalidateQueries({ queryKey: ['admin-halls-by-building', selectedBuilding?.id] });
+            setSuccess(variables.status === 'ARCHIVED' ? 'Hall archived.' : 'Hall published.');
+        }
+    });
+
+    // --- HANDLERS ---
+
+    const handleSelectEvent = (event: Event) => {
+        setSelectedEvent(event);
+        if (event.venueId) {
+            // Pre-select venue if available
+            const venue = venuesQuery.data?.find(v => v.id === event.venueId);
+            if (venue) {
+                setSelectedVenue(venue);
+                setViewMode('BUILDINGS');
+                return;
+            }
+        }
+        setViewMode('VENUES');
     };
 
-    const handleSelectVenue = async (venue: Venue) => {
-        setLoading(true);
+    const handleSelectVenue = (venue: Venue) => {
         setSelectedVenue(venue);
-        try {
-            const data = await adminApi.getBuildingsByVenue(venue.id);
-            setBuildings(data);
-            setViewMode('BUILDINGS');
-        } catch {
-            setError('Failed to load buildings.');
-        } finally {
-            setLoading(false);
-        }
+        setViewMode('BUILDINGS');
     };
 
-    const handleSelectBuilding = async (building: Building) => {
-        setLoading(true);
+    const handleSelectBuilding = (building: Building) => {
         setSelectedBuilding(building);
-        try {
-            const data = await adminApi.getHallsByBuilding(building.id);
-            setHalls(data);
-            setViewMode('HALLS');
-        } catch {
-            setError('Failed to load halls.');
-        } finally {
-            setLoading(false);
-        }
+        setViewMode('HALLS');
     };
 
     const resetToEvents = () => {
@@ -155,100 +146,59 @@ export function useHallManagement() {
         }
     };
 
-    const handleSave = async (data: {
-        name: string;
-        tier: string;
-        floorLevel: string;
-        totalSqFt: string;
-        capacity: string;
-        mainCategory: PublisherCategory | undefined;
-        isIndoor: boolean;
-        isAirConditioned: boolean;
-        isGroundFloor: boolean;
-        expectedFootfall: string;
-        noiseLevel: string;
-        distanceFromEntrance: string;
-        distanceFromParking: string;
-        nearbyFacilities: string;
-    }) => {
+    const handleSave = async (data: Record<string, string>) => {
         if (!selectedBuilding) return;
-        setSaving(true);
-        setError('');
-        try {
-            const payload = {
-                ...data,
-                buildingId: selectedBuilding.id,
-                totalSqFt: parseFloat(data.totalSqFt) || 0,
-                capacity: parseInt(data.capacity) || 0,
-                floorLevel: parseInt(data.floorLevel) || 1,
-                expectedFootfall: parseInt(data.expectedFootfall) || 0,
-                distanceFromEntrance: parseFloat(data.distanceFromEntrance) || 0,
-                distanceFromParking: parseFloat(data.distanceFromParking) || 0,
-                mainCategory: data.mainCategory || undefined
-            };
-
-            if (editingHall) {
-                const updated = await adminApi.updateHall(editingHall.id, {
-                    ...payload,
-                    name: data.name,
-                    status: editingHall.status as 'DRAFT' | 'PUBLISHED' | 'ARCHIVED'
-                });
-                setHalls(prev => prev.map(h => h.id === editingHall.id ? { ...h, ...updated } : h));
-                setSuccess(`Hall "${updated.name}" updated.`);
-            } else {
-                const created = await adminApi.createHall({
-                    ...payload,
-                    name: data.name,
-                    buildingId: selectedBuilding.id
-                } as Parameters<typeof adminApi.createHall>[0]);
-                setHalls(prev => [...prev, created]);
-                setSuccess(`Hall "${created.name}" created.`);
-            }
-            setShowModal(false);
-        } catch (err: unknown) {
-            const message = err instanceof Error ? err.message : 'Save failed.';
-            setError(message);
-        } finally {
-            setSaving(false);
-        }
+        const payload = {
+            ...data,
+            buildingId: selectedBuilding.id,
+            totalSqFt: parseFloat(data.totalSqFt) || 0,
+            capacity: parseInt(data.capacity) || 0,
+            floorLevel: parseInt(data.floorLevel) || 1,
+            expectedFootfall: parseInt(data.expectedFootfall) || 0,
+            distanceFromEntrance: parseFloat(data.distanceFromEntrance) || 0,
+            distanceFromParking: parseFloat(data.distanceFromParking) || 0,
+            mainCategory: data.mainCategory || undefined,
+            status: editingHall?.status || 'DRAFT'
+        };
+        saveHallMutation.mutate(payload);
     };
 
-    const handleArchive = async (hall: Hall) => {
+    const handleArchive = (hall: Hall) => {
         if (!window.confirm(`Archive "${hall.name}"?`)) return;
-        setError('');
-        try {
-            await adminApi.changeHallStatus(hall.id, 'ARCHIVED');
-            setSuccess('Hall archived.');
-            setHalls(prev => prev.filter(h => h.id !== hall.id));
-        } catch {
-            setError('Failed to archive hall.');
-        }
+        hallStatusMutation.mutate({ id: hall.id, status: 'ARCHIVED' });
     };
 
-    const handlePublish = async (hall: Hall) => {
+    const handlePublish = (hall: Hall) => {
         if (!confirm(`Publish hall "${hall.name}"? It will become visible to vendors.`)) return;
-        setError('');
-        try {
-            const updated = await adminApi.changeHallStatus(hall.id, 'PUBLISHED');
-            setHalls(prev => prev.map(h => h.id === hall.id ? { ...h, status: updated.status } : h));
-            setSuccess(`Hall "${hall.name}" published.`);
-        } catch {
-            setError('Publish failed.');
-        }
+        hallStatusMutation.mutate({ id: hall.id, status: 'PUBLISHED' });
     };
 
-    const filteredEvents = events.filter(e => e.name.toLowerCase().includes(filterQuery.toLowerCase()));
-    const filteredVenues = venues.filter(v => v.name.toLowerCase().includes(filterQuery.toLowerCase()));
-    const filteredBuildings = buildings.filter(b => b.name.toLowerCase().includes(filterQuery.toLowerCase()));
-    const filteredHalls = halls.filter(h => h.name.toLowerCase().includes(filterQuery.toLowerCase()) && h.status !== 'ARCHIVED');
+    // --- DERIVED ---
+
+    const filteredEvents = useMemo(() => (eventsQuery.data || []).filter(e => e.name.toLowerCase().includes(filterQuery.toLowerCase())), [eventsQuery.data, filterQuery]);
+    const filteredVenues = useMemo(() => (venuesQuery.data || []).filter(v => v.name.toLowerCase().includes(filterQuery.toLowerCase())), [venuesQuery.data, filterQuery]);
+    const filteredBuildings = useMemo(() => (buildingsQuery.data || []).filter(b => b.name.toLowerCase().includes(filterQuery.toLowerCase())), [buildingsQuery.data, filterQuery]);
+    const filteredHalls = useMemo(() => (hallsQuery.data || []).filter(h => h.name.toLowerCase().includes(filterQuery.toLowerCase()) && h.status !== 'ARCHIVED'), [hallsQuery.data, filterQuery]);
+
+    const loading = eventsQuery.isLoading || venuesQuery.isLoading || buildingsQuery.isLoading || hallsQuery.isLoading;
+    const error = localError || 
+                  (eventsQuery.error instanceof Error ? eventsQuery.error.message : '') ||
+                  (venuesQuery.error instanceof Error ? venuesQuery.error.message : '') ||
+                  (buildingsQuery.error instanceof Error ? buildingsQuery.error.message : '') ||
+                  (hallsQuery.error instanceof Error ? hallsQuery.error.message : '') ||
+                  (saveHallMutation.error instanceof Error ? saveHallMutation.error.message : '') ||
+                  (hallStatusMutation.error instanceof Error ? hallStatusMutation.error.message : '');
 
     return {
         viewMode, setViewMode,
-        events, venues, buildings, halls,
+        events: eventsQuery.data || [],
+        venues: venuesQuery.data || [],
+        buildings: buildingsQuery.data || [],
+        halls: hallsQuery.data || [],
         filteredEvents, filteredVenues, filteredBuildings, filteredHalls,
         selectedEvent, selectedVenue, selectedBuilding,
-        loading, error, setError, success, setSuccess, filterQuery, setFilterQuery,
-        showModal, setShowModal, editingHall, setEditingHall, saving,
+        loading, error, setError: setLocalError, success, setSuccess, filterQuery, setFilterQuery,
+        showModal, setShowModal, editingHall, setEditingHall, saving: saveHallMutation.isPending,
         handleSelectEvent, handleSelectVenue, handleSelectBuilding,
         goBack, resetToEvents, handleSave, handleArchive, handlePublish
     };

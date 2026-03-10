@@ -1,60 +1,53 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { adminApi } from '@/shared/api/adminApi';
 import { publicApi } from '@/shared/api/publicApi';
-import { Event, EventStallAdminResponse } from '@/shared/types/api';
+
 
 export function useStallPricing() {
-    const [events, setEvents] = useState<Event[]>([]);
+    const queryClient = useQueryClient();
     const [selectedEventId, setSelectedEventId] = useState<number | null>(null);
-    const [stalls, setStalls] = useState<EventStallAdminResponse[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
 
-    useEffect(() => {
-        loadEvents();
-    }, []);
+    // --- QUERIES ---
 
-    const loadEvents = async () => {
-        setLoading(true);
-        try {
+    const eventsQuery = useQuery({
+        queryKey: ['admin-active-events'],
+        queryFn: async () => {
             const data = await publicApi.getActiveEvents();
-            const eventList = data.content || [];
-            setEvents(eventList);
-            if (eventList.length > 0) {
-                setSelectedEventId(eventList[0].id);
-            }
-        } catch {
-            setError('Failed to load events.');
-        } finally {
-            setLoading(false);
-        }
-    };
+            return data.content || [];
+        },
+    });
 
+    const stallsQuery = useQuery({
+        queryKey: ['admin-event-stalls', selectedEventId],
+        queryFn: () => adminApi.getEventStalls(selectedEventId!),
+        enabled: !!selectedEventId,
+    });
+
+    // --- AUTO SELECTION ---
     useEffect(() => {
-        if (selectedEventId) loadStallsForEvent(selectedEventId);
-    }, [selectedEventId]);
-
-    const loadStallsForEvent = async (eventId: number) => {
-        setLoading(true);
-        setError('');
-        try {
-            const stallList = await adminApi.getEventStalls(eventId);
-            setStalls(stallList);
-        } catch {
-            setError('Failed to load stalls for this event.');
-            setStalls([]);
-        } finally {
-            setLoading(false);
+        if (!selectedEventId && eventsQuery.data && eventsQuery.data.length > 0) {
+            setSelectedEventId(eventsQuery.data[0].id);
         }
-    };
+    }, [eventsQuery.data, selectedEventId]);
+
+    // --- MUTATIONS ---
+
+    const updatePriceMutation = useMutation({
+        mutationFn: ({ id, base, mult }: { id: number; base: number; mult: number }) => 
+            adminApi.updateStallPrice(id, base, mult),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['admin-event-stalls', selectedEventId] });
+        }
+    });
 
     const handleUpdate = async (id: number, base: number, mult: number) => {
-        await adminApi.updateStallPrice(id, base, mult);
-        setStalls(prev => prev.map(s => s.id === id
-            ? { ...s, finalPriceCents: Math.round(base * mult), pricingVersion: 'MANUAL' }
-            : s
-        ));
+        updatePriceMutation.mutate({ id, base, mult });
     };
+
+    // --- DERIVED ---
+    const stalls = useMemo(() => stallsQuery.data || [], [stallsQuery.data]);
+    const events = useMemo(() => eventsQuery.data || [], [eventsQuery.data]);
 
     const stats = useMemo(() => {
         if (stalls.length === 0) return { avg: 0, max: 1, count: stalls.length };
@@ -64,13 +57,18 @@ export function useStallPricing() {
         return { avg, max, count: stalls.length };
     }, [stalls]);
 
-    const pricingStalls = stalls.map(s => ({
+    const pricingStalls = (stallsQuery.data || []).map(s => ({
         id: s.id,
         name: `Stall #${s.id}`,
         templateName: s.pricingVersion || 'Standard',
         baseRateCents: s.finalPriceCents || 0,
         multiplier: 1.0,
     }));
+
+    const loading = eventsQuery.isLoading || stallsQuery.isLoading;
+    const error = (eventsQuery.error instanceof Error ? eventsQuery.error.message : '') ||
+                  (stallsQuery.error instanceof Error ? stallsQuery.error.message : '') ||
+                  (updatePriceMutation.error instanceof Error ? updatePriceMutation.error.message : '');
 
     return {
         events, selectedEventId, setSelectedEventId,

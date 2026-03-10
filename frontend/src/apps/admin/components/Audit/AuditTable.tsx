@@ -1,4 +1,4 @@
-import { Search } from 'lucide-react';
+import { FileSearch } from 'lucide-react';
 import { AuditLog } from '@/shared/types/api';
 
 interface AuditTableProps {
@@ -6,7 +6,7 @@ interface AuditTableProps {
     onViewDetail: (log: AuditLog) => void;
 }
 
-export default function AuditTable({ logs, onViewDetail }: AuditTableProps) {
+export const AuditTable = ({ logs, onViewDetail }: AuditTableProps) => {
     return (
         <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
             <div className="overflow-x-auto">
@@ -48,7 +48,7 @@ export default function AuditTable({ logs, onViewDetail }: AuditTableProps) {
                                         onClick={() => onViewDetail(log)}
                                         className="text-blue-500 hover:text-blue-700 transition-colors"
                                     >
-                                        <Search size={16} />
+                                        <FileSearch size={16} />
                                     </button>
                                 </td>
                             </tr>

@@ -115,6 +115,9 @@ export function useEmployeeScanner() {
         admitError: admitMutation.error,
         admitSuccess: admitMutation.data,
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        errorMessage: (lookupMutation.error as any)?.response?.data?.message || (admitMutation.error as any)?.response?.data?.message || (forceCheckInMutation.error as any)?.response?.data?.message,
+
         overrideLoading: forceCheckInMutation.isPending,
         overrideError: forceCheckInMutation.error,
         overrideSuccess: forceCheckInMutation.data,

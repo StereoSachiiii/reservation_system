@@ -10,7 +10,7 @@ import { OperationalDashboard } from '../components/OperationalDashboard';
 import { DirectorySearch } from '../components/DirectorySearch';
 import { OverrideModal } from '../components/OverrideModal';
 
-export default function EmployeePortalPage() {
+export const EmployeePortalPage = () => {
     const { user } = useAuth();
 
     // Extracted Logic

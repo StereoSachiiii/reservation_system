@@ -1,4 +1,5 @@
 import React from 'react';
+import { ShieldAlert } from 'lucide-react';
 
 interface OverrideModalProps {
     overrideCode: string;
@@ -18,13 +19,13 @@ export const OverrideModal: React.FC<OverrideModalProps> = ({
     loading
 }) => {
     return (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-6 z-50">
-            <div className="bg-white p-10 rounded-[2.5rem] shadow-2xl w-full max-w-lg animate-scale-in">
-                <div className="w-16 h-16 bg-rose-100 text-rose-600 rounded-2xl flex items-center justify-center text-3xl mb-6">
-                    ⚠️
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-6 z-50 animate-in fade-in duration-300">
+            <div className="bg-white p-12 rounded-[3rem] shadow-2xl w-full max-w-xl animate-in zoom-in-95 duration-300">
+                <div className="w-20 h-20 bg-rose-50 text-rose-600 rounded-[1.5rem] flex items-center justify-center mb-8 shadow-inner shadow-rose-100/50">
+                    <ShieldAlert size={40} strokeWidth={1.5} />
                 </div>
-                <h3 className="text-3xl font-black text-slate-900 mb-2">Administrative Override</h3>
-                <p className="text-slate-500 font-medium mb-8">Proceed only with proof of manual payment. This action is irreversible and permanently logged.</p>
+                <h3 className="text-3xl font-black text-slate-900 mb-3 tracking-tighter italic">OVERRIDE REQUIRED</h3>
+                <p className="text-slate-400 font-medium mb-10 text-sm leading-relaxed uppercase tracking-tight">Manual admission bypasses all payment checks. This event is logged with your supervisor ID.</p>
 
                 <div className="space-y-4 mb-8">
                     <div>

@@ -9,6 +9,8 @@ import {
     FileText
 } from 'lucide-react';
 
+import packageJson from '../../../../../package.json';
+
 const navItems = [
     { name: 'Dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
     { name: 'Hall Management', path: '/admin/halls', icon: MapPin },
@@ -19,7 +21,7 @@ const navItems = [
     { name: 'System Health', path: '/admin/health', icon: Activity },
 ];
 
-export default function AdminSidebar() {
+export const AdminSidebar = () => {
     const location = useLocation();
 
     return (
@@ -49,7 +51,7 @@ export default function AdminSidebar() {
             </nav>
 
             <div className="p-4 border-t border-gray-800 text-center">
-                <p className="text-[10px] text-gray-600 font-medium uppercase">Version 4.5.0</p>
+                <p className="text-[10px] text-gray-600 font-medium uppercase">Version {packageJson.version}</p>
             </div>
         </aside>
     );

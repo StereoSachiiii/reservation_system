@@ -1,6 +1,6 @@
 import { formatCurrency } from '@/shared/utils/format';
 import { useAdminDashboard } from '../hooks/useAdminDashboard';
-import MetricsCard from '@/apps/admin/components/Dashboard/MetricsCard';
+import { MetricsCard } from '@/apps/admin/components/Dashboard/MetricsCard';
 import HealthPreview from '@/apps/admin/components/Dashboard/HealthPreview';
 import {
     Users,

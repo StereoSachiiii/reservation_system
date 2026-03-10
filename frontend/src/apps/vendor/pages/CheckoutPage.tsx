@@ -14,6 +14,7 @@ import { CheckoutLoading } from '../components/Checkout/CheckoutLoading';
 import { CheckoutExpired } from '../components/Checkout/CheckoutExpired';
 import { CheckoutSuccess } from '../components/Checkout/CheckoutSuccess';
 import { PaymentIntentError } from '../components/Checkout/PaymentIntentError';
+import { ChevronLeft, Lock, Loader2 } from 'lucide-react';
 
 // Custom Hooks
 import { useCheckoutFlow } from '../hooks/useCheckoutFlow';
@@ -66,9 +67,7 @@ export const CheckoutPage = () => {
                             onClick={resetSelection}
                             className="mb-8 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 flex items-center gap-2 transition-colors"
                         >
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                            </svg>
+                            <ChevronLeft size={16} />
                             Back to Methods
                         </button>
 
@@ -84,9 +83,7 @@ export const CheckoutPage = () => {
                                     <div className="mb-8 flex items-center justify-between p-4 bg-slate-900 rounded-2xl text-white">
                                         <div className="flex items-center gap-3">
                                             <div className="bg-white/10 p-2 rounded-lg">
-                                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                                                </svg>
+                                                <Lock size={20} />
                                             </div>
                                             <span className="text-xs font-black uppercase tracking-widest">Secured by Stripe</span>
                                         </div>
@@ -95,7 +92,7 @@ export const CheckoutPage = () => {
                             </Elements>
                         ) : (
                             <div className="flex flex-col items-center py-12 gap-4">
-                                <div className="w-10 h-10 border-4 border-slate-100 border-t-indigo-600 rounded-full animate-spin"></div>
+                                <Loader2 className="w-10 h-10 text-indigo-600 animate-spin" />
                                 <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Opening Secure Gate...</p>
                             </div>
                         )}

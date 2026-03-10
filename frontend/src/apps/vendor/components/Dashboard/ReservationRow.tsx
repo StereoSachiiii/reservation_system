@@ -4,6 +4,7 @@ import { Reservation } from '@/shared/types/api';
 import { vendorApi } from '@/shared/api/vendorApi';
 import { StatusBadge } from './StatusBadge';
 import { formatTimeLeft } from '@/shared/utils/format';
+import { Trash2, Download } from 'lucide-react';
 
 interface ReservationRowProps {
     res: Reservation;
@@ -59,13 +60,11 @@ export const ReservationRow = ({ res, onCancel, isGrouped }: ReservationRowProps
             )}
 
             <td className="px-6 py-4">
-                <div className="flex flex-wrap gap-1.5">
+                <div className="flex flex-wrap gap-2">
                     {res.stalls.map(s => (
-                        <div key={s} className="flex flex-col">
-                            <span className="bg-slate-900 text-white text-[9px] font-black px-2 py-0.5 rounded-md uppercase tracking-tighter">
-                                {s}
-                            </span>
-                        </div>
+                        <span key={s} className="px-2 py-0.5 bg-slate-900 text-white text-[10px] font-black uppercase rounded shadow-sm">
+                            #{s}
+                        </span>
                     ))}
                 </div>
             </td>
@@ -87,9 +86,7 @@ export const ReservationRow = ({ res, onCancel, isGrouped }: ReservationRowProps
                             className="text-rose-600 hover:text-white hover:bg-rose-600 p-2 rounded-xl transition-all active:scale-95 border-2 border-transparent hover:border-rose-100"
                             title={res.status === 'PAID' ? 'Request Refund' : 'Cancel Booking'}
                         >
-                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
+                            <Trash2 size={20} />
                         </button>
                     )}
                     {res.status === 'PAID' && (
@@ -99,9 +96,7 @@ export const ReservationRow = ({ res, onCancel, isGrouped }: ReservationRowProps
                             className="text-indigo-600 hover:text-white hover:bg-indigo-600 p-2 rounded-xl transition-all active:scale-95 border-2 border-transparent hover:border-indigo-100"
                             title="Download Ticket"
                         >
-                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                            </svg>
+                            <Download size={20} />
                         </button>
                     )}
                     {res.status === 'PENDING_REFUND' && <span className="text-amber-500 text-[10px] font-black uppercase tracking-widest italic">Reviewing Refund</span>}

@@ -2,10 +2,10 @@ import { Routes, Route } from 'react-router-dom';
 import ProtectedRoute from '@/shared/components/ProtectedRoute';
 
 // Pages
-import VendorDashboardPage from './pages/VendorDashboardPage';
-import VendorProfilePage from './pages/VendorProfilePage';
-import DocumentsPage from './pages/DocumentsPage';
-import VendorReservationDetailPage from './pages/VendorReservationDetailPage';
+import { VendorDashboardPage } from './pages/VendorDashboardPage';
+import { VendorProfilePage } from './pages/VendorProfilePage';
+import { DocumentsPage } from './pages/DocumentsPage';
+import { VendorReservationDetailPage } from './pages/VendorReservationDetailPage';
 
 const VendorRoutes = () => {
     return (

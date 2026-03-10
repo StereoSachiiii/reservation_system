@@ -12,6 +12,7 @@ import { PaymentSummary } from '../components/VendorReservationDetail/PaymentSum
 import { GenreEditModal } from '../components/VendorReservationDetail/GenreEditModal';
 import { CancelReservationModal } from '../components/VendorReservationDetail/CancelReservationModal';
 import { QrFullscreenModal } from '../components/VendorReservationDetail/QrFullscreenModal';
+import { Loader2, AlertCircle, ChevronLeft, CreditCard, Trash2, ShieldCheck, RefreshCw } from 'lucide-react';
 
 const AVAILABLE_CATEGORIES = [
     { id: 'FICTION', label: 'Fiction' },
@@ -58,7 +59,7 @@ export const VendorReservationDetailPage = () => {
 
     if (isLoading) return (
         <div className="min-h-[60vh] flex flex-col items-center justify-center p-8 gap-4">
-            <div className="w-12 h-12 border-4 border-slate-200 border-t-indigo-600 rounded-full animate-spin"></div>
+            <Loader2 className="w-12 h-12 text-indigo-600 animate-spin" />
             <p className="text-slate-500 font-black uppercase text-xs tracking-widest animate-pulse">Loading Reservation...</p>
         </div>
     );
@@ -67,18 +68,17 @@ export const VendorReservationDetailPage = () => {
         return (
             <div className="p-8 max-w-2xl mx-auto flex flex-col items-center justify-center min-h-[50vh] text-center">
                 <div className="w-20 h-20 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mb-6 shadow-sm border border-rose-100">
-                    <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
+                    <AlertCircle size={40} strokeWidth={2.5} />
                 </div>
                 <h3 className="text-2xl font-black text-slate-900 tracking-tight">Booking Not Found</h3>
                 <p className="text-slate-500 mt-2 mb-8 font-medium max-w-sm">
                     We were unable to retrieve the reservation details. It may have been deleted or moved.
                 </p>
                 <button
-                    onClick={() => navigate('/home')}
-                    className="bg-slate-900 text-white px-8 py-3 rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-slate-800 transition-all shadow-xl shadow-slate-200 active:scale-95"
+                    onClick={() => navigate('/vendor/dashboard')}
+                    className="bg-slate-900 text-white px-8 py-3 rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-slate-800 transition-all shadow-xl shadow-slate-200 active:scale-95 flex items-center gap-2"
                 >
+                    <ChevronLeft size={16} />
                     Return to Dashboard
                 </button>
             </div>
@@ -135,9 +135,10 @@ export const VendorReservationDetailPage = () => {
                                     </p>
                                     <button
                                         onClick={() => navigate(`/checkout/${reservation.id}`)}
-                                        className="w-full bg-white text-emerald-700 font-black py-3.5 rounded-2xl transition-all shadow-md uppercase text-[10px] tracking-widest hover:bg-emerald-50 active:scale-[0.98]"
+                                        className="w-full bg-white text-emerald-700 font-black py-3.5 rounded-2xl transition-all shadow-md uppercase text-[10px] tracking-widest hover:bg-emerald-50 active:scale-[0.98] flex items-center justify-center gap-2"
                                     >
-                                        Pay Now →
+                                        <CreditCard size={14} />
+                                        Pay Now
                                     </button>
                                 </div>
                             )}
@@ -154,11 +155,12 @@ export const VendorReservationDetailPage = () => {
                                 <button
                                     onClick={() => setShowCancelConfirm(true)}
                                     disabled={status === 'PENDING_REFUND'}
-                                    className={`w-full font-black py-3.5 rounded-2xl border-2 transition-all uppercase text-[10px] tracking-widest active:scale-[0.98] ${status === 'PENDING_REFUND'
+                                    className={`w-full font-black py-3.5 rounded-2xl border-2 transition-all uppercase text-[10px] tracking-widest active:scale-[0.98] flex items-center justify-center gap-2 ${status === 'PENDING_REFUND'
                                         ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed opacity-50'
                                         : 'bg-white hover:bg-rose-50 text-rose-600 border-slate-200 hover:border-rose-200'
                                         }`}
                                 >
+                                    {status === 'PAID' ? <ShieldCheck size={14} /> : status === 'PENDING_REFUND' ? <RefreshCw size={14} className="animate-spin" /> : <Trash2 size={14} />}
                                     {status === 'PAID' ? 'Request Refund' : status === 'PENDING_REFUND' ? 'Refund in Progress' : 'Discard Booking'}
                                 </button>
                             </div>
@@ -190,7 +192,8 @@ export const VendorReservationDetailPage = () => {
                 onClose={() => setShowCancelConfirm(false)}
                 onConfirm={() => cancelMutation.mutate()}
                 isPending={cancelMutation.isPending}
-                error={cancelMutation.error}
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                error={cancelMutation.error as any}
                 status={status}
             />
         </div>

@@ -14,7 +14,7 @@ interface PricingTableProps {
     onUpdate: (id: number, baseRate: number, multiplier: number) => Promise<void>;
 }
 
-export default function PricingTable({ stalls, onUpdate }: PricingTableProps) {
+export const PricingTable = ({ stalls, onUpdate }: PricingTableProps) => {
     const [editingId, setEditingId] = useState<number | null>(null);
     const [editValues, setEditValues] = useState<{ base: number; mult: number }>({ base: 0, mult: 1 });
     const [saving, setSaving] = useState(false);

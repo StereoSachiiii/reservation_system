@@ -1,11 +1,11 @@
 import { Routes, Route } from 'react-router-dom';
 import ProtectedRoute from '@/shared/components/ProtectedRoute';
-import EmployeeLayout from './components/EmployeeLayout';
+import { EmployeeLayout } from './components/EmployeeLayout';
 
 // Pages
-import EmployeePortalPage from './pages/EmployeePortalPage';
+import { EmployeePortalPage } from './pages/EmployeePortalPage';
 
-const EmployeeRoutes = () => {
+export const EmployeeRoutes = () => {
     return (
         <Routes>
             <Route element={<EmployeeLayout />}>
@@ -16,5 +16,3 @@ const EmployeeRoutes = () => {
         </Routes>
     );
 };
-
-export default EmployeeRoutes;

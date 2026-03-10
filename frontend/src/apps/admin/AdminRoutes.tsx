@@ -1,6 +1,6 @@
 import { Routes, Route } from 'react-router-dom';
 import ProtectedRoute from '@/shared/components/ProtectedRoute';
-import AdminLayout from './components/Layout/AdminLayout'; // Updated path
+import { AdminLayout } from './components/Layout/AdminLayout'; // Updated path
 
 // Pages
 import AdminDashboardPage from './pages/Dashboard';
