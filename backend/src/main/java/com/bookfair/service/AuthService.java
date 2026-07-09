@@ -35,6 +35,7 @@ public class AuthService {
     private final com.bookfair.repository.PasswordResetTokenRepository tokenRepository;
     private final EmailService emailService;
     private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
+    private final com.bookfair.security.GoogleTokenVerifier googleTokenVerifier;
 
     public AuthResponse login(LoginRequest loginRequest) {
         Authentication authentication = authenticationManager.authenticate(
@@ -48,6 +49,38 @@ public class AuthService {
         User user = userRepository.findByUsername(userDetails.getUsername())
                 .orElseThrow(() -> new ResourceNotFoundException("Error: User not found."));
 
+        return new AuthResponse(jwt, userService.mapToUserResponse(user));
+    }
+
+    public AuthResponse googleLogin(String idTokenString) {
+        com.google.api.client.googleapis.auth.oauth2.GoogleIdToken.Payload payload = googleTokenVerifier.verifyToken(idTokenString);
+        if (payload == null) {
+            throw new BadRequestException("Invalid Google token");
+        }
+
+        String email = payload.getEmail();
+        String name = (String) payload.get("name");
+
+        User user = userRepository.findByEmail(email).orElse(null);
+        if (user == null) {
+            user = new User();
+            user.setEmail(email);
+            // Generate a unique username based on email
+            String baseUsername = email.split("@")[0];
+            String uniqueUsername = baseUsername;
+            int counter = 1;
+            while (userRepository.existsByUsername(uniqueUsername)) {
+                uniqueUsername = baseUsername + counter;
+                counter++;
+            }
+            user.setUsername(uniqueUsername);
+            user.setPassword(passwordEncoder.encode(java.util.UUID.randomUUID().toString()));
+            user.setRole(User.Role.VENDOR);
+            user.setBusinessName(name);
+            user = userRepository.save(user);
+        }
+
+        String jwt = jwtUtils.generateJwtTokenFromUsername(user.getUsername());
         return new AuthResponse(jwt, userService.mapToUserResponse(user));
     }
 

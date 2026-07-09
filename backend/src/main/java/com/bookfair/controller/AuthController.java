@@ -43,6 +43,12 @@ public class AuthController {
         return ResponseEntity.ok(authService.login(loginRequest));
     }
 
+    @PostMapping("/google-login")
+    public ResponseEntity<AuthResponse> googleLogin(@RequestBody java.util.Map<String, String> request) {
+        String idToken = request.get("idToken");
+        return ResponseEntity.ok(authService.googleLogin(idToken));
+    }
+
     @PostMapping("/forgot-password")
     public ResponseEntity<com.bookfair.dto.response.GenericActionResponse> forgotPassword(@jakarta.validation.Valid @RequestBody com.bookfair.dto.request.ForgotPasswordRequest request) {
         authService.initiatePasswordReset(request.getEmail());
