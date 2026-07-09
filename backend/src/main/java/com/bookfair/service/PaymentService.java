@@ -22,6 +22,7 @@ public class PaymentService {
 
     private final ReservationRepository reservationRepository;
     private final ReservationService reservationService;
+    private final RealTimeUpdateService realTimeUpdateService;
 
     @Value("${stripe.api.key}")
     private String stripeApiKey;
@@ -110,7 +111,17 @@ public class PaymentService {
                         .orElseThrow(() -> new ResourceNotFoundException("Reservation lost during confirmation"));
                 
                 reservation.setPaymentId(intent.getId());
-                return reservationRepository.save(reservation);
+                Reservation savedReservation = reservationRepository.save(reservation);
+                
+                // Broadcast live activity ticker message
+                String vendorName = savedReservation.getUser().getName();
+                String stallName = savedReservation.getEventStall().getStall().getName();
+                String hallName = savedReservation.getEventStall().getEventHall().getHall().getName();
+                realTimeUpdateService.broadcastGlobalActivity(
+                        String.format("%s just booked %s in %s", vendorName, stallName, hallName)
+                );
+                
+                return savedReservation;
             } else {
                 throw new IllegalStateException("Payment not successful. Status: " + intent.getStatus());
             }

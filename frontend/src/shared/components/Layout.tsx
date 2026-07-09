@@ -1,10 +1,11 @@
 import { Outlet } from 'react-router-dom';
 import Navbar from './Navbar';
 import HelpBot from './HelpBot/HelpBot';
+import { LiveActivityTicker } from '@/apps/public/components/LiveActivityTicker';
 
 export default function Layout() {
     return (
-        <div className="min-h-screen flex flex-col bg-neutral-50 font-sans">
+        <div className="min-h-screen flex flex-col bg-neutral-50 dark:bg-slate-900 font-sans transition-colors duration-200 text-slate-900 dark:text-slate-100">
             <Navbar />
 
             {/* Main Content */}
@@ -12,9 +13,10 @@ export default function Layout() {
                 <Outlet />
             </main>
             <HelpBot />
+            <LiveActivityTicker />
 
             {/* Footer */}
-            <footer className="bg-white border-t border-neutral-100 text-neutral-600 py-10 mt-auto">
+            <footer className="bg-white dark:bg-slate-900 border-t border-neutral-100 dark:border-slate-800 text-neutral-600 dark:text-neutral-400 py-10 mt-auto transition-colors duration-200">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-6">
                     <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-md bg-brand-500 text-white flex items-center justify-center font-semibold">B</div>

@@ -16,6 +16,13 @@ public class RealTimeUpdateService {
     private final SimpMessagingTemplate messagingTemplate;
 
     /**
+     * Broadcasts a global activity message to all clients.
+     */
+    public void broadcastGlobalActivity(String message) {
+        messagingTemplate.convertAndSend("/topic/public/activity", message);
+    }
+
+    /**
      * Broadcasts a stall availability update to all subscribed clients.
      */
     public void broadcastStallUpdate(Long stallId, boolean reserved, String occupiedBy, String publisherCategory) {

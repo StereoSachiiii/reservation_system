@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/shared/context/useAuth';
 import NotificationBell from './NotificationBell';
+import { ThemeToggle } from './ThemeToggle';
 import { NAV_COPY } from '@/copy/nav.copy';
 
 export default function Navbar() {
@@ -9,12 +10,12 @@ export default function Navbar() {
 
     const isActive = (path: string) => {
         return location.pathname === path
-            ? "text-neutral-900 font-semibold"
-            : "text-neutral-600 font-normal hover:text-neutral-900 transition-colors duration-200";
+            ? "text-neutral-900 dark:text-white font-semibold"
+            : "text-neutral-600 dark:text-neutral-300 font-normal hover:text-neutral-900 dark:hover:text-white transition-colors duration-200";
     };
 
     return (
-        <nav className="h-16 border-b border-neutral-100 bg-white sticky top-0 z-50">
+        <nav className="h-16 border-b border-neutral-100 dark:border-neutral-800 bg-white dark:bg-slate-900 sticky top-0 z-50">
             <div className="max-w-7xl mx-auto h-full flex items-center justify-between px-6">
                 {/* Logo & Brand */}
                 <div className="flex items-center gap-8">
@@ -22,7 +23,7 @@ export default function Navbar() {
                         <div className="w-8 h-8 rounded-md bg-brand-500 flex items-center justify-center text-white font-semibold shadow-sm">
                             B
                         </div>
-                        <span className="font-semibold text-lg text-neutral-900 tracking-tight">
+                        <span className="font-semibold text-lg text-neutral-900 dark:text-white tracking-tight">
                             BookFair
                         </span>
                     </Link>
@@ -57,6 +58,7 @@ export default function Navbar() {
 
                 {/* User Profile / Actions */}
                 <div className="flex items-center gap-4">
+                    <ThemeToggle />
                     {user ? (
                         <div className="flex items-center gap-4">
                             <NotificationBell />
