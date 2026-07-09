@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { STALL_STATUS } from '@/constants/stallStatus';
 
 export function StallHotspot({ status, code }: { status: keyof typeof STALL_STATUS, code: string }) {
@@ -14,15 +15,29 @@ export function StallHotspot({ status, code }: { status: keyof typeof STALL_STAT
     );
 }
 
-export function AerialMap({ layout, stalls, statusByStallId, onSelectStall }: any) {
-  return (
-    <div className="relative w-full max-w-5xl mx-auto rounded-[2rem] overflow-hidden shadow-2xl border border-slate-200 bg-slate-100">
-      <img
-        src={layout.imageUrl}
-        alt="Hall floor plan"
-        className="w-full h-auto block"
-      />
-      {stalls.filter((s: any) => s.position).map((stall: any) => (
+interface AerialMapStall {
+    id: number;
+    code?: string;
+    templateName?: string;
+    reserved?: boolean;
+    position: {
+        xPct: number;
+        yPct: number;
+        widthPct: number;
+        heightPct: number;
+    };
+}
+
+interface AerialMapProps {
+    layout: { imageUrl: string };
+    stalls: AerialMapStall[];
+    statusByStallId: Record<string, string>;
+    onSelectStall: (id: number, reserved: boolean) => void;
+}
+
+export function AerialMap({ layout, stalls, statusByStallId, onSelectStall }: AerialMapProps) {
+  const renderedStalls = useMemo(() => {
+      return stalls.filter((s) => s.position).map((stall) => (
         <button
           key={stall.id}
           className="absolute"
@@ -32,12 +47,24 @@ export function AerialMap({ layout, stalls, statusByStallId, onSelectStall }: an
             width: `${stall.position.widthPct * 100}%`,
             height: `${stall.position.heightPct * 100}%`,
           }}
-          onClick={() => onSelectStall(stall.id, stall.reserved)}
-          disabled={stall.reserved}
+          onClick={() => onSelectStall(stall.id, stall.reserved || false)}
         >
-          <StallHotspot status={statusByStallId[stall.id] || 'AVAILABLE'} code={stall.templateName || stall.code || ''} />
+            <StallHotspot 
+                code={stall.templateName || stall.code || ''}
+                status={(statusByStallId[stall.id.toString()] as any) || 'AVAILABLE'} 
+            />
         </button>
-      ))}
+      ));
+  }, [stalls, statusByStallId, onSelectStall]);
+
+  return (
+    <div className="relative w-full max-w-5xl mx-auto rounded-[2rem] overflow-hidden shadow-2xl border border-slate-200 bg-slate-100">
+      <img
+        src={layout.imageUrl}
+        alt="Hall floor plan"
+        className="w-full h-auto block"
+      />
+      {renderedStalls}
     </div>
   );
 }

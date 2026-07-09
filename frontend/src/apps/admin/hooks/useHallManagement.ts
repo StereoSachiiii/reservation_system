@@ -72,10 +72,8 @@ export function useHallManagement() {
     const saveHallMutation = useMutation({
         mutationFn: (payload: Record<string, unknown>) => {
             if (editingHall) {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 return adminApi.updateHall(editingHall.id, payload as any);
             }
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             return adminApi.createHall(payload as any);
         },
         onSuccess: (data) => {

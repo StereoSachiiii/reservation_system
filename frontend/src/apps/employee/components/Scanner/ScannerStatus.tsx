@@ -1,3 +1,4 @@
+import { getErrorMessage } from '@/utils/error';
 interface AdmitSuccessViewProps {
     businessName: string;
     handleReset: () => void;
@@ -55,7 +56,7 @@ export const LookupErrorView = ({ error, handleReset }: LookupErrorViewProps) =>
         <h3 className="text-[10px] font-black text-rose-600 uppercase tracking-[0.3em] mb-3">SYSTEM DENIAL</h3>
         <p className="text-xl font-black text-rose-900 tracking-tight mb-10 leading-relaxed uppercase">
             {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-            {(error as any)?.response?.data?.message || error?.message || "Internal Access Error"}
+            {getErrorMessage(error) || error?.message || "Internal Access Error"}
         </p>
 
         <button

@@ -1,5 +1,5 @@
 //hooks
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useMemo } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
 //auth context
@@ -122,8 +122,16 @@ export default function StallMapPage() {
              });
         });
     });
+
     return () => subs.forEach(sub => sub.unsubscribe());
   }, [stompClient, displayedStalls, handleClearSelection]);
+
+  const aerialStalls = useMemo(() => {
+      return displayedStalls.map(s => ({
+          ...s,
+          position: { xPct: (s.posX || 0)/100, yPct: (s.posY || 0)/100, widthPct: (s.width || 0)/100, heightPct: (s.height || 0)/100 }
+      }));
+  }, [displayedStalls]);
 
   // ── Render ────────────────────────────────────────────────────────────────
   if (isLoading) return <MapLoadingOverlay />;
@@ -152,7 +160,7 @@ export default function StallMapPage() {
             <div className="absolute top-[72px] left-1/2 -translate-x-1/2 z-40">
                 <SegmentedControl
                     value={viewMode}
-                    onChange={setViewMode}
+                    onChange={(v) => setViewMode(v as "schematic" | "aerial")}
                     options={[
                         { value: 'schematic', label: 'Floor Plan' },
                         { value: 'aerial', label: 'Real View' },
@@ -175,9 +183,7 @@ export default function StallMapPage() {
                   <div className="w-full h-full p-8 pt-20 flex justify-center items-start overflow-y-auto">
                       <AerialMap 
                           layout={{ imageUrl: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=1200&q=80' }} // Mock layout for demo
-                          stalls={displayedStalls.map(s => {
-                            return {...s, position: { xPct: s.posX!/100, yPct: s.posY!/100, widthPct: s.width!/100, heightPct: s.height!/100 }};
-                          })}
+                          stalls={aerialStalls}
                           statusByStallId={statusByStallId}
                           onSelectStall={handleStallClick}
                       />

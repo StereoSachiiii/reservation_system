@@ -1,3 +1,4 @@
+import { getErrorMessage } from '@/utils/error';
 import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { adminApi } from '@/shared/api/adminApi';
@@ -46,7 +47,6 @@ export function useStallInventory(hallId: string | undefined) {
     // --- MUTATIONS ---
 
     const bulkGenerateMutation = useMutation({
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         mutationFn: (payload: Record<string, unknown>) => adminApi.bulkGenerateStalls(Number(hallId), payload as any),
         onSuccess: (_, variables) => {
             queryClient.invalidateQueries({ queryKey: ['admin-stalls', hallId] });
@@ -127,8 +127,7 @@ export function useStallInventory(hallId: string | undefined) {
         try {
             await adminApi.exportStallsCsv(Number(hallId));
         } catch (err: unknown) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const message = err instanceof Error ? (err as any).response?.data?.message : 'Failed to export CSV.';
+            const message = getErrorMessage(err);
             setLocalError(message || 'Failed to export CSV.');
         }
     };

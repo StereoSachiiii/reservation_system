@@ -192,7 +192,6 @@ export const VendorReservationDetailPage = () => {
                 onClose={() => setShowCancelConfirm(false)}
                 onConfirm={() => cancelMutation.mutate()}
                 isPending={cancelMutation.isPending}
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 error={cancelMutation.error as any}
                 status={status}
             />

@@ -2,10 +2,12 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { adminApi } from '@/shared/api/adminApi';
 import { Event, SystemHealth } from '@/shared/types/api';
+import { getErrorMessage } from '@/utils/error';
 
 export function useAdminDashboard() {
     const queryClient = useQueryClient();
     const [activeTab, setActiveTab] = useState<'OVERVIEW' | 'EVENTS'>('OVERVIEW');
+    const [error, setError] = useState<string | null>(null);
 
     // Event Management Modal State
     const [showCreateModal, setShowCreateModal] = useState(false);
@@ -71,7 +73,7 @@ export function useAdminDashboard() {
                 endDate: new Date().toISOString().split('T')[0] + 'T23:59:59'
             });
         },
-        onError: (e: Error) => alert(e.message)
+        onError: (e: unknown) => setError(getErrorMessage(e))
     });
 
     const deleteEventMutation = useMutation({
@@ -80,7 +82,7 @@ export function useAdminDashboard() {
             queryClient.invalidateQueries({ queryKey: ['admin-events'] });
             queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
         },
-        onError: (e: Error) => alert(e.message)
+        onError: (e: unknown) => setError(getErrorMessage(e))
     });
 
     const updateStatusMutation = useMutation({
@@ -89,7 +91,7 @@ export function useAdminDashboard() {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['admin-events'] });
         },
-        onError: (e: Error) => alert(e.message)
+        onError: (e: unknown) => setError(getErrorMessage(e))
     });
 
     const updateEventMutation = useMutation({
@@ -100,7 +102,7 @@ export function useAdminDashboard() {
             queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
             setShowEditModal(false);
         },
-        onError: (e: Error) => alert(e.message)
+        onError: (e: unknown) => setError(getErrorMessage(e))
     });
 
     // ─── HANDLERS ─────────────────────────────────────────────────
@@ -148,6 +150,7 @@ export function useAdminDashboard() {
         events: eventsQuery.data || [],
         stats: statsQuery.data || null,
         loading,
+        error, setError,
         showCreateModal, setShowCreateModal,
         showEditModal, setShowEditModal,
         eventData, setEventData,

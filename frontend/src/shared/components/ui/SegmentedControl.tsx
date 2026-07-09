@@ -1,7 +1,13 @@
-export function SegmentedControl({ value, onChange, options }: any) {
+interface SegmentedControlProps<T extends string | number> {
+    value: T;
+    onChange: (value: T) => void;
+    options: { value: T; label: string }[];
+}
+
+export function SegmentedControl<T extends string | number>({ value, onChange, options }: SegmentedControlProps<T>) {
     return (
         <div className="flex bg-slate-100/80 backdrop-blur p-1 rounded-xl shadow-inner border border-slate-200 inline-flex">
-            {options.map((opt: any) => (
+            {options.map((opt) => (
                 <button
                     key={opt.value}
                     onClick={() => onChange(opt.value)}

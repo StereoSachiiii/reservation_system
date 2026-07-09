@@ -1,11 +1,38 @@
 import React, { useState, useRef } from 'react';
 
+interface CalibrationRect {
+    stallTemplateId: number;
+    xPct: number;
+    yPct: number;
+    widthPct: number;
+    heightPct: number;
+}
+
+interface DrawingRect {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+}
+
+interface StallTemplate {
+    id: number;
+    templateName?: string;
+    code: string;
+}
+
+interface HallCalibrationToolProps {
+    layoutUrl: string;
+    stalls: StallTemplate[];
+    onSavePositions: (positions: CalibrationRect[]) => void;
+}
+
 // Basic admin tool to draw bounding boxes
-export function HallCalibrationTool({ layoutUrl, stalls, onSavePositions }: any) {
-    const [rects, setRects] = useState<any[]>([]);
+export function HallCalibrationTool({ layoutUrl, stalls, onSavePositions }: HallCalibrationToolProps) {
+    const [rects, setRects] = useState<CalibrationRect[]>([]);
     const [drawing, setDrawing] = useState(false);
     const [startPos, setStartPos] = useState({ x: 0, y: 0 });
-    const [currentRect, setCurrentRect] = useState<any>(null);
+    const [currentRect, setCurrentRect] = useState<DrawingRect | null>(null);
     const [selectedStallId, setSelectedStallId] = useState<number | null>(null);
     const imageRef = useRef<HTMLImageElement>(null);
 
@@ -64,7 +91,7 @@ export function HallCalibrationTool({ layoutUrl, stalls, onSavePositions }: any)
                     onChange={e => setSelectedStallId(parseInt(e.target.value))}
                 >
                     <option value="">Select Stall to Map...</option>
-                    {stalls.map((s: any) => (
+                    {stalls.map((s) => (
                         <option key={s.id} value={s.id}>{s.templateName || s.code}</option>
                     ))}
                 </select>

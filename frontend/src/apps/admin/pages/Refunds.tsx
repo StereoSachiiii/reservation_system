@@ -1,3 +1,5 @@
+import axios from 'axios';
+import { getErrorMessage } from '@/utils/error';
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -45,10 +47,8 @@ export default function RefundsPage() {
             setSearchId('');
         },
         onError: (err: unknown) => {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const status = (err as any).response?.status;
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const message = (err as any).response?.data?.message;
+            const status = (axios.isAxiosError(err) ? err.response?.status : 500);
+            const message = getErrorMessage(err);
             setLocalError(status === 404
                 ? `No reservation found with ID: ${searchId}`
                 : message || 'Lookup failed.');

@@ -1,3 +1,4 @@
+import { getErrorMessage } from '@/utils/error';
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { vendorApi } from '@/shared/api/vendorApi';
@@ -32,8 +33,7 @@ export function useVendorDashboard() {
             setShowCancelModal(false);
         },
         onError: (err: unknown) => {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const message = err instanceof Error ? (err as any).response?.data?.message : 'Cancellation failed';
+            const message = getErrorMessage(err);
             setLocalError(message || 'Cancellation failed');
         }
     });
@@ -46,8 +46,7 @@ export function useVendorDashboard() {
             setShowCancelModal(false);
         },
         onError: (err: unknown) => {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const message = err instanceof Error ? (err as any).response?.data?.message : 'Refund request failed';
+            const message = getErrorMessage(err);
             setLocalError(message || 'Refund request failed');
         }
     });
