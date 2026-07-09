@@ -13,6 +13,7 @@
     "lint:fix": "eslint . --fix"
   },
   "dependencies": {
+    "@react-oauth/google": "^0.13.5",
     "@stomp/stompjs": "^7.3.0",
     "@stripe/react-stripe-js": "^5.6.0",
     "@stripe/stripe-js": "^8.7.0",
@@ -20,6 +21,7 @@
     "@types/sockjs-client": "^1.5.4",
     "axios": "^1.6.0",
     "clsx": "^2.1.1",
+    "framer-motion": "^12.42.2",
     "html5-qrcode": "^2.3.8",
     "lucide-react": "^0.574.0",
     "react": "^18.2.0",

@@ -9,19 +9,25 @@ export interface StallUpdateMessage {
     publisherCategory: string | null;
 }
 
+export interface StallPresenceEvent {
+    stallId: number;
+    status: string;
+    username: string;
+    viewerCount: number;
+}
+
 const getSocketUrl = () => {
     const apiUrl = import.meta.env.VITE_API_URL || '/api/v1';
 
     // If it's a relative path, use the current origin
     if (apiUrl.startsWith('/')) {
-        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
         const port = window.location.port ? `:${window.location.port}` : '';
         const root = apiUrl.replace(/\/api\/v1\/?$/, '');
-        return `${protocol}//${window.location.hostname}${port}${root}/ws`;
+        return `${window.location.protocol}//${window.location.hostname}${port}${root}/ws`;
     }
 
     const root = apiUrl.replace(/\/api\/v1\/?$/, '');
-    return root.replace(/^http/, 'ws') + '/ws';
+    return root + '/ws';
 };
 
 const SOCKET_URL = getSocketUrl();

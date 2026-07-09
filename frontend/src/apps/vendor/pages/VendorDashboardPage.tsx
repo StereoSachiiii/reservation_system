@@ -35,7 +35,7 @@ export const VendorDashboardPage = () => {
     );
 
     return (
-        <div className="container mx-auto p-6 md:p-12 max-w-7xl animate-in fade-in duration-500">
+        <div className="container mx-auto p-6 md:p-12 max-w-7xl animate-in fade-in duration-500 space-y-6">
             <DashboardHeader
                 businessName={user?.businessName}
                 username={user?.username || ''}

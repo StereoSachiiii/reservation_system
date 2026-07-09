@@ -1,66 +1,74 @@
 import { Link } from "react-router-dom"
+import { motion } from "framer-motion"
 
 export default function Hero() {
     return (
-        <section className="relative overflow-hidden rounded-3xl shadow-2xl">
-            {/* Background */}
-            <div className="absolute inset-0">
-                <img
-                    src="https://images.unsplash.com/photo-1507842217343-583bb7270b66?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80"
-                    alt="Book Fair"
-                    className="w-full h-full object-cover"
-                />
-                {/* Gradient overlay */}
-                <div className="absolute inset-0 bg-gradient-to-br from-black/90 via-black/80 to-black/90" />
-            </div>
+        <section className="relative overflow-hidden rounded-3xl animate-fluid-gradient py-24 sm:py-32 shadow-2xl">
+            {/* Soft overlay to improve readability */}
+            <div className="absolute inset-0 bg-black/10 backdrop-blur-[1px] pointer-events-none" />
 
-            {/* Content */}
-            <div className="relative max-w-7xl mx-auto px-6 py-32 text-center flex flex-col items-center">
-
-                {/* Glass Badge */}
-                <span className="mb-8 inline-flex items-center gap-2 px-4 py-1.5 
-                    rounded-full text-sm font-semibold tracking-wide
-                    bg-white/10 backdrop-blur-lg 
-                    border border-white/20 text-primary-300">
+            {/* Content Container */}
+            <div className="relative max-w-5xl mx-auto px-6 text-center flex flex-col items-center z-10">
+                
+                {/* Micro-badge */}
+                <motion.span 
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5 }}
+                    className="mb-8 inline-flex items-center gap-2 px-4 py-1.5 
+                        rounded-full text-xs font-black tracking-widest uppercase
+                        bg-white/20 backdrop-blur-xl 
+                        border border-white/30 text-white shadow-lg"
+                >
                     ✨ The Literary Event of 2026
-                </span>
+                </motion.span>
 
-                {/* Heading */}
-                <h1 className="text-6xl sm:text-7xl lg:text-8xl font-extrabold tracking-tight text-white mb-8">
-                    Book Fair <span className="text-primary-400">2026</span>
-                </h1>
+                {/* Main Heading */}
+                <motion.h1 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 0.1 }}
+                    className="text-5xl sm:text-7xl lg:text-8xl font-black tracking-tight text-white mb-6 leading-none"
+                >
+                    Book Fair <span className="bg-clip-text text-transparent bg-gradient-to-r from-yellow-300 via-amber-200 to-orange-300">2026</span>
+                </motion.h1>
 
                 {/* Subtext */}
-                <p className="mt-8 max-w-3xl text-xl sm:text-2xl text-gray-200 leading-relaxed font-medium">
+                <motion.p 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 0.2 }}
+                    className="max-w-2xl text-lg sm:text-xl text-white/90 leading-relaxed font-semibold mb-12 drop-shadow-sm"
+                >
                     Secure your spot at the city's premier literary event.
-                    Reserve stalls, manage inventory, and connect with thousands of readers.
-                </p>
+                    Reserve premium stalls, manage inventory, and connect with thousands of readers.
+                </motion.p>
 
-                {/* Buttons */}
-                <div className="mt-16 flex flex-col sm:flex-row gap-6">
-
-                    {/* Primary */}
+                {/* Call To Actions */}
+                <motion.div 
+                    initial={{ opacity: 0, y: 25 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 0.3 }}
+                    className="flex flex-col sm:flex-row gap-4 mb-20"
+                >
                     <Link
                         to="/events"
                         className="group relative inline-flex items-center justify-center 
-                        px-10 py-5 rounded-2xl text-lg font-bold 
-                        text-white bg-primary-500
-                        shadow-xl shadow-primary-500/30
-                        transition-all duration-300
-                        hover:bg-primary-400 hover:shadow-primary-400/40
+                        px-8 py-4 rounded-xl text-sm font-bold uppercase tracking-widest
+                        text-black bg-white hover:bg-gray-50
+                        shadow-2xl transition-all duration-300
                         hover:-translate-y-1 hover:scale-[1.02]"
                     >
                         Reserve a Stall
-                        <span className="ml-3 transition-transform duration-300 group-hover:translate-x-2 text-xl">
-                            →
+                        <span className="ml-2 transition-transform duration-300 group-hover:translate-x-2">
+                            &rarr;
                         </span>
                     </Link>
 
-                    {/* Secondary */}
                     <a
                         href="#services"
                         className="inline-flex items-center justify-center
-                        px-10 py-5 rounded-2xl text-lg font-bold
+                        px-8 py-4 rounded-xl text-sm font-bold uppercase tracking-widest
                         text-white bg-white/10 backdrop-blur-md
                         border border-white/20
                         transition-all duration-300
@@ -68,7 +76,19 @@ export default function Hero() {
                     >
                         Learn More
                     </a>
-                </div>
+                </motion.div>
+
+                {/* Publisher Logo Ribbon (Stripe-like partner band) */}
+                <motion.div 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 1, delay: 0.5 }}
+                    className="w-full border-t border-white/10 pt-10 flex flex-wrap justify-center items-center gap-x-16 gap-y-6 text-white/40 text-sm font-black tracking-widest"
+                >
+                    <span className="hover:text-white/80 transition-colors cursor-default">BMICH</span>
+                    <span className="hover:text-white/80 transition-colors cursor-default">OGF</span>
+                    <span className="hover:text-white/80 transition-colors cursor-default">COLOMBO BOOK FAIR</span>
+                </motion.div>
             </div>
         </section>
     )

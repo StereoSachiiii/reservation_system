@@ -4,6 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 
 //auth context
 import { useAuth } from '@/shared/context/useAuth'
+import { StompContext } from '@/shared/context/StompContext'
 
 //sub componenets
 import { GenreGate } from '@/apps/public/components/GenreGate'
@@ -12,6 +13,9 @@ import { StallMapHero } from '@/apps/public/components/StallMapHero'
 import { MapLoadingOverlay } from '@/apps/public/components/MapLoadingOverlay'
 import { HallInfo } from '@/apps/public/components/HallInfo'
 import { MapCanvas } from '@/shared/components/MapCanvas'
+import { AerialMap } from '@/apps/public/components/AerialMap'
+import { SegmentedControl } from '@/shared/components/ui/SegmentedControl'
+import { STALL_STATUS } from '@/constants/stallStatus'
 import { StallTooltip } from '@/shared/components/StallTooltip'
 import { BookingPanel } from '@/apps/public/components/BookingPanel'
 
@@ -30,7 +34,7 @@ export default function StallMapPage() {
   const eventId = urlEventId ? parseInt(urlEventId, 10) : null
 
   // ── Real-time Updates ─────────────────────────────────────────────────────
-  useStallUpdates(useCallback((update: { stallId: number, reserved: boolean, occupiedBy: string | null, publisherCategory: string | null }) => {
+  const stompClient = useStallUpdates(useCallback((update: { stallId: number, reserved: boolean, occupiedBy: string | null, publisherCategory: string | null }) => {
     queryClient.setQueryData(['stalls', eventId], (oldData: RawEventMap | undefined) => {
       if (!oldData) return oldData;
       return {
@@ -59,6 +63,8 @@ export default function StallMapPage() {
   const [hoveredStall, setHoveredStall] = useState<MapStall | null>(null)
   const [tooltipAnchor, setTooltipAnchor] = useState<DOMRect | null>(null)
   const [selectedGenre, setSelectedGenre] = useState<string | null>(null)
+  const [viewMode, setViewMode] = useState<'schematic' | 'aerial'>('schematic')
+  const [statusByStallId, setStatusByStallId] = useState<Record<number, keyof typeof STALL_STATUS>>({})
 
   // ── Logic Hooks ───────────────────────────────────────────────────────────
   const {
@@ -101,12 +107,31 @@ export default function StallMapPage() {
     []
   )
 
+  useEffect(() => {
+    if (!stompClient?.current?.connected || !displayedStalls.length) return;
+    const subs = displayedStalls.map(stall => {
+        return stompClient.current!.subscribe(`/topic/stalls/${stall.id}`, (msg) => {
+             const event = JSON.parse(msg.body);
+             setStatusByStallId(prev => {
+                const currentStatus = prev[stall.id];
+                if (currentStatus === 'SELECTED' && event.status === 'LOCKED') {
+                    alert(`Stall ${stall.id} was just reserved by another vendor`);
+                    handleClearSelection();
+                }
+                return { ...prev, [stall.id]: event.status };
+             });
+        });
+    });
+    return () => subs.forEach(sub => sub.unsubscribe());
+  }, [stompClient, displayedStalls, handleClearSelection]);
+
   // ── Render ────────────────────────────────────────────────────────────────
   if (isLoading) return <MapLoadingOverlay />;
 
   return (
-    <div className="flex flex-col min-h-screen bg-white overflow-x-hidden">
-      {!selectedGenre && <GenreGate setSelectedGenre={setSelectedGenre} />}
+    <StompContext.Provider value={stompClient}>
+      <div className="flex flex-col min-h-screen bg-white overflow-x-hidden">
+        {!selectedGenre && <GenreGate setSelectedGenre={setSelectedGenre} />}
 
       {selectedGenre && (
         <>
@@ -123,16 +148,44 @@ export default function StallMapPage() {
               selectedGenre={selectedGenre}
             />
 
-            <div className="absolute left-0 right-0 bottom-0 top-[56px]">
-              <MapCanvas
-                stalls={displayedStalls}
-                influences={displayedInfluences}
-                zones={displayedZones}
-                selectedIds={selectedIds}
-                showHeatmap={showHeatmap}
-                onStallClick={handleStallClick}
-                onHoverChange={handleHoverChange}
-              />
+            {/* View Mode Toggle (Overlay) */}
+            <div className="absolute top-[72px] left-1/2 -translate-x-1/2 z-40">
+                <SegmentedControl
+                    value={viewMode}
+                    onChange={setViewMode}
+                    options={[
+                        { value: 'schematic', label: 'Floor Plan' },
+                        { value: 'aerial', label: 'Real View' },
+                    ]}
+                />
+            </div>
+
+            <div className="absolute left-0 right-0 bottom-0 top-[56px] bg-slate-50">
+              {viewMode === 'schematic' ? (
+                  <MapCanvas
+                    stalls={displayedStalls}
+                    influences={displayedInfluences}
+                    zones={displayedZones}
+                    selectedIds={selectedIds}
+                    showHeatmap={showHeatmap}
+                    onStallClick={handleStallClick}
+                    onHoverChange={handleHoverChange}
+                  />
+              ) : (
+                  <div className="w-full h-full p-8 pt-20 flex justify-center items-start overflow-y-auto">
+                      <AerialMap 
+                          layout={{ imageUrl: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=1200&q=80' }} // Mock layout for demo
+                          stalls={displayedStalls.map(s => {
+                            let status = statusByStallId[s.id] || 'AVAILABLE';
+                            if (s.reserved) status = 'RESERVED';
+                            else if (selectedIds.includes(s.id)) status = 'SELECTED';
+                            return {...s, position: { xPct: s.posX!/100, yPct: s.posY!/100, widthPct: s.width!/100, heightPct: s.height!/100 }};
+                          })}
+                          statusByStallId={statusByStallId}
+                          onSelectStall={handleStallClick}
+                      />
+                  </div>
+              )}
             </div>
           </section>
 
@@ -162,6 +215,7 @@ export default function StallMapPage() {
         </>
       )
       }
-    </div>
+      </div>
+    </StompContext.Provider>
   )
 }

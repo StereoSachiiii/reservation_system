@@ -53,7 +53,7 @@ export function MapCanvas({
                             wrapperStyle={{ width: '100%', height: '100%', cursor: 'grab' }}
                             contentStyle={{ width: '1200px', height: '800px' }}
                         >
-                            <div className="relative w-[1200px] h-[800px] bg-white shadow-inner transition-all duration-300 ease-out">
+                            <div className="relative w-[1200px] h-[800px] bg-white floor-surface shadow-inner transition-all duration-300 ease-out">
                                 {showHeatmap && <MapHeatmap influences={influences} />}
                                 <MapZones zones={zones} />
                                 <ImplicitAisleLayer stalls={stalls} />

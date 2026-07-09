@@ -1,130 +1,96 @@
-import Hero from '@/apps/public/components/Hero'
-import VisionMission from '@/apps/public/components/VisionMission'
-import Services from '@/apps/public/components/Services'
+import { Link, useNavigate } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import UpcomingEvents from '@/apps/public/components/UpcomingEvents'
-import { ReservationList } from '@/features/reservations'
+import { HOME_COPY } from '@/copy/home.copy'
+import { Button } from '@/shared/components/ui/Button'
+import { useAuth } from '@/shared/context/useAuth'
 
-import { useQuery } from '@tanstack/react-query'
-import { reservationApi } from '@/shared/api'
-import { useAuth } from '@/shared/context/AuthContext'
-import { Link } from 'react-router-dom'
+import { LogoMarquee } from '@/apps/public/components/home/LogoMarquee'
+import { StatsBand } from '@/apps/public/components/home/StatsBand'
+import { HowItWorks } from '@/apps/public/components/home/HowItWorks'
+import { Testimonials } from '@/apps/public/components/home/Testimonials'
 
-// Genre prompt moved to CheckoutPage
+const LOGOS = [
+  { name: 'BMICH' },
+  { name: 'OGF' },
+  { name: 'Colombo Book Fair' },
+  { name: 'Kandy City Center' },
+];
 
 export default function HomePage() {
     const { user } = useAuth()
-
-    // Safety check (should be handled by ProtectedRoute, but good for TS)
-    const userId = user?.id
-
-    const { data: reservations, isLoading: loadingReservations } = useQuery({
-        queryKey: ['reservations', userId],
-        queryFn: () => reservationApi.getByUser(userId!),
-        enabled: !!userId,
-        staleTime: 1000 * 60 * 5, // 5 minutes
-    })
-
-
+    const navigate = useNavigate()
+    const dateStr = new Date().toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
 
     return (
-        <div className="min-h-screen bg-gray-50 text-gray-900 font-sans selection:bg-primary-200 selection:text-secondary">
-            {/* Background Gradients */}
-            <div className="fixed inset-0 pointer-events-none overflow-hidden">
-                <div className="absolute -top-[20%] -right-[10%] w-[50%] h-[50%] bg-primary-200/20 rounded-full blur-3xl opacity-60"></div>
-                <div className="absolute top-[20%] -left-[10%] w-[40%] h-[40%] bg-blue-200/20 rounded-full blur-3xl opacity-60"></div>
-            </div>
-
-            <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-6">
-
-                {/* Header Section */}
-                <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 pb-6 border-b border-gray-200/60">
-                    <div>
-                        <h1 className="text-4xl font-black text-secondary tracking-tight mb-2">
-                            Dashboard
-                        </h1>
-                        <p className="text-gray-500 font-medium">Welcome back, {user?.username}</p>
+        <div className="bg-white">
+            {/* 1. Hero Section */}
+            <section className="relative overflow-hidden py-24 lg:py-32 border-b border-neutral-100">
+                <div className="absolute inset-0 -z-10">
+                    <div className="absolute top-0 left-1/4 h-72 w-72 rounded-full bg-brand-200/40 blur-3xl animate-pulse-slow" />
+                    <div className="absolute bottom-0 right-1/4 h-72 w-72 rounded-full bg-emerald-200/30 blur-3xl animate-pulse-slow [animation-delay:1.5s]" />
+                </div>
+                <motion.div
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5 }}
+                    className="max-w-3xl mx-auto px-6 text-center z-10 relative"
+                >
+                    <h1 className="text-5xl font-bold text-neutral-900 tracking-tight">
+                        Connect Authors with Readers at Scale
+                    </h1>
+                    <p className="mt-4 text-lg text-neutral-500">
+                        The all-in-one platform to discover premium book fairs, secure your
+                        exhibition stalls, and manage your publishing presence effortlessly.
+                    </p>
+                    <div className="mt-8 flex justify-center">
+                        <Button variant="primary" onClick={() => navigate('/events')}>
+                            {HOME_COPY.bookStallCta}
+                        </Button>
                     </div>
-                    <div className="mt-4 md:mt-0">
-                        <span className="inline-flex items-center px-4 py-2 rounded-full bg-white/60 backdrop-blur-md border border-white/40 shadow-sm text-sm font-bold text-gray-600">
-                            {new Date().toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-                        </span>
+                </motion.div>
+            </section>
+
+            {/* 2. Logo / Venue Strip */}
+            <LogoMarquee logos={LOGOS} />
+
+            {/* 3. Stats Band */}
+            <StatsBand />
+
+            {/* 4. Feature Grid (Reimagined w/ How It Works) */}
+            <HowItWorks />
+
+            {/* 5. Testimonials */}
+            <Testimonials />
+
+            {/* 5. Upcoming Events Preview */}
+            <section className="py-20 bg-neutral-50">
+                <div className="max-w-7xl mx-auto px-6">
+                    <div className="flex items-center justify-between mb-10">
+                        <div>
+                            <h2 className="text-2xl font-semibold text-neutral-900">{HOME_COPY.upcomingEventsTitle}</h2>
+                            {user && <p className="text-sm text-neutral-500 mt-1">{HOME_COPY.welcomeBack(user.username, dateStr)}</p>}
+                        </div>
+                        <Link to="/events" className="text-sm font-semibold text-brand-600 hover:text-brand-700">
+                            {HOME_COPY.viewAllEvents}
+                        </Link>
+                    </div>
+                    <UpcomingEvents />
+                </div>
+            </section>
+
+            {/* 7. Footer CTA Band */}
+            <section className="py-24 bg-brand-50 border-t border-brand-100 text-center">
+                <div className="max-w-3xl mx-auto px-6">
+                    <h2 className="text-3xl font-semibold text-neutral-900 mb-6">{HOME_COPY.expandPresenceTitle}</h2>
+                    <p className="text-lg text-neutral-600 mb-8">{HOME_COPY.expandPresenceBody}</p>
+                    <div className="flex justify-center">
+                        <Button variant="primary" onClick={() => navigate('/events')}>
+                            {HOME_COPY.bookStallCta}
+                        </Button>
                     </div>
                 </div>
-
-                {/* LINEAR SECTION STACK */}
-                <div className="flex flex-col gap-16">
-
-                    {/* 1. Hero Banner */}
-                    <section className="rounded-3xl overflow-hidden shadow-2xl ring-1 ring-black/5 transform hover:scale-[1.002] transition-transform duration-500 relative group">
-                        <Hero />
-                    </section>
-
-                    {/* 2. Quick Actions (Now a horizontal CTA bar or full-width section) */}
-                    <section>
-                        <div className="bg-gradient-to-r from-primary-400 via-primary-500 to-primary-600 p-10 rounded-3xl shadow-xl border border-primary-700/20 relative overflow-hidden group flex flex-col md:flex-row items-center justify-between gap-8 transform hover:-translate-y-1 transition-all duration-300">
-                            <div className="absolute top-0 right-0 w-96 h-96 bg-white/20 rounded-full blur-3xl -mr-20 -mt-20 group-hover:bg-white/30 transition-colors duration-500"></div>
-
-                            <div className="relative z-10 flex flex-col md:flex-row items-center gap-8 text-center md:text-left">
-                                <div className="w-16 h-16 bg-black/10 rounded-2xl flex items-center justify-center text-black shrink-0">
-                                    <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
-                                </div>
-                                <div>
-                                    <h3 className="font-black text-3xl text-black mb-2 tracking-tight">Expand Your Presence</h3>
-                                    <p className="text-black/70 text-lg font-extrabold leading-relaxed">
-                                        Ready to reach more readers? Book a new stall instantly.
-                                    </p>
-                                </div>
-                            </div>
-
-                            <Link to="/events" className="w-full md:w-auto px-12 text-center bg-secondary text-primary-400 font-black py-5 rounded-xl shadow-lg hover:shadow-glow-gold hover:bg-black hover:text-white transition-all duration-300 relative z-10 whitespace-nowrap text-lg">
-                                Book a New Stall
-                            </Link>
-                        </div>
-                    </section>
-
-
-                    {/* 2. Upcoming Events - NEW */}
-                    <section className="rounded-3xl bg-white p-8 shadow-xl border border-gray-100">
-                        <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-2xl font-black text-gray-900 flex items-center gap-3">
-                                <span className="text-2xl">📅</span>
-                                Upcoming Events
-                            </h2>
-                            <Link to="/events" className="text-sm font-bold text-primary-600 hover:text-primary-700 bg-primary-50 px-4 py-2 rounded-full transition-colors">
-                                View All &rarr;
-                            </Link>
-                        </div>
-                        <UpcomingEvents />
-                    </section>
-
-                    {/* 4. Reservations Section */}
-                    <section className="bg-white/60 backdrop-blur-xl rounded-3xl p-1 border border-white/40 shadow-lg min-h-[400px]">
-                        <div className="p-10">
-                            <h2 className="text-3xl font-black text-secondary mb-10 flex items-center gap-4">
-                                <div className="w-2 h-10 bg-primary-500 rounded-full"></div>
-                                Your Booking Dashboard
-                            </h2>
-                            <ReservationList
-                                reservations={reservations}
-                                isLoading={loadingReservations}
-                            />
-                        </div>
-                    </section>
-
-                    {/* Services */}
-                    <section className="rounded-3xl bg-secondary p-1 overflow-hidden shadow-2xl">
-                        <div className="p-10">
-                            <h2 className="text-3xl font-black text-white mb-8 border-b border-white/10 pb-6">Event Services</h2>
-                            <Services />
-                        </div>
-                    </section>
-
-                    {/* 5. Vision & Mission Footer Section */}
-                    <section className="bg-white rounded-3xl shadow-lg p-10 border border-gray-100">
-                        <VisionMission />
-                    </section>
-                </div>
-            </div>
+            </section>
         </div>
     )
 }

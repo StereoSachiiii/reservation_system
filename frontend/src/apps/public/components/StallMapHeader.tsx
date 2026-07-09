@@ -1,5 +1,6 @@
 import HallPicker from './HallPicker';
 import GenreReccomendation from './GenreReccomendation';
+import { Pill } from '@/shared/components/ui/Pill';
 
 interface StallMapHeaderProps {
     eventName: string;
@@ -53,22 +54,19 @@ export const StallMapHeader = ({
 
             {/* Right: Controls */}
             <div className="flex items-center gap-4 flex-shrink-0">
-                <div className="flex items-center gap-2 bg-slate-100/50 p-1 rounded-xl border border-slate-200/40">
-                    <button
+                <div className="flex items-center gap-2 p-1">
+                    <Pill
+                        variant={showHeatmap ? 'brand' : 'neutral'}
                         onClick={() => setShowHeatmap(v => !v)}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px]
-                              font-black uppercase tracking-widest transition-all ${showHeatmap
-                                ? 'bg-violet-600 text-white shadow-lg shadow-violet-200'
-                                : 'text-slate-500 hover:bg-white hover:text-slate-900'
-                            }`}
+                        icon={<span>◉</span>}
                     >
-                        <span>◉</span>
                         {showHeatmap ? 'Heatmap On' : 'Heatmap'}
-                    </button>
+                    </Pill>
                     <div className="w-px h-4 bg-slate-200 mx-1" />
-                    <span className="text-slate-500 text-[10px] font-bold pr-3 tabular-nums uppercase tracking-tighter">
-                        {availableCount} <span className="text-slate-400 font-medium">Free</span>
-                    </span>
+                    <Pill variant="neutral">
+                        <span className="tabular-nums">{availableCount}</span>
+                        <span className="text-slate-400 font-medium">Free</span>
+                    </Pill>
                 </div>
             </div>
         </div>

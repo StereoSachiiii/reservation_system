@@ -1,6 +1,9 @@
 import { useQuery } from '@tanstack/react-query'
 import { publicApi } from '@/shared/api/publicApi'
 import { Link } from 'react-router-dom'
+import { Calendar, MapPin, ArrowRight } from 'lucide-react'
+import { EVENTS_COPY } from '@/copy/events.copy'
+import { Card } from '@/shared/components/ui/Card'
 
 export default function UpcomingEvents() {
     const { data: eventEnvelope, isLoading, error } = useQuery({
@@ -13,63 +16,83 @@ export default function UpcomingEvents() {
 
     if (isLoading) return (
         <div className="flex justify-center p-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-neutral-800"></div>
         </div>
     )
 
     if (error) return (
-        <div className="bg-red-50 text-red-600 p-4 rounded-xl border border-red-100 text-center">
-            Failed to load events. Please try again later.
+        <div className="bg-red-50 text-red-600 p-4 rounded-md border border-red-100 text-center text-sm font-semibold">
+            {EVENTS_COPY.loadingError}
         </div>
     )
 
     if (events.length === 0) return (
-        <div className="text-center py-12 bg-white/50 rounded-2xl border border-dashed border-gray-300">
-            <h3 className="text-lg font-bold text-gray-500">No Upcoming Events</h3>
-            <p className="text-gray-400 text-sm">Check back later for new book fairs!</p>
+        <div className="text-center py-12 bg-neutral-50 rounded-md border border-dashed border-neutral-200">
+            <h3 className="text-sm font-semibold text-neutral-600">{EVENTS_COPY.noEventsTitle}</h3>
+            <p className="text-neutral-500 text-sm mt-1">{EVENTS_COPY.noEventsBody}</p>
         </div>
     )
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {events.map((event) => (
-                <div key={event.id} className="bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-gray-100 overflow-hidden flex flex-col group">
-                    <div className="h-32 bg-gradient-to-br from-primary-100 to-blue-50 relative">
-                        <div className="absolute inset-0 flex items-center justify-center">
-                            <span className="text-4xl">📅</span>
+            {events.map((event) => {
+                const isOpen = event.status?.toUpperCase() === 'OPEN';
+                return (
+                    <Card key={event.id} className="p-0 overflow-hidden flex flex-col group cursor-pointer hover:shadow-lg transition-shadow duration-300">
+                        {/* Event Cover Image */}
+                        <div className="h-44 overflow-hidden relative">
+                            <img
+                                src={event.imageUrl || "https://images.unsplash.com/photo-1507842217343-583bb7270b66?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"}
+                                alt={event.name}
+                                className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
                         </div>
-                        <div className="absolute top-4 right-4 bg-white/90 backdrop-blur text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider text-primary-700 shadow-sm">
-                            {event.status}
-                        </div>
-                    </div>
 
-                    <div className="p-6 flex flex-col flex-grow">
-                        <h3 className="font-bold text-xl text-gray-900 mb-2 group-hover:text-primary-600 transition-colors">
-                            {event.name}
-                        </h3>
-
-                        <div className="space-y-2 mb-6">
-                            <div className="flex items-center text-sm text-gray-500">
-                                <svg className="w-4 h-4 mr-2 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                                {new Date(event.startDate).toLocaleDateString()}
+                        {/* Event Content */}
+                        <div className="p-6 flex flex-col flex-grow">
+                            <div className="flex items-center gap-2 mb-3">
+                                <span className={`text-xs font-semibold px-2 py-1 rounded-sm ${
+                                    isOpen 
+                                        ? 'bg-emerald-50 text-emerald-700' 
+                                        : 'bg-amber-50 text-amber-700'
+                                }`}>
+                                    {event.status || EVENTS_COPY.statusUpcoming}
+                                </span>
                             </div>
-                            <div className="flex items-center text-sm text-gray-500">
-                                <svg className="w-4 h-4 mr-2 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                                {event.location || 'Location TBA'}
+
+                            <h3 className="font-semibold text-lg text-neutral-900 mb-2 group-hover:text-brand-600 transition-colors leading-tight">
+                                {event.name}
+                            </h3>
+
+                            <p className="text-neutral-600 text-sm leading-relaxed mb-6 line-clamp-2">
+                                {event.description || EVENTS_COPY.defaultDescription}
+                            </p>
+
+                            <div className="space-y-2 mb-6 border-t border-neutral-50 pt-4 mt-auto">
+                                <div className="flex items-center text-sm text-neutral-600">
+                                    <Calendar className="w-4 h-4 mr-2 text-neutral-400" />
+                                    {new Date(event.startDate).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}
+                                </div>
+                                <div className="flex items-center text-sm text-neutral-600">
+                                    <MapPin className="w-4 h-4 mr-2 text-neutral-400" />
+                                    {event.location || EVENTS_COPY.locationTba}
+                                </div>
+                            </div>
+
+                            <div className="pt-2">
+                                <Link
+                                    to={`/events/${event.id}`}
+                                    className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-600 group-hover:text-brand-700"
+                                >
+                                    {EVENTS_COPY.exploreEvent}
+                                    <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
+                                </Link>
                             </div>
                         </div>
-
-                        <div className="mt-auto">
-                            <Link
-                                to={`/events/${event.id}`}
-                                className="block w-full text-center bg-gray-50 hover:bg-primary-50 text-gray-900 hover:text-primary-700 font-bold py-3 rounded-xl transition-colors border border-gray-200"
-                            >
-                                View Details
-                            </Link>
-                        </div>
-                    </div>
-                </div>
-            ))}
+                    </Card>
+                );
+            })}
         </div>
     )
 }

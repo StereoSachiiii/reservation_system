@@ -1,4 +1,5 @@
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, useLocation } from 'react-router-dom'
+import { AnimatePresence } from 'framer-motion'
 
 // Route Modules
 import AdminRoutes from '@/apps/admin/AdminRoutes'
@@ -27,43 +28,47 @@ import ProtectedRoute from '@/shared/components/ProtectedRoute'
 import PublicRoute from '@/shared/components/PublicRoute'
 
 function App() {
+    const location = useLocation();
+
     return (
-        <Routes>
-            {/* --- Public Access --- */}
-            <Route path="/" element={<PublicRoute><RegisterPage /></PublicRoute>} />
-            <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
-            <Route path="/forgot-password" element={<PublicRoute><ForgotPasswordPage /></PublicRoute>} />
-            <Route path="/reset-password" element={<PublicRoute><ResetPasswordPage /></PublicRoute>} />
-            <Route path="/admin/login" element={<PublicRoute><AdminLoginPage /></PublicRoute>} />
-            <Route path="/employee/login" element={<PublicRoute><EmployeeLoginPage /></PublicRoute>} />
+        <AnimatePresence mode="wait">
+            <Routes location={location} key={location.pathname}>
+                {/* --- Public Access --- */}
+                <Route path="/" element={<PublicRoute><RegisterPage /></PublicRoute>} />
+                <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
+                <Route path="/forgot-password" element={<PublicRoute><ForgotPasswordPage /></PublicRoute>} />
+                <Route path="/reset-password" element={<PublicRoute><ResetPasswordPage /></PublicRoute>} />
+                <Route path="/admin/login" element={<PublicRoute><AdminLoginPage /></PublicRoute>} />
+                <Route path="/employee/login" element={<PublicRoute><EmployeeLoginPage /></PublicRoute>} />
 
-            {/* --- Main App Layout (Shared/Public/Vendor) --- */}
-            <Route element={<Layout />}>
-                <Route path="/home" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
-                <Route path="/events" element={<ProtectedRoute><EventsPage /></ProtectedRoute>} />
-                <Route path="/events/:id" element={<ProtectedRoute><EventDetailsPage /></ProtectedRoute>} />
+                {/* --- Main App Layout (Shared/Public/Vendor) --- */}
+                <Route element={<Layout />}>
+                    <Route path="/home" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
+                    <Route path="/events" element={<ProtectedRoute><EventsPage /></ProtectedRoute>} />
+                    <Route path="/events/:id" element={<ProtectedRoute><EventDetailsPage /></ProtectedRoute>} />
 
-                {/* Vendor Module Routes */}
-                <Route path="/vendor/*" element={<VendorRoutes />} />
+                    {/* Vendor Module Routes */}
+                    <Route path="/vendor/*" element={<VendorRoutes />} />
 
-                {/* Stalls & Checkout (Top-level due to current linking structure) */}
-                <Route path="/stalls/:eventId" element={
-                    <ProtectedRoute allowedRoles={['VENDOR', 'ADMIN']}><StallMapPage /></ProtectedRoute>
-                } />
-                <Route path="/checkout/:id" element={
-                    <ProtectedRoute allowedRoles={['VENDOR', 'ADMIN']}><CheckoutPage /></ProtectedRoute>
-                } />
-            </Route>
+                    {/* Stalls & Checkout (Top-level due to current linking structure) */}
+                    <Route path="/stalls/:eventId" element={
+                        <ProtectedRoute allowedRoles={['VENDOR', 'ADMIN']}><StallMapPage /></ProtectedRoute>
+                    } />
+                    <Route path="/checkout/:id" element={
+                        <ProtectedRoute allowedRoles={['VENDOR', 'ADMIN']}><CheckoutPage /></ProtectedRoute>
+                    } />
+                </Route>
 
-            {/* --- Employee Portal Module --- */}
-            <Route path="/employee/*" element={<EmployeeRoutes />} />
+                {/* --- Employee Portal Module --- */}
+                <Route path="/employee/*" element={<EmployeeRoutes />} />
 
-            {/* --- Admin Portal Module --- */}
-            <Route path="/admin/*" element={<AdminRoutes />} />
+                {/* --- Admin Portal Module --- */}
+                <Route path="/admin/*" element={<AdminRoutes />} />
 
-            {/* Catch-all */}
-            <Route path="*" element={<NotFoundPage />} />
-        </Routes>
+                {/* Catch-all */}
+                <Route path="*" element={<NotFoundPage />} />
+            </Routes>
+        </AnimatePresence>
     )
 }
 

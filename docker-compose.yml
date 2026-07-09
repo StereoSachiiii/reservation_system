@@ -7,17 +7,40 @@ services:
       POSTGRES_DB: bookfair
       POSTGRES_USER: bookfair
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bookfair -d bookfair"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    deploy:
+      restart_policy:
+        condition: on-failure
+        max_attempts: 5
+      resources:
+        limits:
+          memory: 512M
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
       - "5433:5432"
     networks:
-      - bookfair-net
+      - reservation-net
 
   redis:
     image: redis:7-alpine
+    deploy:
+      restart_policy:
+        condition: on-failure
+        max_attempts: 5
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "6379:6379"
     networks:
-      - bookfair-net
+      - reservation-net
 
   backend:
     build: ./backend
@@ -48,11 +71,44 @@ services:
       SEED_ADMIN_PASS: ${SEED_ADMIN_PASS}
       SEED_VENDOR_USER: vendor
       SEED_VENDOR_PASS: ${SEED_VENDOR_PASS}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      APP_RAG_SERVICE_URL: http://ai-service:8000/query
+    deploy:
+      restart_policy:
+        condition: on-failure
+        max_attempts: 5
+      resources:
+        limits:
+          memory: 512M
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    volumes:
+      - ./logs/backend:/app/logs
+      - ./certs:/etc/ssl/certs:ro
     depends_on:
-      - postgres
-      - redis
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     networks:
-      - bookfair-net
+      - reservation-net
+
+  ai-service:
+    build: ./ai-service
+    image: bookfair-ai-service
+    environment:
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+    deploy:
+      restart_policy:
+        condition: on-failure
+        max_attempts: 5
+    volumes:
+      - .:/app/docs:ro
+    networks:
+      - reservation-net
 
   frontend:
     build:
@@ -61,19 +117,33 @@ services:
       args:
         VITE_API_URL: ${VITE_API_URL:-/api/v1}
         VITE_STRIPE_KEY: ${STRIPE_PUBLIC_KEY}
+        VITE_GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
     image: bookfair-frontend
     ports:
-      - "80:80"
-    # volumes:
-    #   - /etc/letsencrypt:/etc/letsencrypt:ro
+      - "3000:80"
+    deploy:
+      restart_policy:
+        condition: on-failure
+        max_attempts: 5
+      resources:
+        limits:
+          memory: 256M
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    volumes:
+      - ./logs/frontend:/var/log/nginx
+      - ./certs:/etc/ssl/certs:ro
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     networks:
-      - bookfair-net
+      - reservation-net
 
 networks:
-  bookfair-net:
-
+  reservation-net:
 
 volumes:
   postgres_data:

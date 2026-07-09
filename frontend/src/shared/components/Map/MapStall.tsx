@@ -1,5 +1,9 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
 import { MapStall, parseGeometry, getStallRenderState, parseScore } from '../../types/stallMap.utils';
+import { useStomp } from '@/shared/context/StompContext';
+import { StallPresenceEvent } from '@/hooks/useStallUpdates';
+import { STALL_STATUS } from '@/constants/stallStatus';
 
 interface MapStallProps {
     stall: MapStall;
@@ -9,53 +13,62 @@ interface MapStallProps {
     onHoverChange: (stall: MapStall | null, anchorRect: DOMRect | null) => void;
 }
 
+function PresenceDot({ count }: { count: number }) {
+    if (count <= 0) return null;
+    return (
+        <div className="absolute -top-1.5 -right-1.5 flex items-center justify-center w-4 h-4 bg-amber-500 text-white text-[9px] font-bold rounded-full shadow-sm">
+            {count}
+        </div>
+    );
+}
+
 export default function MapStallComponent({ stall, selectedIds, showHeatmap, onStallClick, onHoverChange }: MapStallProps) {
     const g = parseGeometry(stall);
-    const renderState = getStallRenderState(stall, selectedIds);
+    const isSelected = selectedIds.includes(stall.id);
     const score = stall.pricingBreakdown?.calculatedScore ?? parseScore(stall.pricingBreakdown?.['Visibility Score']);
 
-    const stateStyles: Record<string, {
-        bg: string; border: string; text: string; shadow: string
-    }> = {
-        available: {
-            bg: score > 60 ? 'rgba(240,253,244,1)' : score > 30 ? 'rgba(255,251,235,1)' : '#ffffff',
-            border: score > 60 ? '1px solid #86efac' : score > 30 ? '1px solid #fde68a' : '1px solid #e2e8f0',
-            text: 'text-slate-700',
-            shadow: '0 1px 3px rgba(0,0,0,0.06)',
-        },
-        premium: {
-            bg: '#fffbeb',
-            border: '1.5px solid #fcd34d',
-            text: 'text-amber-900',
-            shadow: '0 1px 4px rgba(251,191,36,0.2)',
-        },
-        selected: {
-            bg: '#eff6ff',
-            border: '2px solid #3b82f6',
-            text: 'text-blue-800',
-            shadow: '0 0 0 3px rgba(59,130,246,0.15)',
-        },
-        reserved: {
-            bg: '#f8fafc',
-            border: '1px solid #e2e8f0',
-            text: 'text-slate-400',
-            shadow: 'none',
-        },
-    };
+    const [presence, setPresence] = useState<StallPresenceEvent | null>(null);
+    const stompClient = useStomp();
 
-    const style = stateStyles[renderState];
+    useEffect(() => {
+        if (!stompClient || !stompClient.current || !stompClient.current.connected) return;
+        
+        const sub = stompClient.current.subscribe(`/topic/stalls/${stall.id}`, (msg) => {
+            const event: StallPresenceEvent = JSON.parse(msg.body);
+            if (event.status === "LOCKED" && isSelected) {
+                alert(`Stall ${stall.templateName} was just reserved by another vendor!`);
+            }
+            setPresence(event);
+        });
+        return () => sub.unsubscribe();
+    }, [stompClient, stall.id, isSelected]);
+
+    let currentStatus: keyof typeof STALL_STATUS = 'AVAILABLE';
+    if (stall.reserved) currentStatus = 'RESERVED';
+    else if (isSelected) currentStatus = 'SELECTED';
+    else if (presence && presence.status === 'VIEWING') currentStatus = 'VIEWING';
+    else if (getStallRenderState(stall, selectedIds) === 'premium') currentStatus = 'PREMIUM';
+
+    const style = STALL_STATUS[currentStatus];
     const isInteractive = !stall.reserved;
 
     const handleMouseEnter = useCallback((e: React.MouseEvent) => {
         onHoverChange(stall, (e.currentTarget as HTMLElement).getBoundingClientRect());
-    }, [stall, onHoverChange]);
+        // Broadcast presence
+        if (stompClient?.current?.connected) {
+            stompClient.current.publish({ destination: `/app/stall/${stall.id}/select` });
+        }
+    }, [stall, onHoverChange, stompClient]);
 
     const handleMouseLeave = useCallback(() => {
         onHoverChange(null, null);
-    }, [onHoverChange]);
+        if (stompClient?.current?.connected) {
+            stompClient.current.publish({ destination: `/app/stall/${stall.id}/deselect` });
+        }
+    }, [onHoverChange, stompClient, stall.id]);
 
     return (
-        <div
+        <motion.div
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
             onClick={() => onStallClick(stall.id, stall.reserved)}
@@ -65,51 +78,35 @@ export default function MapStallComponent({ stall, selectedIds, showHeatmap, onS
                 top: `${g.y}%`,
                 width: `${g.w}%`,
                 height: `${g.h}%`,
-                zIndex: renderState === 'selected' ? 15 : 5,
-                background:
-                    renderState === 'reserved' ? 'rgba(248,250,252,0.25)' :
-                        renderState === 'selected' ? 'rgba(239,246,255,0.85)' :
-                            renderState === 'premium' ? 'rgba(255,251,235,0.75)' :
-                                'rgba(255,255,255,0.7)',
-                border: style.border,
-                boxShadow: style.shadow,
-                backdropFilter: 'blur(0.5px)',
-                opacity: renderState === 'reserved' ? 0.55 : 1,
-                transition: 'transform 0.1s ease, box-shadow 0.1s ease',
+                zIndex: isSelected ? 15 : 5,
             }}
-            className={[
-                'flex flex-col items-center justify-center rounded select-none group',
-                style.text,
-                renderState === 'available' ? 'stall-pulse' : '',
-                isInteractive
-                    ? 'cursor-pointer hover:scale-105 hover:z-20'
-                    : 'cursor-not-allowed',
-            ].join(' ')}
+            whileHover={isInteractive ? { scale: 1.03 } : undefined}
+            whileTap={isInteractive ? { scale: 0.98 } : undefined}
+            className={`
+                rounded-md border-2 cursor-pointer flex flex-col items-center justify-center gap-0.5
+                transition-colors duration-150 relative select-none
+                ${style.border} ${style.fill}
+                ${isSelected ? 'shadow-md ring-2 ring-brand-200' : 'shadow-sm'}
+                ${!isInteractive ? 'cursor-not-allowed opacity-60' : ''}
+            `}
         >
-            {stall.reserved && (
-                <span className="absolute top-1 right-1 text-lg leading-none">🔒</span>
+            {currentStatus === 'RESERVED' && (
+                <span className="absolute top-1 left-1 text-[10px] leading-none opacity-50">🔒</span>
             )}
 
-            {renderState === 'premium' && (
-                <div className="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-amber-400" />
-            )}
-
-            <span className={[
-                'font-black uppercase tracking-wide text-center truncate w-full leading-tight px-0.5',
-                g.w > 8 ? 'text-[11px]' : 'text-[8px]',
-            ].join(' ')}>
+            <span className="text-xs font-semibold text-neutral-900 leading-none truncate w-full text-center px-0.5">
                 {stall.templateName}
             </span>
-
+            
             {g.h > 5 && (
-                <span className={[
-                    'tabular-nums leading-none mt-0.5 font-bold opacity-100',
-                    g.w > 8 ? 'text-[8px]' : 'text-[6px]',
-                    showHeatmap ? 'text-blue-600' : ''
-                ].join(' ')}>
+                <span className={`text-[9px] font-medium uppercase tracking-wide leading-none ${showHeatmap ? 'text-brand-600' : 'text-neutral-500'}`}>
                     {showHeatmap ? `${score}%` : `${Math.round(stall.priceCents / 100000)}L`}
                 </span>
             )}
-        </div>
+
+            {currentStatus === 'VIEWING' && presence && (
+                <PresenceDot count={presence.viewerCount} />
+            )}
+        </motion.div>
     );
 }

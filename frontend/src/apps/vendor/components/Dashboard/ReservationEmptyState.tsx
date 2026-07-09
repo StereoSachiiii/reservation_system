@@ -1,25 +1,28 @@
 import { Layout, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { Card } from '@/shared/components/ui/Card';
+import { Button } from '@/shared/components/ui/Button';
 
 export const ReservationEmptyState = () => {
     const navigate = useNavigate();
 
     return (
-        <div className="flex flex-col items-center justify-center py-24 px-10 text-center animate-in fade-in zoom-in-95 duration-500">
-            <div className="w-24 h-24 bg-slate-50 rounded-[2.5rem] flex items-center justify-center mb-8 shadow-inner rotate-3 transition-transform">
-                <Layout size={40} className="text-slate-300" strokeWidth={1.5} />
+        <Card className="flex flex-col items-center justify-center py-12 text-center animate-in fade-in zoom-in-95 duration-500">
+            <div className="h-12 w-12 rounded-full bg-brand-50 flex items-center justify-center mb-4">
+                <Layout size={20} className="text-brand-600" />
             </div>
-            <h3 className="text-2xl font-black text-slate-900 tracking-tight mb-3 italic">Clean Slate</h3>
-            <p className="text-slate-400 font-medium max-w-sm mb-10 text-sm leading-relaxed">
-                You haven't made any reservations yet. Secure your spot at the next big event and start reaching more readers.
+            <h3 className="text-base font-semibold text-neutral-900">No reservations yet</h3>
+            <p className="mt-1 text-sm text-neutral-500 max-w-sm">
+                Secure your spot at the next event and start reaching more readers.
             </p>
-            <button
-                onClick={() => navigate('/events')}
-                className="bg-slate-900 text-white px-10 py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-black transition-all shadow-xl shadow-slate-200 active:scale-95 flex items-center gap-3"
+            <Button 
+                variant="primary" 
+                className="mt-5" 
+                onClick={() => navigate('/events')} 
+                icon={<ArrowRight size={16} />}
             >
                 Start Booking
-                <ArrowRight size={14} />
-            </button>
-        </div>
+            </Button>
+        </Card>
     );
 };

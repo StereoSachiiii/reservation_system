@@ -1,4 +1,5 @@
 import { NormalizedZone } from '../../types/stallMap.utils';
+import { LogIn, LogOut } from 'lucide-react';
 
 interface MapZonesProps {
     zones: NormalizedZone[];
@@ -34,31 +35,18 @@ export default function MapZones({ zones }: MapZonesProps) {
                     )}
 
                     {zone.type === 'ENTRANCE' && (
-                        <div className="w-full h-full flex flex-col items-center justify-end pb-2"
-                            style={{
-                                background: 'rgba(59,130,246,0.15)',
-                                borderBottom: '3px solid rgba(59,130,246,0.7)',
-                                borderLeft: '2px solid rgba(59,130,246,0.4)',
-                                borderRight: '2px solid rgba(59,130,246,0.4)',
-                            }}
-                        >
-                            <span className="text-lg leading-none">🚪</span>
-                            <span className="text-[8px] font-bold uppercase tracking-widest text-blue-600 mt-1 select-none">
+                        <div className="w-full h-full flex flex-col items-center justify-center bg-transparent opacity-80">
+                            <LogIn className="w-6 h-6 text-blue-600 mb-1" />
+                            <span className="text-[9px] font-bold uppercase tracking-widest text-blue-600 select-none">
                                 {zone.label}
                             </span>
                         </div>
                     )}
 
                     {zone.type === 'FIRE_EXIT' && (
-                        <div className="w-full h-full flex flex-col items-center justify-end pb-2"
-                            style={{
-                                background: 'rgba(239,68,68,0.15)',
-                                border: '3px solid rgba(239,68,68,0.7)',
-                                borderTop: '3px solid rgba(239,68,68,0.7)', // Ensure visible border
-                            }}
-                        >
-                            <span className="text-lg leading-none">🚪</span>
-                            <span className="text-[8px] font-bold uppercase tracking-widest text-red-600 mt-1 select-none">
+                        <div className="w-full h-full flex flex-col items-center justify-center bg-transparent opacity-80">
+                            <LogOut className="w-6 h-6 text-red-600 mb-1" />
+                            <span className="text-[9px] font-bold uppercase tracking-widest text-red-600 select-none">
                                 {zone.label}
                             </span>
                         </div>

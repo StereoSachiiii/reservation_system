@@ -1,4 +1,5 @@
 import { Plus } from 'lucide-react';
+import { Button } from '@/shared/components/ui/Button';
 
 interface DashboardHeaderProps {
     businessName?: string;
@@ -9,25 +10,25 @@ interface DashboardHeaderProps {
 
 export const DashboardHeader = ({ businessName, username, canBook, onBookClick }: DashboardHeaderProps) => {
     return (
-        <header className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
-            <div>
-                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-500 mb-2 block">Command Center</span>
-                <h1 className="text-5xl font-black text-slate-900 tracking-tighter mb-2">Dashboard</h1>
-                <p className="text-slate-500 font-medium">Welcome back, <span className="text-slate-900 font-bold">{businessName || username}</span></p>
+        <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div className="space-y-1">
+                <p className="text-xs font-semibold text-brand-600 uppercase tracking-wider">
+                    Command Center
+                </p>
+                <h1 className="text-3xl font-bold text-neutral-900">Dashboard</h1>
+                <p className="text-sm text-neutral-500">
+                    Welcome back, <span className="font-medium text-neutral-700">{businessName || username}</span>
+                </p>
             </div>
 
-            <button
-                onClick={onBookClick}
+            <Button 
+                variant="primary" 
+                onClick={onBookClick} 
                 disabled={!canBook}
-                className={`group relative overflow-hidden px-8 py-4 rounded-2xl font-black uppercase text-xs tracking-widest transition-all shadow-2xl active:scale-95 flex items-center gap-2 ${canBook
-                        ? 'bg-slate-900 text-white hover:bg-slate-800 shadow-slate-200'
-                        : 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
-                    }`}
+                icon={canBook ? <Plus size={16} /> : undefined}
             >
-                {canBook && <Plus size={16} />}
-                <span className="relative z-10">{canBook ? 'Book New Stall' : 'Limit Reached'}</span>
-                {canBook && <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/0 via-indigo-500/10 to-indigo-500/0 -translate-x-full group-hover:animate-shimmer"></div>}
-            </button>
+                {canBook ? 'Book New Stall' : 'Limit Reached'}
+            </Button>
         </header>
     );
 };

@@ -1,4 +1,5 @@
 import { InputHTMLAttributes, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface FormFieldProps extends InputHTMLAttributes<HTMLInputElement> {
     label: string;
@@ -26,10 +27,10 @@ export default function FormField({ label, error, className = '', ...props }: Fo
                         props.onBlur?.(e);
                     }}
                     className={`
-                        w-full bg-gray-100 text-gray-900 placeholder-gray-500
-                        border border-gray-300 rounded-xl py-4 px-5
-                        shadow-md focus:bg-white focus:ring-2 focus:ring-primary-500 focus:shadow-glow-gold
-                        transition-all duration-200 ease-out
+                        w-full bg-gray-50/80 backdrop-blur-sm text-gray-900 placeholder-gray-400
+                        border border-gray-200 rounded-xl py-4 px-5
+                        shadow-sm focus:bg-white focus:ring-2 focus:ring-black focus:border-transparent
+                        transition-all duration-300 ease-out
                         ${error ? 'ring-2 ring-red-500 bg-red-50' : ''}
                         ${className}
                     `}
@@ -38,14 +39,25 @@ export default function FormField({ label, error, className = '', ...props }: Fo
                 {/* Tick mark indicator */}
                 <div className={`absolute right-4 top-1/2 transform -translate-y-1/2 pointer-events-none transition-all duration-300 ${(isFocused || hasValue) ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-2'
                     }`}>
-                    <div className="bg-primary-500 rounded-full p-1 shadow-sm">
+                    <div className="bg-black rounded-full p-1 shadow-sm">
                         <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                         </svg>
                     </div>
                 </div>
             </div>
-            {error && <p className="mt-2 text-sm text-red-600 font-medium">{error}</p>}
+            <AnimatePresence>
+                {error && (
+                    <motion.p
+                        initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                        animate={{ opacity: 1, height: 'auto', marginTop: 8 }}
+                        exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                        className="text-sm text-red-600 font-medium"
+                    >
+                        {error}
+                    </motion.p>
+                )}
+            </AnimatePresence>
         </div>
     );
 }
