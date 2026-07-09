@@ -176,9 +176,6 @@ export default function StallMapPage() {
                       <AerialMap 
                           layout={{ imageUrl: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=1200&q=80' }} // Mock layout for demo
                           stalls={displayedStalls.map(s => {
-                            let status = statusByStallId[s.id] || 'AVAILABLE';
-                            if (s.reserved) status = 'RESERVED';
-                            else if (selectedIds.includes(s.id)) status = 'SELECTED';
                             return {...s, position: { xPct: s.posX!/100, yPct: s.posY!/100, widthPct: s.width!/100, heightPct: s.height!/100 }};
                           })}
                           statusByStallId={statusByStallId}
