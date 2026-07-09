@@ -114,9 +114,9 @@ public class PaymentService {
                 Reservation savedReservation = reservationRepository.save(reservation);
                 
                 // Broadcast live activity ticker message
-                String vendorName = savedReservation.getUser().getName();
-                String stallName = savedReservation.getEventStall().getStall().getName();
-                String hallName = savedReservation.getEventStall().getEventHall().getHall().getName();
+                String vendorName = savedReservation.getUser().getBusinessName() != null ? savedReservation.getUser().getBusinessName() : savedReservation.getUser().getUsername();
+                String stallName = savedReservation.getEventStall().getStallTemplate().getName();
+                String hallName = savedReservation.getEventStall().getStallTemplate().getHall().getName();
                 realTimeUpdateService.broadcastGlobalActivity(
                         String.format("%s just booked %s in %s", vendorName, stallName, hallName)
                 );
