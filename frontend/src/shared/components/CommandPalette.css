@@ -1,0 +1,13 @@
+[cmdk-group-heading] {
+    padding: 8px 12px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+[cmdk-item][data-selected="true"] {
+    background-color: var(--tw-bg-opacity, rgba(241, 245, 249, 1));
+}
+
+.dark [cmdk-item][data-selected="true"] {
+    background-color: var(--tw-bg-opacity, rgba(30, 41, 59, 1));
+}

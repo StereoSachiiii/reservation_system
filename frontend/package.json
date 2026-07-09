@@ -21,6 +21,7 @@
     "@types/sockjs-client": "^1.5.4",
     "axios": "^1.6.0",
     "clsx": "^2.1.1",
+    "cmdk": "^1.1.1",
     "framer-motion": "^12.42.2",
     "html5-qrcode": "^2.3.8",
     "lucide-react": "^0.574.0",

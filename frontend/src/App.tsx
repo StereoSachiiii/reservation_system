@@ -24,6 +24,7 @@ import { EmployeeLoginPage } from '@/apps/employee/pages/EmployeeLogin'
 
 // Shared Components
 import Layout from '@/shared/components/Layout'
+import { CommandPalette } from '@/shared/components/CommandPalette'
 import ProtectedRoute from '@/shared/components/ProtectedRoute'
 import PublicRoute from '@/shared/components/PublicRoute'
 
@@ -68,6 +69,7 @@ function App() {
                 {/* Catch-all */}
                 <Route path="*" element={<NotFoundPage />} />
             </Routes>
+            <CommandPalette />
         </AnimatePresence>
     )
 }
