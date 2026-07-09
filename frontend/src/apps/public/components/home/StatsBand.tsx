@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { useInView, animate } from 'framer-motion';
 
 function AnimatedNumber({ value, suffix }: { value: number; suffix: string }) {

@@ -1,4 +1,3 @@
-import React from 'react';
 import { STALL_STATUS } from '@/constants/stallStatus';
 
 export function StallHotspot({ status, code }: { status: keyof typeof STALL_STATUS, code: string }) {

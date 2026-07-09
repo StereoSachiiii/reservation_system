@@ -1,5 +1,3 @@
-import React from 'react';
-
 export function SegmentedControl({ value, onChange, options }: any) {
     return (
         <div className="flex bg-slate-100/80 backdrop-blur p-1 rounded-xl shadow-inner border border-slate-200 inline-flex">
