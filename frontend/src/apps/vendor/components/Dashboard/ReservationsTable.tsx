@@ -39,7 +39,7 @@ export const ReservationsTable = ({ reservations, onCancel }: ReservationsTableP
     const eventNames = Object.keys(grouped).sort();
 
     return (
-        <div className="bg-white rounded-[2rem] shadow-2xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
+        <div className="bg-white rounded-[2rem] shadow-2xl shadow-slate-200/50 border border-slate-100 overflow-hidden tour-reservations">
             <div className="px-10 py-6 border-b border-slate-50 flex items-center justify-between">
                 <div>
                     <h2 className="text-xl font-black text-slate-900 tracking-tight leading-none mb-1">Active Reservations</h2>

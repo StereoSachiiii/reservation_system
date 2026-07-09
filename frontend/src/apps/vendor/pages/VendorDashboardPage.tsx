@@ -7,6 +7,7 @@ import { DashboardHeader } from '../components/Dashboard/DashboardHeader';
 import { DashboardStats } from '../components/Dashboard/DashboardStats';
 import { ReservationsTable } from '../components/Dashboard/ReservationsTable';
 import { CancelConfirmModal } from '../components/Dashboard/CancelConfirmModal';
+import { VendorOnboardingTour } from '../components/Dashboard/VendorOnboardingTour';
 import { AlertCircle, X } from 'lucide-react';
 
 export const VendorDashboardPage = () => {
@@ -35,7 +36,9 @@ export const VendorDashboardPage = () => {
     );
 
     return (
-        <div className="container mx-auto p-6 md:p-12 max-w-7xl animate-in fade-in duration-500 space-y-6">
+        <div className="container mx-auto p-6 md:p-12 max-w-7xl animate-in fade-in duration-500 space-y-6 tour-welcome">
+            <VendorOnboardingTour />
+            
             <DashboardHeader
                 businessName={user?.businessName}
                 username={user?.username || ''}

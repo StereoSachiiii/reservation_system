@@ -9,7 +9,7 @@ interface DashboardStatsProps {
 
 export const DashboardStats = ({ limit, used, remaining }: DashboardStatsProps) => {
     return (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 tour-stats">
             <StatCard 
                 label="Stall Limit" 
                 value={limit} 

@@ -21,14 +21,16 @@ export const DashboardHeader = ({ businessName, username, canBook, onBookClick }
                 </p>
             </div>
 
-            <Button 
-                variant="primary" 
-                onClick={onBookClick} 
-                disabled={!canBook}
-                icon={canBook ? <Plus size={16} /> : undefined}
-            >
-                {canBook ? 'Book New Stall' : 'Limit Reached'}
-            </Button>
+            <div className="tour-book-button">
+                <Button 
+                    variant="primary" 
+                    onClick={onBookClick} 
+                    disabled={!canBook}
+                    icon={canBook ? <Plus size={16} /> : undefined}
+                >
+                    {canBook ? 'Book New Stall' : 'Limit Reached'}
+                </Button>
+            </div>
         </header>
     );
 };

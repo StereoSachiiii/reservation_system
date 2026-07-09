@@ -9,6 +9,7 @@ import { LogoMarquee } from '@/apps/public/components/home/LogoMarquee'
 import { StatsBand } from '@/apps/public/components/home/StatsBand'
 import { HowItWorks } from '@/apps/public/components/home/HowItWorks'
 import { Testimonials } from '@/apps/public/components/home/Testimonials'
+import { HeroSlider } from '@/apps/public/components/home/HeroSlider'
 
 const LOGOS = [
   { name: 'BMICH' },
@@ -24,32 +25,8 @@ export default function HomePage() {
 
     return (
         <div className="bg-white">
-            {/* 1. Hero Section */}
-            <section className="relative overflow-hidden py-24 lg:py-32 border-b border-neutral-100">
-                <div className="absolute inset-0 -z-10">
-                    <div className="absolute top-0 left-1/4 h-72 w-72 rounded-full bg-brand-200/40 blur-3xl animate-pulse-slow" />
-                    <div className="absolute bottom-0 right-1/4 h-72 w-72 rounded-full bg-emerald-200/30 blur-3xl animate-pulse-slow [animation-delay:1.5s]" />
-                </div>
-                <motion.div
-                    initial={{ opacity: 0, y: 16 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5 }}
-                    className="max-w-3xl mx-auto px-6 text-center z-10 relative"
-                >
-                    <h1 className="text-5xl font-bold text-neutral-900 tracking-tight">
-                        Connect Authors with Readers at Scale
-                    </h1>
-                    <p className="mt-4 text-lg text-neutral-500">
-                        The all-in-one platform to discover premium book fairs, secure your
-                        exhibition stalls, and manage your publishing presence effortlessly.
-                    </p>
-                    <div className="mt-8 flex justify-center">
-                        <Button variant="primary" onClick={() => navigate('/events')}>
-                            {HOME_COPY.bookStallCta}
-                        </Button>
-                    </div>
-                </motion.div>
-            </section>
+            {/* 1. Hero Slider Section */}
+            <HeroSlider />
 
             {/* 2. Logo / Venue Strip */}
             <LogoMarquee logos={LOGOS} />
