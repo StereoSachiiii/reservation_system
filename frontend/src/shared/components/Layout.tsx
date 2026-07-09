@@ -2,7 +2,6 @@ import { Outlet } from 'react-router-dom';
 import Navbar from './Navbar';
 import HelpBot from './HelpBot/HelpBot';
 import { LiveActivityTicker } from '@/apps/public/components/LiveActivityTicker';
-import { CommandPalette } from './CommandPalette';
 
 export default function Layout() {
     return (
