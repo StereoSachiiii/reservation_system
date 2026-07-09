@@ -101,8 +101,8 @@ export const RevenueChart = () => {
               }}
               itemStyle={{ color: '#e2e8f0', fontSize: '14px', fontWeight: 600 }}
               labelStyle={{ color: '#94a3b8', fontSize: '12px', marginBottom: '4px' }}
-              formatter={(value: number, name: string) => [
-                name === 'revenue' ? formatCurrency(value) : value, 
+              formatter={(value: any, name: any) => [
+                name === 'revenue' ? formatCurrency(value as number) : value, 
                 name === 'revenue' ? 'Revenue' : 'Bookings'
               ]}
             />
