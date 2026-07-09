@@ -13,6 +13,7 @@ import {
 import { ActivityLogPreview } from '../components/Dashboard/ActivityLogPreview';
 import { EventManagementTable } from '../components/Dashboard/EventManagementTable';
 import { EventFormModal } from '../components/Dashboard/EventFormModal';
+import { RevenueChart } from '../components/Dashboard/RevenueChart';
 
 export default function Dashboard() {
     const {
@@ -99,6 +100,8 @@ export default function Dashboard() {
                             color="amber"
                         />
                     </div>
+
+                    <RevenueChart />
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
                         {/* Audit Log Preview */}
