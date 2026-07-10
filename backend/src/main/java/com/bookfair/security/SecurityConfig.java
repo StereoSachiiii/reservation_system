@@ -156,6 +156,9 @@ public class SecurityConfig {
         return http.build();
     }
 
+    @org.springframework.beans.factory.annotation.Value("${app.frontend.url}")
+    private String frontendUrl;
+
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
@@ -165,7 +168,8 @@ public class SecurityConfig {
             "http://localhost:3000",
             "http://127.0.0.1:5173",
             "http://localhost",
-            "https://Bookit2day.duckdns.org"
+            "https://Bookit2day.duckdns.org",
+            frontendUrl
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("authorization", "content-type", "x-auth-token"));
