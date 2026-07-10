@@ -182,7 +182,7 @@ export default function StallMapPage() {
               ) : (
                   <div className="w-full h-full p-8 pt-20 flex justify-center items-start overflow-y-auto">
                       <AerialMap 
-                          layout={{ imageUrl: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=1200&q=80' }} // Mock layout for demo
+                          layout={{ imageUrl: selectedHall && (selectedHall.toLowerCase().includes('b') || selectedHall.toLowerCase().includes('ogf') || selectedHall.toLowerCase().includes('stationery')) ? '/aerial-hall-b.png' : '/aerial-hall-a.png' }}
                           stalls={aerialStalls}
                           statusByStallId={statusByStallId}
                           onSelectStall={handleStallClick}
