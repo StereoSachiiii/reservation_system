@@ -35,9 +35,9 @@ jobs:
               
               mkdir -p logs/backend logs/frontend
               
-              if [ ! -f .env ]; then
-                cp .env.production .env
-              fi
+              # Copy fresh .env.production and inject secrets
+              cp .env.production .env
+              sed -i 's/your_google_client_id_here/${{ secrets.GOOGLE_CLIENT_ID }}/g' .env
               
               docker-compose -f docker-compose.yml up -d --build
               docker image prune -f
