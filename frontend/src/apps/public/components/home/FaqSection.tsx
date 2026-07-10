@@ -24,11 +24,11 @@ export function FaqSection() {
     const [openIndex, setOpenIndex] = useState<number | null>(null);
 
     return (
-        <section className="py-24 bg-white border-t border-neutral-100">
+        <section className="py-24 bg-white dark:bg-slate-900 border-t border-neutral-100 dark:border-slate-800 transition-colors duration-200">
             <div className="max-w-4xl mx-auto px-6">
                 <div className="text-center mb-16">
-                    <h2 className="text-3xl font-bold text-neutral-900 tracking-tight sm:text-4xl">Frequently Asked Questions</h2>
-                    <p className="mt-4 text-lg text-neutral-600">Everything you need to know about booking and managing your stalls.</p>
+                    <h2 className="text-3xl font-bold text-neutral-900 dark:text-white tracking-tight sm:text-4xl">Frequently Asked Questions</h2>
+                    <p className="mt-4 text-lg text-neutral-600 dark:text-neutral-400">Everything you need to know about booking and managing your stalls.</p>
                 </div>
 
                 <div className="space-y-4">
@@ -37,16 +37,16 @@ export function FaqSection() {
                         return (
                             <div 
                                 key={index} 
-                                className={`border border-neutral-200 rounded-2xl overflow-hidden transition-colors duration-200 ${isOpen ? 'bg-neutral-50 border-brand-200' : 'bg-white hover:bg-neutral-50/50'}`}
+                                className={`border border-neutral-200 dark:border-slate-800 rounded-2xl overflow-hidden transition-colors duration-200 ${isOpen ? 'bg-neutral-50 dark:bg-slate-800 border-brand-200 dark:border-brand-800' : 'bg-white dark:bg-slate-900 hover:bg-neutral-50/50 dark:hover:bg-slate-800/50'}`}
                             >
                                 <button
                                     onClick={() => setOpenIndex(isOpen ? null : index)}
-                                    className="w-full text-left px-6 py-5 flex items-center justify-between focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
+                                    className="w-full text-left px-6 py-5 flex items-center justify-between focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
                                 >
-                                    <span className={`font-semibold text-lg ${isOpen ? 'text-brand-700' : 'text-neutral-900'}`}>
+                                    <span className={`font-semibold text-lg ${isOpen ? 'text-brand-700 dark:text-brand-400' : 'text-neutral-900 dark:text-white'}`}>
                                         {faq.question}
                                     </span>
-                                    <span className={`ml-6 flex-shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180 text-brand-600' : 'text-neutral-400'}`}>
+                                    <span className={`ml-6 flex-shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180 text-brand-600 dark:text-brand-400' : 'text-neutral-400 dark:text-neutral-500'}`}>
                                         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                                         </svg>

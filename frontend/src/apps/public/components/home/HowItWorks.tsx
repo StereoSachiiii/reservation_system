@@ -80,21 +80,21 @@ export function HowItWorks() {
               borderColor: "rgba(99, 102, 241, 0.5)"
             }}
             whileTap={{ scale: 0.95 }}
-            className="group relative bg-white border border-neutral-100 p-8 rounded-3xl transition-colors cursor-pointer hover:bg-brand-50/30"
+            className="group relative bg-white dark:bg-slate-900 border border-neutral-100 dark:border-slate-800 p-8 rounded-3xl transition-colors cursor-pointer hover:bg-brand-50/30 dark:hover:bg-slate-800"
           >
             {/* Animated background blob on hover */}
             <div className="absolute inset-0 bg-gradient-to-br from-brand-100 to-transparent opacity-0 group-hover:opacity-20 transition-opacity duration-500 rounded-3xl -z-10" />
             
             <motion.span 
-              className="inline-block text-5xl font-black text-brand-100 mb-6 group-hover:text-brand-500 transition-colors duration-300"
+              className="inline-block text-5xl font-black text-brand-100 dark:text-brand-900 mb-6 group-hover:text-brand-500 transition-colors duration-300"
               initial={{ scale: 1 }}
               whileHover={{ rotate: [-5, 5, 0], scale: 1.1 }}
             >
               {step.number}
             </motion.span>
             
-            <h3 className="text-xl font-bold text-neutral-900 group-hover:text-brand-700 transition-colors">{step.title}</h3>
-            <p className="mt-4 text-base text-neutral-600 leading-relaxed group-hover:text-neutral-800">{step.description}</p>
+            <h3 className="text-xl font-bold text-neutral-900 dark:text-white group-hover:text-brand-700 transition-colors">{step.title}</h3>
+            <p className="mt-4 text-base text-neutral-600 dark:text-neutral-400 leading-relaxed group-hover:text-neutral-800 dark:group-hover:text-neutral-200">{step.description}</p>
           </motion.div>
         ))}
       </motion.div>

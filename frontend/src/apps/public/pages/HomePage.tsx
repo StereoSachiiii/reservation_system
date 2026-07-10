@@ -10,6 +10,10 @@ import { HowItWorks } from '@/apps/public/components/home/HowItWorks'
 import { Testimonials } from '@/apps/public/components/home/Testimonials'
 import { HeroSlider } from '@/apps/public/components/home/HeroSlider'
 import { FaqSection } from '@/apps/public/components/home/FaqSection'
+import { ForVendorsOrOrganizers } from '@/apps/public/components/home/ForVendorsOrOrganizers'
+import { WhyBookFair } from '@/apps/public/components/home/WhyBookFair'
+import { CredibilitySection } from '@/apps/public/components/home/CredibilitySection'
+import { FeaturedEvent } from '@/apps/public/components/home/FeaturedEvent'
 
 const LOGOS = [
   { name: 'BMICH' },
@@ -24,7 +28,7 @@ export default function HomePage() {
     const dateStr = new Date().toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
 
     return (
-        <div className="bg-white">
+        <div className="bg-white dark:bg-slate-900 transition-colors duration-200">
             {/* 1. Hero Slider Section */}
             <HeroSlider />
 
@@ -34,21 +38,29 @@ export default function HomePage() {
             {/* 3. Stats Band */}
             <StatsBand />
 
-            {/* 4. Feature Grid (Reimagined w/ How It Works) */}
+            {/* 4. Feature Grid (How It Works) */}
             <HowItWorks />
 
-            {/* 5. Testimonials */}
+            {/* 5. Why BookFair Comparison */}
+            <WhyBookFair />
+
+            {/* 6. Vendors or Organizers Split */}
+            <ForVendorsOrOrganizers />
+
+            {/* 7. Testimonials */}
             <Testimonials />
 
-            {/* 5. Upcoming Events Preview */}
-            <section className="py-20 bg-neutral-50">
-                <div className="max-w-7xl mx-auto px-6">
+            {/* 8. Featured Event + Upcoming Events Preview */}
+            <section className="bg-neutral-50 dark:bg-slate-800 transition-colors duration-200">
+                <FeaturedEvent />
+                
+                <div className="max-w-7xl mx-auto px-6 pb-20">
                     <div className="flex items-center justify-between mb-10">
                         <div>
-                            <h2 className="text-2xl font-semibold text-neutral-900">{HOME_COPY.upcomingEventsTitle}</h2>
-                            {user && <p className="text-sm text-neutral-500 mt-1">{HOME_COPY.welcomeBack(user.username, dateStr)}</p>}
+                            <h2 className="text-2xl font-semibold text-neutral-900 dark:text-white">{HOME_COPY.upcomingEventsTitle}</h2>
+                            {user && <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">{HOME_COPY.welcomeBack(user.username, dateStr)}</p>}
                         </div>
-                        <Link to="/events" className="text-sm font-semibold text-brand-600 hover:text-brand-700">
+                        <Link to="/events" className="text-sm font-semibold text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300 transition-colors">
                             {HOME_COPY.viewAllEvents}
                         </Link>
                     </div>
@@ -56,19 +68,22 @@ export default function HomePage() {
                 </div>
             </section>
 
-            {/* 6. FAQ Section */}
+            {/* 9. About / Team Credibility */}
+            <CredibilitySection />
+
+            {/* 10. FAQ Section */}
             <FaqSection />
 
-            {/* 7. Footer CTA Band */}
-            <section className="py-24 bg-brand-50 border-t border-brand-100 text-center">
+            {/* 11. Footer CTA Band */}
+            <section className="py-24 bg-brand-50 dark:bg-brand-950/20 border-t border-brand-100 dark:border-brand-900/30 text-center transition-colors duration-200">
                 <div className="max-w-3xl mx-auto px-6">
-                    <h2 className="text-3xl font-semibold text-neutral-900 mb-6">{HOME_COPY.expandPresenceTitle}</h2>
-                    <p className="text-lg text-neutral-600 mb-8">{HOME_COPY.expandPresenceBody}</p>
+                    <h2 className="text-3xl font-semibold text-neutral-900 dark:text-white mb-6">{HOME_COPY.expandPresenceTitle}</h2>
+                    <p className="text-lg text-neutral-600 dark:text-neutral-400 mb-8">{HOME_COPY.expandPresenceBody}</p>
                     <div className="flex justify-center items-center gap-4 flex-col sm:flex-row">
                         <Button variant="primary" onClick={() => navigate('/events')}>
                             {HOME_COPY.bookStallCta}
                         </Button>
-                        <Button variant="secondary" className="border-brand-200 text-brand-700 hover:bg-brand-100" onClick={() => window.location.href = 'mailto:paulaabdul1209@gmail.com'}>
+                        <Button variant="secondary" className="border-brand-200 dark:border-brand-800 text-brand-700 dark:text-brand-400 hover:bg-brand-100 dark:hover:bg-brand-900/40" onClick={() => window.location.href = 'mailto:paulaabdul1209@gmail.com'}>
                             Contact Us to Host an Event
                         </Button>
                     </div>

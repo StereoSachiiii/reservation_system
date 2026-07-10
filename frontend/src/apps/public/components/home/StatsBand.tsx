@@ -18,7 +18,7 @@ function AnimatedNumber({ value, suffix }: { value: number; suffix: string }) {
   }, [isInView, value]);
 
   return (
-    <span ref={ref} className="text-4xl font-bold text-neutral-900 tracking-tight block mb-2">
+    <span ref={ref} className="text-4xl font-bold text-neutral-900 dark:text-white tracking-tight block mb-2">
       {display.toLocaleString()}{suffix}
     </span>
   );
@@ -32,24 +32,24 @@ export function StatsBand() {
   });
 
   return (
-    <section className="py-16 bg-white border-y border-neutral-100">
+    <section className="py-16 bg-white dark:bg-slate-900 border-y border-neutral-100 dark:border-slate-800">
       <div className="max-w-7xl mx-auto px-6">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
           <div>
-            <AnimatedNumber value={stats?.activeVendors || 0} suffix="+" />
-            <div className="text-sm text-neutral-500">Active Publishers</div>
+            {stats ? <AnimatedNumber value={stats.activeVendors} suffix="+" /> : <span className="text-4xl font-bold text-neutral-900 dark:text-white tracking-tight block mb-2">-</span>}
+            <div className="text-sm text-neutral-500 dark:text-neutral-400">Active Publishers</div>
           </div>
           <div>
-            <AnimatedNumber value={stats?.stallsReserved || 0} suffix="+" />
-            <div className="text-sm text-neutral-500">Stalls Reserved</div>
+            {stats ? <AnimatedNumber value={stats.stallsReserved} suffix="+" /> : <span className="text-4xl font-bold text-neutral-900 dark:text-white tracking-tight block mb-2">-</span>}
+            <div className="text-sm text-neutral-500 dark:text-neutral-400">Stalls Reserved</div>
           </div>
           <div>
-            <AnimatedNumber value={stats?.upcomingEvents || 0} suffix="" />
-            <div className="text-sm text-neutral-500">Upcoming Events</div>
+            {stats ? <AnimatedNumber value={stats.upcomingEvents} suffix="" /> : <span className="text-4xl font-bold text-neutral-900 dark:text-white tracking-tight block mb-2">-</span>}
+            <div className="text-sm text-neutral-500 dark:text-neutral-400">Upcoming Events</div>
           </div>
           <div>
             <AnimatedNumber value={100} suffix="%" />
-            <div className="text-sm text-neutral-500">Secure Payments</div>
+            <div className="text-sm text-neutral-500 dark:text-neutral-400">Secure Payments</div>
           </div>
         </div>
       </div>
