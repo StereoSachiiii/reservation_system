@@ -11,7 +11,6 @@ import {
 import { formatCurrency } from '@/shared/utils/format';
 import { TrendingUp, BarChart3 } from 'lucide-react';
 import { adminApi } from '@/shared/api/adminApi';
-import { Reservation } from '@/shared/types/api';
 
 interface ChartDataPoint {
   date: string;
