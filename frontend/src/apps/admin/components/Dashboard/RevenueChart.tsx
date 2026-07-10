@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useEffect, useState } from 'react';
 import {
   AreaChart,
   Area,
@@ -10,39 +10,78 @@ import {
 } from 'recharts';
 import { formatCurrency } from '@/shared/utils/format';
 import { TrendingUp, BarChart3 } from 'lucide-react';
+import { adminApi } from '@/shared/api/adminApi';
+import { Reservation } from '@/shared/types/api';
 
-// Generates 30 days of realistic-looking mock timeseries data
-const generateMockData = () => {
-  const data = [];
-  let baseValue = 50000;
-  const now = new Date();
-  
-  for (let i = 30; i >= 0; i--) {
-    const d = new Date(now);
-    d.setDate(d.getDate() - i);
-    
-    // Add some random noise and an upward trend
-    const noise = (Math.random() - 0.4) * 20000;
-    baseValue = Math.max(10000, baseValue + noise + 2000); // Trend upwards slightly
-    
-    data.push({
-      date: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-      revenue: Math.round(baseValue),
-      bookings: Math.floor(baseValue / 5000) + Math.floor(Math.random() * 5)
-    });
-  }
-  return data;
-};
+interface ChartDataPoint {
+  date: string;
+  revenue: number;
+  bookings: number;
+}
 
 export const RevenueChart = () => {
-  const data = useMemo(() => generateMockData(), []);
+  const [data, setData] = useState<ChartDataPoint[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Compute total for the header
-  const total30Days = data.reduce((sum, item) => sum + item.revenue, 0);
-  const totalBookings = data.reduce((sum, item) => sum + item.bookings, 0);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const reservations = await adminApi.getAllReservations();
+        
+        // Filter for paid/checked-in reservations
+        const validReservations = reservations.filter(r => 
+          r.status === 'PAID' || r.status === 'CHECKED_IN'
+        );
+
+        // Build 30-day map
+        const last30Days = new Map<string, { revenue: number, bookings: number }>();
+        const now = new Date();
+        
+        // Initialize last 30 days with 0
+        for (let i = 29; i >= 0; i--) {
+          const d = new Date(now);
+          d.setDate(d.getDate() - i);
+          const key = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+          last30Days.set(key, { revenue: 0, bookings: 0 });
+        }
+
+        // Aggregate data
+        validReservations.forEach(r => {
+          const d = new Date(r.createdAt);
+          const key = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+          if (last30Days.has(key)) {
+            const current = last30Days.get(key)!;
+            last30Days.set(key, {
+              revenue: current.revenue + ((r.totalPriceCents || 0) / 100),
+              bookings: current.bookings + (r.stalls ? r.stalls.length : 1)
+            });
+          }
+        });
+
+        // Convert map to array
+        const chartData = Array.from(last30Days.entries()).map(([date, stats]) => ({
+          date,
+          revenue: stats.revenue,
+          bookings: stats.bookings
+        }));
+
+        setData(chartData);
+      } catch (err) {
+        console.error("Failed to load revenue data", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const total30Days = useMemo(() => data.reduce((sum, item) => sum + item.revenue, 0), [data]);
+  const totalBookings = useMemo(() => data.reduce((sum, item) => sum + item.bookings, 0), [data]);
 
   return (
-    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm overflow-hidden relative">
+    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm overflow-hidden relative min-h-[400px]">
       {/* Decorative gradient orb */}
       <div className="absolute -top-24 -right-24 w-64 h-64 bg-indigo-500/10 dark:bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
 
@@ -56,66 +95,74 @@ export const RevenueChart = () => {
           </div>
           <div className="flex items-baseline gap-3">
             <h3 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-              {formatCurrency(total30Days)}
+              {loading ? "..." : formatCurrency(total30Days)}
             </h3>
-            <span className="flex items-center text-sm font-semibold text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30 px-2 py-0.5 rounded-full">
-              <TrendingUp className="w-3 h-3 mr-1" />
-              +14.2%
-            </span>
+            {!loading && total30Days > 0 && (
+              <span className="flex items-center text-sm font-semibold text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30 px-2 py-0.5 rounded-full">
+                <TrendingUp className="w-3 h-3 mr-1" />
+                Actual
+              </span>
+            )}
           </div>
-          <p className="text-sm text-slate-500 mt-1">{totalBookings} total stalls reserved</p>
+          <p className="text-sm text-slate-500 mt-1">{loading ? "Loading data..." : `${totalBookings} total stalls reserved`}</p>
         </div>
       </div>
 
       <div className="h-[300px] w-full">
-        <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={data} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
-            <defs>
-              <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
-                <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
-              </linearGradient>
-            </defs>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--tw-colors-slate-200, #e2e8f0)" opacity={0.5} className="dark:opacity-10" />
-            <XAxis 
-              dataKey="date" 
-              axisLine={false} 
-              tickLine={false} 
-              tick={{ fontSize: 12, fill: '#94a3b8' }} 
-              dy={10} 
-            />
-            <YAxis 
-              axisLine={false} 
-              tickLine={false} 
-              tick={{ fontSize: 12, fill: '#94a3b8' }}
-              tickFormatter={(value) => `Rs.${(value / 1000).toFixed(0)}k`}
-              dx={-10}
-            />
-            <Tooltip
-              contentStyle={{
-                backgroundColor: 'rgba(15, 23, 42, 0.9)',
-                borderRadius: '12px',
-                border: '1px solid rgba(255,255,255,0.1)',
-                boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
-                color: '#fff',
-              }}
-              itemStyle={{ color: '#e2e8f0', fontSize: '14px', fontWeight: 600 }}
-              labelStyle={{ color: '#94a3b8', fontSize: '12px', marginBottom: '4px' }}
-              formatter={(value: any, name: any) => [
-                name === 'revenue' ? formatCurrency(value as number) : value, 
-                name === 'revenue' ? 'Revenue' : 'Bookings'
-              ]}
-            />
-            <Area 
-              type="monotone" 
-              dataKey="revenue" 
-              stroke="#6366f1" 
-              strokeWidth={3}
-              fillOpacity={1} 
-              fill="url(#colorRevenue)" 
-            />
-          </AreaChart>
-        </ResponsiveContainer>
+        {loading ? (
+          <div className="w-full h-full flex items-center justify-center">
+            <div className="w-8 h-8 border-4 border-slate-100 border-t-indigo-600 rounded-full animate-spin"></div>
+          </div>
+        ) : (
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={data} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
+              <defs>
+                <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--tw-colors-slate-200, #e2e8f0)" opacity={0.5} className="dark:opacity-10" />
+              <XAxis 
+                dataKey="date" 
+                axisLine={false} 
+                tickLine={false} 
+                tick={{ fontSize: 12, fill: '#94a3b8' }} 
+                dy={10} 
+              />
+              <YAxis 
+                axisLine={false} 
+                tickLine={false} 
+                tick={{ fontSize: 12, fill: '#94a3b8' }}
+                tickFormatter={(value) => `Rs.${(value / 1000).toFixed(0)}k`}
+                dx={-10}
+              />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                  borderRadius: '12px',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+                  color: '#fff',
+                }}
+                itemStyle={{ color: '#e2e8f0', fontSize: '14px', fontWeight: 600 }}
+                labelStyle={{ color: '#94a3b8', fontSize: '12px', marginBottom: '4px' }}
+                formatter={(value: any, name: any) => [
+                  name === 'revenue' ? formatCurrency(value as number) : value, 
+                  name === 'revenue' ? 'Revenue' : 'Bookings'
+                ]}
+              />
+              <Area 
+                type="monotone" 
+                dataKey="revenue" 
+                stroke="#6366f1" 
+                strokeWidth={3}
+                fillOpacity={1} 
+                fill="url(#colorRevenue)" 
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        )}
       </div>
     </div>
   );
