@@ -61,7 +61,7 @@ function DesignerWorkspace({
     const { stalls, zones, influences, editingStallId } = useDesigner();
 
     return (
-        <div className="flex h-[calc(100vh-64px)] -m-6 flex-col bg-gray-50 text-gray-900 font-sans">
+        <div className="flex h-[calc(100vh-64px)] -m-8 overflow-hidden flex-col bg-gray-50 text-gray-900 font-sans">
             <DesignerHeader
                 onSave={() => onSave(stalls, zones, influences)}
                 saving={saving}

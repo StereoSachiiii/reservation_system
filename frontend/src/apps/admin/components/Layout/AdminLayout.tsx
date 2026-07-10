@@ -14,8 +14,8 @@ export const AdminLayout = () => {
         <div className="flex bg-gray-50 min-h-screen">
             <AdminSidebar />
 
-            <div className="flex-1 flex flex-col">
-                <header className="h-16 bg-white border-b border-gray-200 flex justify-end items-center px-8 gap-4">
+            <div className="flex-1 flex flex-col min-w-0">
+                <header className="h-16 bg-white border-b border-gray-200 flex justify-end items-center px-8 gap-4 flex-shrink-0">
                     <div className="flex items-center gap-2 text-gray-700 font-semibold border-r border-gray-200 pr-4">
                         <User size={18} className="text-blue-600" />
                         <span>{user?.username}</span>

@@ -25,7 +25,7 @@ export const AdminSidebar = () => {
     const location = useLocation();
 
     return (
-        <aside className="w-64 bg-gray-900 text-white flex flex-col min-h-screen">
+        <aside className="w-64 flex-shrink-0 bg-gray-900 text-white flex flex-col min-h-screen">
             <div className="p-6 border-b border-gray-800">
                 <h2 className="text-xl font-bold text-white">Admin Console</h2>
                 <p className="text-xs text-gray-500 font-medium uppercase mt-1">Stall Reservation System</p>
