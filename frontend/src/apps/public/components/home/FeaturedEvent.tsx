@@ -13,7 +13,7 @@ export function FeaturedEvent() {
     if (isLoading || events.length === 0) return null;
 
     // Get the most important/nearest upcoming event
-    const featured = events.find(e => e.status === 'UPCOMING' || e.status === 'ONGOING' || e.status === 'OPEN') || events[0];
+    const featured = events.find(e => e.status === 'OPEN') || events[0];
     
     // Mock image since the API might not provide a heroImage
     const heroImage = "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&q=80&w=1000";
