@@ -116,9 +116,12 @@ services:
         VITE_STRIPE_KEY: ${STRIPE_PUBLIC_KEY}
         VITE_GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
     image: bookfair-frontend
-    ports:
-      - "5173:80"
-      - "443:443"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.reservation.rule=Host(`reservation.20.244.0.92.nip.io`)"
+      - "traefik.http.routers.reservation.entrypoints=websecure"
+      - "traefik.http.routers.reservation.tls.certresolver=myresolver"
+      - "traefik.http.services.reservation.loadbalancer.server.port=80"
     deploy:
       restart_policy:
         condition: on-failure
@@ -128,14 +131,16 @@ services:
           memory: 256M
     volumes:
       - ./logs/frontend:/var/log/nginx
-      - ./certs:/etc/ssl/certs:ro
     depends_on:
       - backend
     networks:
       - reservation-net
+      - global-proxy-net
 
 networks:
   reservation-net:
+  global-proxy-net:
+    external: true
 
 volumes:
   postgres_data:
