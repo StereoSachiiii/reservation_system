@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
 import { Joyride, Step, STATUS } from 'react-joyride';
 
-export const VendorOnboardingTour = () => {
+export const ReservationDetailTour = () => {
   const [run, setRun] = useState(false);
 
   useEffect(() => {
-    const hasCompletedTour = localStorage.getItem('vendor-tour-completed');
+    const hasCompletedTour = localStorage.getItem('reservation-detail-tour-completed');
     if (!hasCompletedTour) {
       setRun(true);
-      localStorage.setItem('vendor-tour-completed', 'true');
+      localStorage.setItem('reservation-detail-tour-completed', 'true');
     }
   }, []);
 
@@ -23,24 +23,29 @@ export const VendorOnboardingTour = () => {
 
   const steps: Step[] = [
     {
-      target: '.tour-welcome',
-      content: 'Welcome to your new Vendor Dashboard! Let us show you around.',
-      placement: 'center',
-    },
-    {
-      target: '.tour-book-button',
-      content: 'Click here whenever you want to browse the floor plan and reserve a new stall.',
+      target: '.tour-hero',
+      content: 'Welcome to your Reservation Details! This banner shows the overall status of your booking.',
       placement: 'bottom',
     },
     {
-      target: '.tour-stats',
-      content: 'Keep an eye on your stall limit here. You can reserve up to your approved limit.',
-      placement: 'bottom',
-    },
-    {
-      target: '.tour-reservations',
-      content: 'All your active and pending stall reservations will appear in this table. You can also cancel them from here if needed.',
+      target: '.tour-datetime',
+      content: 'Here is the exact date and time your stall is reserved for. Mark your calendar!',
       placement: 'top',
+    },
+    {
+      target: '.tour-location',
+      content: 'This is the physical location and dimensions of your stall. You can find detailed hall specifications on the floor plan map.',
+      placement: 'top',
+    },
+    {
+      target: '.tour-ticket',
+      content: 'Important! Download this QR code. You must show this to the venue employees for access on the day of the event.',
+      placement: 'left',
+    },
+    {
+      target: '.tour-payment',
+      content: 'Review your billing summary or complete any pending payments here.',
+      placement: 'left',
     },
   ];
 
@@ -58,7 +63,7 @@ export const VendorOnboardingTour = () => {
           primaryColor: '#6366f1', // Indigo-500
           textColor: '#334155', // Slate-700
           backgroundColor: '#ffffff',
-          overlayColor: 'rgba(15, 23, 42, 0.7)', // Slate-900 with opacity
+          overlayColor: 'rgba(15, 23, 42, 0.7)',
           zIndex: 1000,
         },
         tooltipContainer: {

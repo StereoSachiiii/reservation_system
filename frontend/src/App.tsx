@@ -15,6 +15,9 @@ import ResetPasswordPage from '@/apps/public/pages/ResetPasswordPage'
 import EventsPage from '@/apps/public/pages/EventsPage'
 import EventDetailsPage from '@/apps/public/pages/EventDetailsPage'
 import StallMapPage from '@/apps/public/pages/StallMapPage'
+import TermsOfServicePage from '@/apps/public/pages/TermsOfServicePage'
+import PrivacyPolicyPage from '@/apps/public/pages/PrivacyPolicyPage'
+import ContactPage from '@/apps/public/pages/ContactPage'
 import { CheckoutPage } from '@/apps/vendor/pages/CheckoutPage' // Shared/Vendor
 import NotFoundPage from '@/apps/public/pages/NotFoundPage'
 
@@ -47,6 +50,9 @@ function App() {
                     <Route path="/home" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
                     <Route path="/events" element={<ProtectedRoute><EventsPage /></ProtectedRoute>} />
                     <Route path="/events/:id" element={<ProtectedRoute><EventDetailsPage /></ProtectedRoute>} />
+                    <Route path="/tos" element={<TermsOfServicePage />} />
+                    <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+                    <Route path="/contact" element={<ContactPage />} />
 
                     {/* Vendor Module Routes */}
                     <Route path="/vendor/*" element={<VendorRoutes />} />

@@ -1,5 +1,4 @@
 import { Link, useNavigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
 import UpcomingEvents from '@/apps/public/components/UpcomingEvents'
 import { HOME_COPY } from '@/copy/home.copy'
 import { Button } from '@/shared/components/ui/Button'
@@ -10,6 +9,7 @@ import { StatsBand } from '@/apps/public/components/home/StatsBand'
 import { HowItWorks } from '@/apps/public/components/home/HowItWorks'
 import { Testimonials } from '@/apps/public/components/home/Testimonials'
 import { HeroSlider } from '@/apps/public/components/home/HeroSlider'
+import { FaqSection } from '@/apps/public/components/home/FaqSection'
 
 const LOGOS = [
   { name: 'BMICH' },
@@ -56,14 +56,20 @@ export default function HomePage() {
                 </div>
             </section>
 
+            {/* 6. FAQ Section */}
+            <FaqSection />
+
             {/* 7. Footer CTA Band */}
             <section className="py-24 bg-brand-50 border-t border-brand-100 text-center">
                 <div className="max-w-3xl mx-auto px-6">
                     <h2 className="text-3xl font-semibold text-neutral-900 mb-6">{HOME_COPY.expandPresenceTitle}</h2>
                     <p className="text-lg text-neutral-600 mb-8">{HOME_COPY.expandPresenceBody}</p>
-                    <div className="flex justify-center">
+                    <div className="flex justify-center items-center gap-4 flex-col sm:flex-row">
                         <Button variant="primary" onClick={() => navigate('/events')}>
                             {HOME_COPY.bookStallCta}
+                        </Button>
+                        <Button variant="secondary" className="border-brand-200 text-brand-700 hover:bg-brand-100" onClick={() => window.location.href = 'mailto:paulaabdul1209@gmail.com'}>
+                            Contact Us to Host an Event
                         </Button>
                     </div>
                 </div>

@@ -100,6 +100,8 @@ services:
       restart_policy:
         condition: on-failure
         max_attempts: 5
+    ports:
+      - "8000:8000"
     volumes:
       - .:/app/docs:ro
     networks:
@@ -115,7 +117,7 @@ services:
         VITE_GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
     image: bookfair-frontend
     ports:
-      - "3000:80"
+      - "5173:80"
     deploy:
       restart_policy:
         condition: on-failure

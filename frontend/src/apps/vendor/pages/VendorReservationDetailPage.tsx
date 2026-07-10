@@ -4,15 +4,14 @@ import { useVendorReservationDetail } from '../hooks/useVendorReservationDetail'
 import { paymentApi } from '@/shared/api/paymentApi';
 
 // Sub-components
-import { ReservationHeader } from '../components/VendorReservationDetail/ReservationHeader';
-import { EventDetailBanner } from '../components/VendorReservationDetail/EventDetailBanner';
 import { StallAllocation } from '../components/VendorReservationDetail/StallAllocation';
 import { EntryPass } from '../components/VendorReservationDetail/EntryPass';
 import { PaymentSummary } from '../components/VendorReservationDetail/PaymentSummary';
 import { GenreEditModal } from '../components/VendorReservationDetail/GenreEditModal';
 import { CancelReservationModal } from '../components/VendorReservationDetail/CancelReservationModal';
 import { QrFullscreenModal } from '../components/VendorReservationDetail/QrFullscreenModal';
-import { Loader2, AlertCircle, ChevronLeft, CreditCard, Trash2, ShieldCheck, RefreshCw } from 'lucide-react';
+import { ReservationDetailTour } from '../components/VendorReservationDetail/ReservationDetailTour';
+import { Loader2, AlertCircle, ChevronLeft, CreditCard, Trash2, ShieldCheck, RefreshCw, Calendar, Tag } from 'lucide-react';
 
 const AVAILABLE_CATEGORIES = [
     { id: 'FICTION', label: 'Fiction' },
@@ -85,88 +84,157 @@ export const VendorReservationDetailPage = () => {
         );
     }
 
-    const { status } = reservation;
+    const { status, event } = reservation;
     const isCancelled = status === 'CANCELLED';
+    const isPaid = status === 'PAID';
+
+    // Safely parse date
+    let formattedDate = 'TBA';
+    if ((event as any)?.startDate) {
+        const d = new Date((event as any).startDate);
+        if (!isNaN(d.getTime())) {
+            formattedDate = d.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        }
+    }
 
     return (
-        <div className="container mx-auto p-4 md:p-8 max-w-5xl animate-in fade-in duration-500">
-            <ReservationHeader reservation={reservation} />
+        <div className="animate-in fade-in duration-500 bg-white min-h-screen pb-32">
+            <ReservationDetailTour />
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Main Content */}
-                <div className="lg:col-span-2 space-y-8">
-                    {reservation.event && <EventDetailBanner event={reservation.event} />}
-                    <StallAllocation reservation={reservation} />
+            {/* Hero Header */}
+            <div className="tour-hero bg-slate-900 text-white pt-12 pb-20 px-6 md:px-12 relative overflow-hidden border-b-8 border-indigo-500">
+                <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-indigo-500/20 rounded-full blur-[120px] pointer-events-none -translate-y-1/2 translate-x-1/3" />
+                <div className="max-w-4xl mx-auto relative z-10">
+                    <button
+                        onClick={() => navigate('/home')}
+                        className="text-slate-400 hover:text-white flex items-center gap-2 mb-8 font-bold text-sm transition-colors"
+                    >
+                        <ChevronLeft size={16} strokeWidth={2.5} />
+                        Back to Dashboard
+                    </button>
+                    
+                    <div className="flex items-center gap-3 mb-6">
+                        <span className={`px-4 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-full ${
+                            isPaid ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30' :
+                            isCancelled ? 'bg-red-500 text-white shadow-lg shadow-red-500/30' :
+                            'bg-amber-500 text-white shadow-lg shadow-amber-500/30'
+                        }`}>
+                            {status.replace('_', ' ')}
+                        </span>
+                        <span className="text-indigo-300 font-bold text-xs uppercase tracking-widest">
+                            Booking #{reservation.id}
+                        </span>
+                    </div>
+                    <h1 className="text-5xl md:text-6xl font-black text-white tracking-tight leading-tight">
+                        {event?.name || 'Unknown Event'}
+                    </h1>
                 </div>
+            </div>
 
-                {/* Sidebar (QR Code & Actions) */}
-                <div className="space-y-6">
+            {/* Linear Content Flow */}
+            <div className="max-w-4xl mx-auto px-6 md:px-12 mt-16 space-y-24">
+                
+                {/* 1. Event Schedule */}
+                <section className="tour-datetime flex flex-col md:flex-row gap-8 items-start">
+                    <div className="w-16 h-16 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center flex-shrink-0">
+                        <Calendar className="w-8 h-8" />
+                    </div>
+                    <div>
+                        <h2 className="text-3xl font-black text-slate-900 mb-2">Event Schedule</h2>
+                        <p className="text-xl font-medium text-indigo-600 mb-4">{formattedDate}</p>
+                        <p className="text-slate-500 text-lg leading-relaxed max-w-2xl">
+                            This is the date your stall is strictly reserved for. The gates will open to vendors at 6:00 AM. 
+                            Please ensure you arrive at least 2 hours prior to the official event start time to complete your stall setup.
+                        </p>
+                    </div>
+                </section>
+
+                <hr className="border-slate-100" />
+
+                {/* 2. Official Ticket */}
+                <section className="tour-ticket">
                     <EntryPass
                         qrCode={reservation.qrCode}
                         isCancelled={isCancelled}
                         onShowFullscreen={() => setShowQrFullscreen(true)}
                         onDownloadTicket={handleDownloadTicket}
                     />
+                </section>
 
-                    <PaymentSummary reservation={reservation} />
+                <hr className="border-slate-100" />
 
-                    {/* Action Cards */}
-                    {!isCancelled && (
-                        <div className="space-y-4">
-                            <div className="bg-indigo-50 border border-indigo-100 rounded-3xl p-6 shadow-sm">
-                                <h4 className="text-sm font-black text-indigo-800 mb-2 uppercase tracking-tight">Publisher Genre</h4>
-                                <p className="text-xs text-indigo-600/70 mb-5 font-medium leading-relaxed">
-                                    Want to change the genre categories shown for your stall on the exhibitor map?
-                                </p>
-                                <button
-                                    onClick={openEditModal}
-                                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-3.5 rounded-2xl transition-all shadow-lg shadow-indigo-200 uppercase text-[10px] tracking-widest active:scale-[0.98]"
-                                >
-                                    Update Categories
+                {/* 3. Stall Specs */}
+                <section className="tour-location">
+                    <div className="mb-12">
+                        <h2 className="text-3xl font-black text-slate-900 mb-2">Stall Specs & Location</h2>
+                        <p className="text-slate-500 text-lg leading-relaxed max-w-2xl">
+                            Here is the physical location and dimensions of your stall. Make sure to review the hall specifications carefully to plan your physical setup.
+                        </p>
+                    </div>
+                    <StallAllocation reservation={reservation} />
+                </section>
+
+                <hr className="border-slate-100" />
+
+                {/* 4. Billing & Management */}
+                <section className="tour-payment flex flex-col lg:flex-row gap-16 items-start">
+                    <div className="flex-1 w-full">
+                        <h2 className="text-3xl font-black text-slate-900 mb-2">Billing & Receipt</h2>
+                        <p className="text-slate-500 text-lg leading-relaxed mb-8">
+                            A breakdown of the costs for this reservation.
+                        </p>
+                        <PaymentSummary reservation={reservation} />
+                    </div>
+
+                    <div className="flex-1 w-full lg:border-l lg:border-slate-100 lg:pl-16">
+                         <h2 className="text-3xl font-black text-slate-900 mb-2">Management</h2>
+                         <p className="text-slate-500 text-lg leading-relaxed mb-8">
+                            Update your public profile or discard this booking.
+                        </p>
+
+                        {!isCancelled ? (
+                            <div className="space-y-4">
+                                <button onClick={openEditModal} className="w-full group bg-slate-50 hover:bg-indigo-50 transition-colors rounded-2xl p-6 text-left flex items-center justify-between">
+                                    <div>
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <Tag className="w-4 h-4 text-indigo-500" />
+                                            <h4 className="font-bold text-slate-900">Update Publisher Genre</h4>
+                                        </div>
+                                        <p className="text-sm text-slate-500">Change the categories shown for your stall on the map</p>
+                                    </div>
+                                    <ChevronLeft className="w-5 h-5 text-slate-400 rotate-180 group-hover:text-indigo-600 group-hover:translate-x-1 transition-all" />
                                 </button>
-                            </div>
 
-                            {/* Pay Now — visible only for pending payment */}
-                            {status === 'PENDING_PAYMENT' && (
-                                <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-3xl p-6 shadow-lg shadow-emerald-200">
-                                    <h4 className="text-sm font-black text-white mb-2 uppercase tracking-tight">Complete Payment</h4>
-                                    <p className="text-xs text-emerald-100 mb-5 font-medium leading-relaxed">
-                                        Your stall is reserved but not confirmed yet. Pay now to secure your booking before the slot expires.
-                                    </p>
+                                {status === 'PENDING_PAYMENT' && (
                                     <button
                                         onClick={() => navigate(`/checkout/${reservation.id}`)}
-                                        className="w-full bg-white text-emerald-700 font-black py-3.5 rounded-2xl transition-all shadow-md uppercase text-[10px] tracking-widest hover:bg-emerald-50 active:scale-[0.98] flex items-center justify-center gap-2"
+                                        className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-6 rounded-2xl transition-all shadow-xl shadow-emerald-200/50 uppercase text-sm tracking-widest active:scale-[0.98] flex items-center justify-center gap-3"
                                     >
-                                        <CreditCard size={14} />
-                                        Pay Now
+                                        <CreditCard size={20} />
+                                        Complete Payment
                                     </button>
-                                </div>
-                            )}
+                                )}
 
-                            <div className="bg-slate-50 border border-slate-100 rounded-3xl p-6 shadow-sm">
-                                <h4 className="text-sm font-black text-slate-800 mb-2 uppercase tracking-tight">Reservation Management</h4>
-                                <p className="text-xs text-slate-500 mb-5 font-medium leading-relaxed">
-                                    {status === 'PAID'
-                                        ? "Request a cancellation and refund for this booking. Standard policies apply."
-                                        : status === 'PENDING_REFUND'
-                                            ? "Your refund request is currently being reviewed by an administrator."
-                                            : "Discard this pending booking to release the stall immediately."}
-                                </p>
                                 <button
                                     onClick={() => setShowCancelConfirm(true)}
                                     disabled={status === 'PENDING_REFUND'}
-                                    className={`w-full font-black py-3.5 rounded-2xl border-2 transition-all uppercase text-[10px] tracking-widest active:scale-[0.98] flex items-center justify-center gap-2 ${status === 'PENDING_REFUND'
-                                        ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed opacity-50'
-                                        : 'bg-white hover:bg-rose-50 text-rose-600 border-slate-200 hover:border-rose-200'
+                                    className={`w-full font-black py-5 rounded-2xl transition-all uppercase text-xs tracking-widest active:scale-[0.98] flex items-center justify-center gap-2 ${status === 'PENDING_REFUND'
+                                        ? 'bg-slate-50 text-slate-400 cursor-not-allowed opacity-50'
+                                        : 'bg-white hover:bg-rose-50 text-rose-600 border border-slate-200 hover:border-rose-200'
                                         }`}
                                 >
-                                    {status === 'PAID' ? <ShieldCheck size={14} /> : status === 'PENDING_REFUND' ? <RefreshCw size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                                    {status === 'PAID' ? <ShieldCheck size={16} /> : status === 'PENDING_REFUND' ? <RefreshCw size={16} className="animate-spin" /> : <Trash2 size={16} />}
                                     {status === 'PAID' ? 'Request Refund' : status === 'PENDING_REFUND' ? 'Refund in Progress' : 'Discard Booking'}
                                 </button>
                             </div>
-                        </div>
-                    )}
-                </div>
+                        ) : (
+                            <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100 text-slate-500 font-medium text-sm">
+                                No actions available for cancelled bookings.
+                            </div>
+                        )}
+                    </div>
+                </section>
+
             </div>
 
             {/* Modals */}

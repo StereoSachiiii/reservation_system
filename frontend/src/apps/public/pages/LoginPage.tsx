@@ -82,7 +82,7 @@ function LoginPage() {
     };
 
     return (
-        <AnimatedPageWrapper className="min-h-screen flex bg-white">
+        <AnimatedPageWrapper className="min-h-screen lg:flex-row bg-white">
             {/* Left side - Visual/Branding */}
             <div className="hidden lg:flex w-1/2 relative bg-gray-900 overflow-hidden">
                 {/* Abstract Background Elements */}

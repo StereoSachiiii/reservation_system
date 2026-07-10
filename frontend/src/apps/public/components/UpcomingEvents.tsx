@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { publicApi } from '@/shared/api/publicApi'
 import { Link } from 'react-router-dom'
@@ -13,6 +14,11 @@ export default function UpcomingEvents() {
     })
 
     const events = eventEnvelope?.content || []
+    
+    const [currentPage, setCurrentPage] = useState(1)
+    const itemsPerPage = 3
+    const totalPages = Math.ceil(events.length / itemsPerPage)
+    const paginatedEvents = events.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
 
     if (isLoading) return (
         <div className="flex justify-center p-12">
@@ -34,65 +40,89 @@ export default function UpcomingEvents() {
     )
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {events.map((event) => {
-                const isOpen = event.status?.toUpperCase() === 'OPEN';
-                return (
-                    <Card key={event.id} className="p-0 overflow-hidden flex flex-col group cursor-pointer hover:shadow-lg transition-shadow duration-300">
-                        {/* Event Cover Image */}
-                        <div className="h-44 overflow-hidden relative">
-                            <img
-                                src={event.imageUrl || "https://images.unsplash.com/photo-1507842217343-583bb7270b66?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"}
-                                alt={event.name}
-                                className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
-                        </div>
-
-                        {/* Event Content */}
-                        <div className="p-6 flex flex-col flex-grow">
-                            <div className="flex items-center gap-2 mb-3">
-                                <span className={`text-xs font-semibold px-2 py-1 rounded-sm ${
-                                    isOpen 
-                                        ? 'bg-emerald-50 text-emerald-700' 
-                                        : 'bg-amber-50 text-amber-700'
-                                }`}>
-                                    {event.status || EVENTS_COPY.statusUpcoming}
-                                </span>
+        <div className="flex flex-col items-center">
+            <div className="max-w-fit mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {paginatedEvents.map((event) => {
+                    const isOpen = event.status?.toUpperCase() === 'OPEN';
+                    return (
+                        <Card key={event.id} className="p-0 overflow-hidden flex flex-col group cursor-pointer hover:shadow-lg transition-shadow duration-300">
+                            {/* Event Cover Image */}
+                            <div className="h-44 overflow-hidden relative">
+                                <img
+                                    src={event.imageUrl || "https://images.unsplash.com/photo-1507842217343-583bb7270b66?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80"}
+                                    alt={event.name}
+                                    className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
                             </div>
 
-                            <h3 className="font-semibold text-lg text-neutral-900 mb-2 group-hover:text-brand-600 transition-colors leading-tight">
-                                {event.name}
-                            </h3>
-
-                            <p className="text-neutral-600 text-sm leading-relaxed mb-6 line-clamp-2">
-                                {event.description || EVENTS_COPY.defaultDescription}
-                            </p>
-
-                            <div className="space-y-2 mb-6 border-t border-neutral-50 pt-4 mt-auto">
-                                <div className="flex items-center text-sm text-neutral-600">
-                                    <Calendar className="w-4 h-4 mr-2 text-neutral-400" />
-                                    {new Date(event.startDate).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}
+                            {/* Event Content */}
+                            <div className="p-6 flex flex-col flex-grow w-full md:w-80 lg:w-96">
+                                <div className="flex items-center gap-2 mb-3">
+                                    <span className={`text-xs font-semibold px-2 py-1 rounded-sm ${
+                                        isOpen 
+                                            ? 'bg-emerald-50 text-emerald-700' 
+                                            : 'bg-amber-50 text-amber-700'
+                                    }`}>
+                                        {event.status || EVENTS_COPY.statusUpcoming}
+                                    </span>
                                 </div>
-                                <div className="flex items-center text-sm text-neutral-600">
-                                    <MapPin className="w-4 h-4 mr-2 text-neutral-400" />
-                                    {event.location || EVENTS_COPY.locationTba}
+
+                                <h3 className="font-semibold text-lg text-neutral-900 mb-2 group-hover:text-brand-600 transition-colors leading-tight">
+                                    {event.name}
+                                </h3>
+
+                                <p className="text-neutral-600 text-sm leading-relaxed mb-6 line-clamp-2">
+                                    {event.description || EVENTS_COPY.defaultDescription}
+                                </p>
+
+                                <div className="space-y-2 mb-6 border-t border-neutral-50 pt-4 mt-auto">
+                                    <div className="flex items-center text-sm text-neutral-600">
+                                        <Calendar className="w-4 h-4 mr-2 text-neutral-400" />
+                                        {new Date(event.startDate).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}
+                                    </div>
+                                    <div className="flex items-center text-sm text-neutral-600">
+                                        <MapPin className="w-4 h-4 mr-2 text-neutral-400" />
+                                        {event.location || EVENTS_COPY.locationTba}
+                                    </div>
+                                </div>
+
+                                <div className="pt-2">
+                                    <Link
+                                        to={`/events/${event.id}`}
+                                        className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-600 group-hover:text-brand-700"
+                                    >
+                                        {EVENTS_COPY.exploreEvent}
+                                        <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
+                                    </Link>
                                 </div>
                             </div>
-
-                            <div className="pt-2">
-                                <Link
-                                    to={`/events/${event.id}`}
-                                    className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-600 group-hover:text-brand-700"
-                                >
-                                    {EVENTS_COPY.exploreEvent}
-                                    <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
-                                </Link>
-                            </div>
-                        </div>
-                    </Card>
-                );
-            })}
+                        </Card>
+                    );
+                })}
+            </div>
+            
+            {totalPages > 1 && (
+                <div className="mt-10 flex items-center justify-center gap-4">
+                    <button 
+                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                        disabled={currentPage === 1}
+                        className="px-4 py-2 border border-neutral-200 text-neutral-700 rounded-md disabled:opacity-40 hover:bg-neutral-50 transition-colors"
+                    >
+                        Previous
+                    </button>
+                    <span className="text-sm font-medium text-neutral-600">
+                        Page {currentPage} of {totalPages}
+                    </span>
+                    <button 
+                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                        disabled={currentPage === totalPages}
+                        className="px-4 py-2 border border-neutral-200 text-neutral-700 rounded-md disabled:opacity-40 hover:bg-neutral-50 transition-colors"
+                    >
+                        Next
+                    </button>
+                </div>
+            )}
         </div>
     )
 }

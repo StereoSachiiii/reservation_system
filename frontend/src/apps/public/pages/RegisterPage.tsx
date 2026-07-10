@@ -105,7 +105,7 @@ function RegisterPage() {
     };
 
     return (
-        <AnimatedPageWrapper className="min-h-screen flex bg-white">
+        <AnimatedPageWrapper className="min-h-screen lg:flex-row bg-white">
             {/* Left side - Form */}
             <div className="w-full lg:w-1/2 flex items-center justify-center p-8 sm:p-12 xl:p-16 bg-gray-50/50 relative overflow-y-auto max-h-screen no-scrollbar">
                 <div className="w-full max-w-md my-auto">

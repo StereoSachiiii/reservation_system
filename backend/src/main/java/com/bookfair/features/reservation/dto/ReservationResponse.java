@@ -71,5 +71,7 @@ public class ReservationResponse {
         private Long id;
         private String name;
         private String venueName;
+        private LocalDateTime startDate;
+        private LocalDateTime endDate;
     }
 }

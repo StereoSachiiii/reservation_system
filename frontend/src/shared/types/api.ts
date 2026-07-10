@@ -265,6 +265,8 @@ export interface Reservation {
         id: number;
         name: string;
         venueName?: string;
+        startDate?: string;
+        endDate?: string;
     };
     stallDetails?: {
         id: number;

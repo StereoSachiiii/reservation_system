@@ -65,7 +65,7 @@ def query_assistant(request: QueryRequest):
         
         # Instantiate LangChain ChatGoogleGenerativeAI
         llm = ChatGoogleGenerativeAI(
-            model="gemini-1.5-flash",
+            model="gemini-3.5-flash",
             google_api_key=api_key,
             temperature=0.2
         )
@@ -93,5 +93,28 @@ def query_assistant(request: QueryRequest):
         return {"answer": response_text}
         
     except Exception as e:
-        logger.error(f"Error during generation: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Generation failed: {str(e)}")
+        logger.error(f"Gemini generation failed: {str(e)}. Attempting g4f fallback...")
+        try:
+            import g4f
+            
+            system_prompt = (
+                "You are the Bookfair RAG Assistant. Answer the user based strictly on this context:\n"
+                f"{context}"
+            )
+            
+            response = g4f.ChatCompletion.create(
+                model=g4f.models.gpt_35_turbo,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": request.user_query}
+                ]
+            )
+            
+            if response:
+                return {"answer": response + "\n\n*(Note: Powered by fallback AI due to primary service limits)*"}
+            else:
+                raise Exception("Empty response from fallback")
+                
+        except Exception as fallback_err:
+            logger.error(f"Fallback generation failed: {str(fallback_err)}")
+            raise HTTPException(status_code=500, detail=f"Generation and fallback both failed.")

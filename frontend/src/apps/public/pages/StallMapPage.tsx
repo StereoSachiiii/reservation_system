@@ -157,7 +157,7 @@ export default function StallMapPage() {
             />
 
             {/* View Mode Toggle (Overlay) */}
-            <div className="absolute top-[72px] left-1/2 -translate-x-1/2 z-40">
+            <div className="absolute top-[110px] left-1/2 -translate-x-1/2 z-40">
                 <SegmentedControl
                     value={viewMode}
                     onChange={(v) => setViewMode(v as "schematic" | "aerial")}
@@ -192,7 +192,7 @@ export default function StallMapPage() {
             </div>
           </section>
 
-          <div className="fixed left-6 bottom-6 z-40 w-64 max-h-[calc(100vh-120px)] overflow-y-auto no-scrollbar">
+          <div className="fixed left-6 bottom-6 z-40 w-64">
             <BookingPanel
               selectedIds={selectedIds}
               allStalls={allStalls}

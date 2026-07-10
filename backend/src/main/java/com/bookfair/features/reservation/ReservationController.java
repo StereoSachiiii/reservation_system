@@ -153,7 +153,9 @@ public class ReservationController {
                 res.setEvent(new ReservationResponse.EventSummary(
                     r.getEventStall().getEvent().getId(),
                     r.getEventStall().getEvent().getName(),
-                    r.getEventStall().getEvent().getVenue() != null ? r.getEventStall().getEvent().getVenue().getName() : null
+                    r.getEventStall().getEvent().getVenue() != null ? r.getEventStall().getEvent().getVenue().getName() : null,
+                    r.getEventStall().getEvent().getStartDate(),
+                    r.getEventStall().getEvent().getEndDate()
                 ));
             }
         } else {

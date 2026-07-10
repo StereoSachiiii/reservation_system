@@ -1,4 +1,4 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet, Link } from 'react-router-dom';
 import Navbar from './Navbar';
 import HelpBot from './HelpBot/HelpBot';
 import { LiveActivityTicker } from '@/apps/public/components/LiveActivityTicker';
@@ -24,9 +24,9 @@ export default function Layout() {
                         <span className="text-sm border-l border-neutral-100 pl-3 ml-1">© 2026</span>
                     </div>
                     <div className="flex gap-8 text-sm font-normal">
-                        <a href="#" className="hover:text-brand-600 transition-colors">Privacy Policy</a>
-                        <a href="#" className="hover:text-brand-600 transition-colors">Terms of Service</a>
-                        <a href="#" className="hover:text-brand-600 transition-colors">Contact</a>
+                        <Link to="/privacy-policy" className="hover:text-brand-600 transition-colors">Privacy Policy</Link>
+                        <Link to="/tos" className="hover:text-brand-600 transition-colors">Terms of Service</Link>
+                        <Link to="/contact" className="hover:text-brand-600 transition-colors">Contact</Link>
                     </div>
                 </div>
             </footer>

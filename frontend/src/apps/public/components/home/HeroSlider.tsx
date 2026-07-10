@@ -71,13 +71,15 @@ export const HeroSlider = () => {
                                     <p className="text-lg md:text-xl text-slate-300 font-medium max-w-2xl mx-auto mb-10 drop-shadow-md">
                                         {slide.subtitle}
                                     </p>
-                                    <Button 
-                                        variant="primary" 
-                                        onClick={() => navigate('/events')}
-                                        className="shadow-2xl shadow-indigo-500/20 px-8 py-4 text-lg"
-                                    >
-                                        {HOME_COPY.bookStallCta}
-                                    </Button>
+                                    <div className="flex justify-center">
+                                        <Button 
+                                            variant="primary" 
+                                            onClick={() => navigate('/events')}
+                                            className="shadow-2xl shadow-indigo-500/20 px-8 py-4 text-lg"
+                                        >
+                                            {HOME_COPY.bookStallCta}
+                                        </Button>
+                                    </div>
                                 </div>
                             </div>
                         </div>

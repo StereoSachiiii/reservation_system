@@ -10,6 +10,12 @@ import {
 } from '@/shared/types/api';
 
 export const publicApi = {
+    // GET PLATFORM STATS
+    getPlatformStats: async (): Promise<{ activeVendors: number, stallsReserved: number, upcomingEvents: number }> => {
+        const response = await api.get('/public/stats');
+        return response.data;
+    },
+
     // LIST VENUES (Hierarchical)
     getVenues: async (): Promise<PageEnvelope<Venue>> => {
         const response = await api.get<PageEnvelope<Venue>>('/public/venues');

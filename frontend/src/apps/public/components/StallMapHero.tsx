@@ -1,9 +1,17 @@
+import { useQuery } from '@tanstack/react-query';
+import { publicApi } from '@/shared/api/publicApi';
 
 interface StallMapHeroProps {
     eventName: string;
 }
 
 export const StallMapHero = ({ eventName }: StallMapHeroProps) => {
+    const { data: stats } = useQuery({
+        queryKey: ['public-stats'],
+        queryFn: publicApi.getPlatformStats,
+        staleTime: 60000,
+    });
+
     return (
         <section className="bg-white px-8 py-20 text-center border-t border-slate-100">
             <p className="text-[11px] uppercase tracking-widest text-slate-400 mb-4">
@@ -19,11 +27,11 @@ export const StallMapHero = ({ eventName }: StallMapHeroProps) => {
             </p>
             <div className="flex gap-16 justify-center mb-12">
                 {[
-                    ['45,000+', 'Expected Footfall'],
-                    ['200+', 'Publishers'],
-                    ['10+', 'Halls'],
+                    [`${stats?.stallsReserved || 0}+`, 'Stalls Reserved'],
+                    [`${stats?.activeVendors || 0}+`, 'Active Publishers'],
+                    [`${stats?.upcomingEvents || 0}`, 'Upcoming Events'],
                 ].map(([n, l]) => (
-                    <div key={l}>
+                    <div key={l as string}>
                         <div className="text-3xl font-black text-slate-900">{n}</div>
                         <div className="text-xs text-slate-400 uppercase tracking-widest mt-1">{l}</div>
                     </div>
