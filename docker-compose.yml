@@ -118,6 +118,7 @@ services:
     image: bookfair-frontend
     ports:
       - "5173:80"
+      - "443:443"
     deploy:
       restart_policy:
         condition: on-failure
