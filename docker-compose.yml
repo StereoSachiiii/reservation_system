@@ -12,10 +12,8 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    restart: unless-stopped
     deploy:
-      restart_policy:
-        condition: on-failure
-        max_attempts: 5
       resources:
         limits:
           memory: 512M
@@ -28,10 +26,7 @@ services:
 
   redis:
     image: redis:7-alpine
-    deploy:
-      restart_policy:
-        condition: on-failure
-        max_attempts: 5
+    restart: unless-stopped
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -73,10 +68,8 @@ services:
       SEED_VENDOR_PASS: ${SEED_VENDOR_PASS}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       APP_RAG_SERVICE_URL: http://ai-service:8000/query
+    restart: unless-stopped
     deploy:
-      restart_policy:
-        condition: on-failure
-        max_attempts: 5
       resources:
         limits:
           memory: 512M
@@ -96,10 +89,7 @@ services:
     image: bookfair-ai-service
     environment:
       GEMINI_API_KEY: ${GEMINI_API_KEY}
-    deploy:
-      restart_policy:
-        condition: on-failure
-        max_attempts: 5
+    restart: unless-stopped
     ports:
       - "8000:8000"
     volumes:
@@ -122,10 +112,8 @@ services:
       - "traefik.http.routers.reservation.entrypoints=websecure"
       - "traefik.http.routers.reservation.tls.certresolver=myresolver"
       - "traefik.http.services.reservation.loadbalancer.server.port=80"
+    restart: unless-stopped
     deploy:
-      restart_policy:
-        condition: on-failure
-        max_attempts: 5
       resources:
         limits:
           memory: 256M
