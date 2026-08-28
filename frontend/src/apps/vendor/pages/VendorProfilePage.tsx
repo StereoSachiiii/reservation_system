@@ -7,6 +7,7 @@ export const VendorProfilePage = () => {
     const {
         formData,
         setFormData,
+        profile,
         isLoading,
         isUpdating,
         success,
@@ -60,20 +61,53 @@ export const VendorProfilePage = () => {
 
                 <form onSubmit={handleSubmit} className="space-y-16 max-w-4xl">
                     
+                    {/* Read-Only Authenticated Identity Badges */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-6 bg-slate-50 border-2 border-slate-100 rounded-3xl">
+                        <div>
+                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-1">IdP Username</span>
+                            <span className="text-lg font-bold text-slate-800 font-mono">@{profile?.username || '—'}</span>
+                        </div>
+                        <div>
+                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-1">Verified Email</span>
+                            <span className="text-lg font-bold text-slate-800">{profile?.email || '—'}</span>
+                        </div>
+                        <div>
+                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-1">Account Role</span>
+                            <span className="inline-block px-3 py-1 bg-indigo-100 text-indigo-700 text-xs font-black rounded-lg uppercase tracking-wider">
+                                {profile?.role || 'VENDOR'}
+                            </span>
+                        </div>
+                    </div>
+
                     {/* Typography-Driven Fields */}
                     <div className="space-y-12">
-                        {/* Business Name */}
-                        <div className="group">
-                            <label className="text-base font-bold text-slate-700 mb-3 block group-focus-within:text-indigo-600 transition-colors">
-                                Registered Business Name
-                            </label>
-                            <input
-                                className="w-full text-4xl md:text-5xl font-black text-slate-900 bg-transparent border-b-4 border-slate-200 py-4 focus:border-indigo-600 focus:outline-none transition-all placeholder:text-slate-300"
-                                value={formData.businessName}
-                                onChange={e => setFormData({ ...formData, businessName: e.target.value })}
-                                placeholder="e.g., Penguin Random House"
-                                required
-                            />
+                        {/* Name & Business Name Row */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                            <div className="group">
+                                <label className="text-base font-bold text-slate-700 mb-3 block group-focus-within:text-indigo-600 transition-colors">
+                                    Full Name (Contact Person)
+                                </label>
+                                <input
+                                    className="w-full text-2xl font-black text-slate-900 bg-transparent border-b-4 border-slate-200 py-4 focus:border-indigo-600 focus:outline-none transition-all placeholder:text-slate-300"
+                                    value={formData.fullName}
+                                    onChange={e => setFormData({ ...formData, fullName: e.target.value })}
+                                    placeholder="e.g., Jane Doe"
+                                    required
+                                />
+                            </div>
+
+                            <div className="group">
+                                <label className="text-base font-bold text-slate-700 mb-3 block group-focus-within:text-indigo-600 transition-colors">
+                                    Organization / Business Name
+                                </label>
+                                <input
+                                    className="w-full text-2xl font-black text-slate-900 bg-transparent border-b-4 border-slate-200 py-4 focus:border-indigo-600 focus:outline-none transition-all placeholder:text-slate-300"
+                                    value={formData.businessName}
+                                    onChange={e => setFormData({ ...formData, businessName: e.target.value })}
+                                    placeholder="e.g., Penguin Random House"
+                                    required
+                                />
+                            </div>
                         </div>
 
                         {/* Contact & Address Row */}
@@ -87,6 +121,7 @@ export const VendorProfilePage = () => {
                                     value={formData.contactNumber}
                                     onChange={e => setFormData({ ...formData, contactNumber: e.target.value })}
                                     placeholder="+1 (555) 000-0000"
+                                    required
                                 />
                             </div>
                             

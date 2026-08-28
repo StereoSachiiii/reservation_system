@@ -1,0 +1,10 @@
+{
+  "sid": "SE2022001",
+  "name": "S. L. Lakshitha",
+  "app-url": "https://localhost:8080",
+  "git": "https://github.com/your-username/secure-stall-reservation-system",
+  "blog": [
+    "https://medium.com/@your-username/secure-web-application-development-owasp-top-10-and-oidc-integration-guide",
+    "https://dev.to/@your-username/building-a-secure-cloud-native-stall-reservation-platform"
+  ]
+}

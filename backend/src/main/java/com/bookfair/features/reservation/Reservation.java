@@ -63,6 +63,24 @@ public class Reservation {
     @Column(nullable = false)
     private Boolean emailSent = false;
     
+    @Enumerated(EnumType.STRING)
+    @Column(name = "business_category")
+    private com.bookfair.entity.BusinessCategory businessCategory;
+
+    @Column(name = "special_requirements", columnDefinition = "TEXT")
+    private String specialRequirements;
+
+    @Column(name = "reservation_date")
+    private java.time.LocalDate reservationDate;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "stall_type")
+    private com.bookfair.entity.StallType stallType;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "preferred_size")
+    private com.bookfair.entity.StallSize preferredSize;
+
     /** Timestamp when the reservation was created. Set automatically by @PrePersist. */
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;

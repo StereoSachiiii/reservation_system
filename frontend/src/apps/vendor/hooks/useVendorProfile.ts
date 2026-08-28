@@ -15,6 +15,7 @@ export function useVendorProfile() {
     });
 
     const [formData, setFormData] = useState({
+        fullName: '',
         businessName: '',
         businessDescription: '',
         contactNumber: '',
@@ -27,6 +28,7 @@ export function useVendorProfile() {
     if (profile && profile.id !== prevProfileId) {
         setPrevProfileId(profile.id);
         setFormData({
+            fullName: profile.fullName || '',
             businessName: profile.businessName || '',
             businessDescription: profile.businessDescription || '',
             contactNumber: profile.contactNumber || '',

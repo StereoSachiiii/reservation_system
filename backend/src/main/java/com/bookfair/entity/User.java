@@ -37,6 +37,8 @@ public class User {
     @Column(nullable = false, unique = true)
     private String username;
 
+    private String fullName;
+
     @Column(nullable = false, unique = true)
     private String email;
     
@@ -92,7 +94,7 @@ public class User {
     }
     
     public enum Role {
-        ADMIN, VENDOR, EMPLOYEE
+        ADMIN, VENDOR, EMPLOYEE, ORGANIZER
     }
 }
 

@@ -13,7 +13,7 @@ import { ReactNode } from 'react';
  */
 interface ProtectedRouteProps {
     children?: ReactNode;
-    allowedRoles?: ('ADMIN' | 'VENDOR' | 'EMPLOYEE')[];
+    allowedRoles?: ('ADMIN' | 'VENDOR' | 'EMPLOYEE' | 'ORGANIZER')[];
 }
 
 const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {

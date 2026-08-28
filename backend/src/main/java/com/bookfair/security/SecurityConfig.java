@@ -118,6 +118,11 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(AbstractHttpConfigurer::disable)
+            .headers(headers -> headers
+                .xssProtection(org.springframework.security.config.Customizer.withDefaults())
+                .contentSecurityPolicy(csp -> csp.policyDirectives("default-src 'self'; script-src 'self' 'unsafe-inline' https://accounts.google.com https://js.stripe.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; frame-src https://accounts.google.com https://js.stripe.com; connect-src 'self' ws: wss: http: https:;"))
+                .frameOptions(org.springframework.security.config.annotation.web.configurers.HeadersConfigurer.FrameOptionsConfig::sameOrigin)
+            )
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> 
                 auth.requestMatchers("/api/email/**").permitAll()
@@ -128,15 +133,15 @@ public class SecurityConfig {
                     .requestMatchers("/error").permitAll() // Allow Spring's internal error forwarding
                     
                     // System endpoints
-                    .requestMatchers("/api/v1/system/**").hasRole("ADMIN")
+                    .requestMatchers("/api/v1/system/**").hasAnyRole("ADMIN", "ORGANIZER")
 
-                    // Admin only
-                    .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
+                    // Admin / Organizer only
+                    .requestMatchers("/api/v1/admin/**").hasAnyRole("ADMIN", "ORGANIZER")
                     
-                    // Employee/Admin only
-                    .requestMatchers("/api/v1/employee/**").hasAnyRole("EMPLOYEE", "ADMIN")
+                    // Employee/Admin/Organizer only
+                    .requestMatchers("/api/v1/employee/**").hasAnyRole("EMPLOYEE", "ADMIN", "ORGANIZER")
                     
-                    // Authenticated users (Vendors/Employees/Admins)
+                    // Authenticated users (Vendors/Employees/Admins/Organizers)
                     .requestMatchers("/api/v1/vendor/**").authenticated()
                     .requestMatchers("/api/v1/notifications", "/api/v1/notifications/**").authenticated()
                     .requestMatchers("/api/v1/payments/**").authenticated()

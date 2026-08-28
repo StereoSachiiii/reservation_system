@@ -34,8 +34,9 @@ export interface PricingBreakdown {
 export interface User {
     id: number;
     username: string;
+    fullName?: string;
     email: string;
-    role: 'ADMIN' | 'VENDOR' | 'EMPLOYEE';
+    role: 'ADMIN' | 'VENDOR' | 'EMPLOYEE' | 'ORGANIZER';
     businessName?: string;
     businessDescription?: string;
     logoUrl?: string;
@@ -46,9 +47,10 @@ export interface User {
 
 export interface UserRequest {
     username: string;
+    fullName?: string;
     email: string;
     password?: string;
-    role?: 'ADMIN' | 'VENDOR' | 'EMPLOYEE';
+    role?: 'ADMIN' | 'VENDOR' | 'EMPLOYEE' | 'ORGANIZER';
     businessName?: string;
     businessDescription?: string;
     logoUrl?: string;
@@ -246,6 +248,12 @@ export interface Reservation {
     status: 'PENDING_PAYMENT' | 'PAID' | 'CANCELLED' | 'EXPIRED' | 'CHECKED_IN' | 'PENDING_REFUND';
     emailSent?: boolean;
     createdAt: string;
+    reservationDate?: string;
+    businessCategory?: string;
+    specialRequirements?: string;
+    stallType?: StallType;
+    preferredSize?: StallSize;
+    numberOfStalls?: number;
     vendor?: string;
     stalls: string[];
     totalPriceCents?: number;
@@ -255,6 +263,7 @@ export interface Reservation {
     user?: {
         id: number;
         username: string;
+        fullName?: string;
         email: string;
         businessName?: string;
         contactNumber?: string;
@@ -286,8 +295,15 @@ export interface Reservation {
 
 export interface ReservationRequest {
     userId: number;
-    eventId: number;
+    eventId?: number;
+    eventName?: string;
     stallIds: number[];
+    reservationDate?: string;
+    stallType?: StallType;
+    preferredSize?: StallSize;
+    numberOfStalls?: number;
+    businessCategory?: string;
+    specialRequirements?: string;
 }
 
 export interface CheckInRequest {

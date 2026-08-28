@@ -46,11 +46,32 @@ export const StallAllocation = ({ reservation }: StallAllocationProps) => {
                 </div>
 
                 <div>
-                    <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2">Primary Genre</p>
+                    <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2">Business Category</p>
                     <p className="text-xl font-bold text-indigo-600 truncate">
-                        {reservation.user?.categories?.length ? reservation.user.categories.join(', ').replace(/_/g, ' ') : 'General'}
+                        {reservation.businessCategory ? reservation.businessCategory.replace(/_/g, ' ') : (reservation.user?.categories?.length ? reservation.user.categories.join(', ').replace(/_/g, ' ') : 'General')}
                     </p>
                 </div>
+
+                <div>
+                    <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2">Stall Type</p>
+                    <p className="text-xl font-bold text-slate-900">
+                        {reservation.stallType || stallDetails.size || 'STANDARD'}
+                    </p>
+                </div>
+
+                <div>
+                    <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2">Reservation Date</p>
+                    <p className="text-xl font-bold text-slate-900">
+                        {reservation.reservationDate || 'Standard Booking'}
+                    </p>
+                </div>
+
+                {reservation.specialRequirements && (
+                    <div className="col-span-2 md:col-span-4 bg-slate-50 p-6 rounded-2xl border border-slate-100 mt-4">
+                        <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1">Special Requirements / Notes</p>
+                        <p className="text-sm font-medium text-slate-700">{reservation.specialRequirements}</p>
+                    </div>
+                )}
 
                 {geo.w > 0 && (
                     <>

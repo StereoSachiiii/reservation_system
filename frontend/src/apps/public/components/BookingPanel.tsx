@@ -16,11 +16,9 @@ interface BookingPanelProps {
   eventName: string
   error: string | null
   isPending: boolean
-  onConfirm: () => void
+  onConfirm: (details: any) => void
   onClearSelection: () => void
 }
-
-// ─── BookingPanel ─────────────────────────────────────────────────────────────
 
 /**
  * BookingPanel Orchestrator
@@ -51,7 +49,7 @@ export function BookingPanel({
   }, [hasSelection])
 
   const handleCheckout = () => setShowModal(true)
-  const handleConfirm = () => onConfirm()
+  const handleConfirm = (details: any) => onConfirm(details)
 
   return (
     <>

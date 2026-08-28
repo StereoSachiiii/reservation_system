@@ -42,6 +42,7 @@ public class UserService {
         
         User user = new User();
         user.setUsername(request.getUsername());
+        user.setFullName(request.getFullName() != null ? request.getFullName() : request.getUsername());
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword())); // Securely encode password
         user.setRole(request.getRole() != null ? request.getRole() : User.Role.VENDOR);
@@ -124,6 +125,7 @@ public class UserService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         
+        if (request.getFullName() != null) user.setFullName(request.getFullName());
         if (request.getBusinessName() != null) user.setBusinessName(request.getBusinessName());
         if (request.getBusinessDescription() != null) user.setBusinessDescription(request.getBusinessDescription());
         if (request.getLogoUrl() != null) user.setLogoUrl(request.getLogoUrl());
@@ -138,6 +140,7 @@ public class UserService {
         return new UserResponse(
             user.getId(),
             user.getUsername(),
+            user.getFullName() != null ? user.getFullName() : user.getUsername(),
             user.getEmail(),
             user.getRole().name(),
             user.getBusinessName(),

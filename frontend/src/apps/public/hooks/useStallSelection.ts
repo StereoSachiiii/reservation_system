@@ -21,7 +21,17 @@ export function useStallSelection({
     const [error, setError] = useState<string | null>(null)
 
     const mutation = useMutation({
-        mutationFn: (vars: { userId: number, stallIds: number[] }) =>
+        mutationFn: (vars: { 
+            userId: number, 
+            stallIds: number[],
+            reservationDate?: string,
+            businessCategory?: string,
+            specialRequirements?: string,
+            stallType?: any,
+            preferredSize?: any,
+            numberOfStalls?: number,
+            eventName?: string
+        }) =>
             eventId ? vendorApi.createReservation({ ...vars, eventId }) : Promise.reject('No Event ID'),
         onSuccess: (data) => {
             queryClient.invalidateQueries({ queryKey: ['stalls'] })
@@ -59,9 +69,21 @@ export function useStallSelection({
         [remainingSlots]
     )
 
-    const handleConfirm = useCallback(() => {
+    const handleConfirm = useCallback((extraDetails?: {
+        reservationDate?: string,
+        businessCategory?: string,
+        specialRequirements?: string,
+        stallType?: any,
+        preferredSize?: any,
+        eventName?: string
+    }) => {
         if (!user?.id) { setError('Session not ready.'); return }
-        mutation.mutate({ userId: user.id, stallIds: selectedIds })
+        mutation.mutate({ 
+            userId: user.id, 
+            stallIds: selectedIds,
+            numberOfStalls: selectedIds.length,
+            ...extraDetails
+        })
     }, [user, selectedIds, mutation])
 
     const handleClearSelection = useCallback(() => {

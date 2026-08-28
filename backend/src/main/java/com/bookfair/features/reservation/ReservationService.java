@@ -46,12 +46,19 @@ public class ReservationService {
      * Starts in PENDING state, awaiting payment.
      */
     @Transactional
-    public List<Reservation> createReservations(ReservationRequest request) {
+    public List<Reservation> createReservations(ReservationRequest request, String authenticatedUsername) {
+        User user;
+        if (authenticatedUsername != null && !authenticatedUsername.isEmpty()) {
+            user = userService.getByUsernameForServices(authenticatedUsername);
+        } else if (request.getUserId() != null) {
+            user = userService.getByIdForServices(request.getUserId());
+        } else {
+            throw new BadRequestException("User identity not established");
+        }
+
         // 1. Lock User Record to prevent concurrent requests from same user bypassing limits
-        userService.findByIdWithLock(request.getUserId())
+        userService.findByIdWithLock(user.getId())
                    .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        
-        User user = userService.getByIdForServices(request.getUserId());
         
         List<Reservation> reservations = new ArrayList<>();
         Long eventId = null;
@@ -82,6 +89,11 @@ public class ReservationService {
                     .eventStall(eventStall)
                     .status(Reservation.ReservationStatus.PENDING_PAYMENT)
                     .emailSent(false)
+                    .businessCategory(request.getBusinessCategory() != null ? request.getBusinessCategory() : com.bookfair.entity.BusinessCategory.OTHER)
+                    .specialRequirements(request.getSpecialRequirements())
+                    .reservationDate(request.getReservationDate() != null ? request.getReservationDate() : java.time.LocalDate.now())
+                    .stallType(request.getStallType() != null ? request.getStallType() : (eventStall.getStallTemplate() != null ? eventStall.getStallTemplate().getType() : null))
+                    .preferredSize(request.getPreferredSize() != null ? request.getPreferredSize() : (eventStall.getStallTemplate() != null ? eventStall.getStallTemplate().getSize() : null))
                     .qrCode("RES-" + UUID.randomUUID().toString().substring(0, 8)) // Stable unique QR before save
                     .build();
             

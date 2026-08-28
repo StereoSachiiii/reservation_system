@@ -21,6 +21,12 @@ public class ReservationResponse {
     private String status;
     private Boolean emailSent;
     private LocalDateTime createdAt;
+    private java.time.LocalDate reservationDate;
+    private String businessCategory;
+    private String specialRequirements;
+    private String stallType;
+    private String preferredSize;
+    private Integer numberOfStalls;
     private UserSummary user;
     private java.util.List<String> stalls; // Keeping for backward compatibility
     private StallSummary stallDetails; // New enriched stall object

@@ -18,7 +18,7 @@ export interface AuthContextType {
     /** Function to log out the current user */
     logout: (redirectPath?: string) => void;
     /** Boolean indicating if a user is currently authenticated */
-    role: 'ADMIN' | 'VENDOR' | 'EMPLOYEE' | null;
+    role: 'ADMIN' | 'VENDOR' | 'EMPLOYEE' | 'ORGANIZER' | null;
     /** Boolean indicating if a user is currently authenticated */
     isAuthenticated: boolean;
 }

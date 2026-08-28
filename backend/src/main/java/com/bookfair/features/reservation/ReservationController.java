@@ -40,8 +40,8 @@ public class ReservationController {
     }
     
     @PostMapping
-    public ResponseEntity<List<ReservationResponse>> create(@jakarta.validation.Valid @RequestBody ReservationRequest request) {
-        return ResponseEntity.ok(reservationService.createReservations(request).stream()
+    public ResponseEntity<List<ReservationResponse>> create(@jakarta.validation.Valid @RequestBody ReservationRequest request, Principal principal) {
+        return ResponseEntity.ok(reservationService.createReservations(request, principal != null ? principal.getName() : null).stream()
                 .map(r -> mapToResponse(r))
                 .collect(Collectors.toList()));
     }
@@ -107,6 +107,11 @@ public class ReservationController {
         res.setStatus(r.getStatus().name());
         res.setEmailSent(r.getEmailSent() != null ? r.getEmailSent() : false);
         res.setCreatedAt(r.getCreatedAt());
+        res.setReservationDate(r.getReservationDate());
+        res.setBusinessCategory(r.getBusinessCategory() != null ? r.getBusinessCategory().name() : null);
+        res.setSpecialRequirements(r.getSpecialRequirements());
+        res.setStallType(r.getStallType() != null ? r.getStallType().name() : null);
+        res.setPreferredSize(r.getPreferredSize() != null ? r.getPreferredSize().name() : null);
 
         if (r.getUser() != null) {
             res.setUser(new ReservationResponse.UserSummary(

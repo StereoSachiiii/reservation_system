@@ -74,10 +74,14 @@ public class AuthService {
                 counter++;
             }
             user.setUsername(uniqueUsername);
+            user.setFullName(name != null ? name : uniqueUsername);
             user.setPassword(passwordEncoder.encode(java.util.UUID.randomUUID().toString()));
             user.setRole(User.Role.VENDOR);
             user.setBusinessName(name);
             user = userRepository.save(user);
+        } else if (user.getFullName() == null && name != null) {
+            user.setFullName(name);
+            userRepository.save(user);
         }
 
         String jwt = jwtUtils.generateJwtTokenFromUsername(user.getUsername());
