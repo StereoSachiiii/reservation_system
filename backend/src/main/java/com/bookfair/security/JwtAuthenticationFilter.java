@@ -54,10 +54,23 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return headerAuth.substring(7);
         }
 
-        // Fallback to query parameter for specific endpoints (like downloads)
-        String paramAuth = request.getParameter("token");
-        if (StringUtils.hasText(paramAuth)) {
-            return paramAuth;
+        // SECURITY NOTE (A02 / Token-in-URL Risk):
+        // Accepting a JWT via a URL query parameter (?token=...) is normally discouraged
+        // because query parameters appear in:
+        //   - server access logs
+        //   - browser history
+        //   - HTTP Referer headers sent to third-party scripts
+        //
+        // This fallback is intentionally scoped to the QR-code download path ONLY.
+        // File download endpoints cannot carry an Authorization header via a plain
+        // <a href="..."> browser link, making this a necessary operational trade-off.
+        // All other endpoints must use the standard Authorization: Bearer <token> header.
+        String requestPath = request.getServletPath();
+        if (requestPath != null && requestPath.contains("/qr/download")) {
+            String paramAuth = request.getParameter("token");
+            if (StringUtils.hasText(paramAuth)) {
+                return paramAuth;
+            }
         }
 
         return null;
