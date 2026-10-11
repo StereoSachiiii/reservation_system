@@ -5,6 +5,9 @@ A high-performance, real-time ecosystem designed to manage the end-to-end lifecy
 > **Assessment 2 — Secure Web Application Development**
 > This system implements OIDC authentication (Google IdP), RBAC for Vendor and Organizer roles, and comprehensive OWASP Top 10 mitigations.
 
+> **DEMO NOTICE — ENVIRONMENT SECRETS**:
+> Demo credentials and third-party API configurations (Google OIDC client ID/secret, Stripe sandbox keys, test database passwords) are deliberately provided in the root `.env` file to enable evaluators and testers to test and run the full end-to-end demo out-of-the-box without requiring complex third-party account and secret provisioning. In an enterprise production deployment, secrets are injected via runtime secret managers (e.g., HashiCorp Vault, AWS Secrets Manager, or Azure Key Vault) rather than static files.
+
 ---
 
 ## 🚀 Quick Start — Local Deployment
@@ -85,12 +88,12 @@ psql -U postgres -d reservation_db -f schema.sql
 ### Step 4 — Generate SSL Certificates (for HTTPS)
 ```bash
 # Self-signed certs for local development
-chmod +x generate-ssl.sh
-./generate-ssl.sh
+chmod +x scripts/generate-ssl.sh
+./scripts/generate-ssl.sh
 
 # For production: renew Let's Encrypt certificates
-chmod +x renew-certs.sh
-./renew-certs.sh
+chmod +x scripts/renew-certs.sh
+./scripts/renew-certs.sh
 ```
 
 ---
@@ -226,7 +229,12 @@ reservation_system/
 ├── .env                        # Your local secrets (NEVER commit)
 ├── schema.sql                  # Database creation + seed script
 ├── docker-compose.yml          # Full stack orchestration
-├── generate-ssl.sh             # Self-signed cert generator
+├── scripts/                    # Deployment, SSL, and operational scripts
+│   ├── deploy.sh
+│   ├── generate-ssl.sh
+│   ├── renew-certs.sh
+│   ├── monitor.sh
+│   └── fix-db.sh
 ├── backend/                    # Java 21 Spring Boot API
 │   ├── src/main/java/com/bookfair/
 │   │   ├── config/             # Redis, Security, WebSocket config

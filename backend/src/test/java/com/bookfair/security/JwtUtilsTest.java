@@ -33,6 +33,7 @@ class JwtUtilsTest {
         jwtUtils = new JwtUtils();
         ReflectionTestUtils.setField(jwtUtils, "jwtSecret", TEST_SECRET);
         ReflectionTestUtils.setField(jwtUtils, "jwtExpirationMs", TEST_EXPIRATION_MS);
+        ReflectionTestUtils.setField(jwtUtils, "jwtRefreshExpirationMs", 604800000L);
     }
 
     // ─── Token Generation ───────────────────────────────────────
@@ -129,6 +130,26 @@ class JwtUtilsTest {
 
         // Verify the username still survives
         assertEquals("longexpiry", jwtUtils.getUserNameFromJwtToken(token));
+    }
+
+    // ─── Refresh Token Validation ─────────────────────────────────
+
+    @Test
+    @DisplayName("generateRefreshToken creates a token with REFRESH token_type claim")
+    void generateRefreshToken_producesValidRefreshToken() {
+        String token = jwtUtils.generateRefreshToken("refresh_user");
+        assertNotNull(token);
+        assertTrue(jwtUtils.validateRefreshToken(token));
+        assertEquals("refresh_user", jwtUtils.getUserNameFromJwtToken(token));
+        assertFalse(jwtUtils.validateAccessToken(token));
+    }
+
+    @Test
+    @DisplayName("validateRefreshToken returns false for access token")
+    void validateRefreshToken_rejectsAccessToken() {
+        String accessToken = jwtUtils.generateJwtTokenFromUsername("access_user");
+        assertTrue(jwtUtils.validateAccessToken(accessToken));
+        assertFalse(jwtUtils.validateRefreshToken(accessToken));
     }
 
     // ─── Helpers ─────────────────────────────────────────────────

@@ -20,6 +20,7 @@ export interface RegisterRequest {
 
 export interface AuthResponse {
     token: string;
+    refreshToken?: string;
     user: User;
 }
 
@@ -31,6 +32,11 @@ export const authApi = {
 
     googleLogin: async (idToken: string): Promise<AuthResponse> => {
         const response = await api.post<AuthResponse>('/auth/google-login', { idToken });
+        return response.data;
+    },
+
+    refreshToken: async (refreshToken: string): Promise<AuthResponse> => {
+        const response = await api.post<AuthResponse>('/auth/refresh-token', { refreshToken });
         return response.data;
     },
 

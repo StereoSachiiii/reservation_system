@@ -112,6 +112,8 @@ services:
       - "traefik.http.routers.reservation.entrypoints=websecure"
       - "traefik.http.routers.reservation.tls.certresolver=myresolver"
       - "traefik.http.services.reservation.loadbalancer.server.port=80"
+    ports:
+      - "5173:80"
     restart: unless-stopped
     deploy:
       resources:

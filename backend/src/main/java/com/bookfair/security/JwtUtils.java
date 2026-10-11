@@ -21,6 +21,9 @@ public class JwtUtils {
     @Value("${app.jwtExpirationMs:86400000}")
     private long jwtExpirationMs;
 
+    @Value("${app.jwtRefreshExpirationMs:604800000}")
+    private long jwtRefreshExpirationMs;
+
     public String generateJwtToken(Authentication authentication) {
         UserDetails userPrincipal = (UserDetails) authentication.getPrincipal();
         return generateJwtTokenFromUsername(userPrincipal.getUsername());
@@ -29,8 +32,19 @@ public class JwtUtils {
     public String generateJwtTokenFromUsername(String username) {
         return Jwts.builder()
                 .setSubject(username)
+                .claim("token_type", "ACCESS")
                 .setIssuedAt(new Date())
                 .setExpiration(new Date((new Date()).getTime() + jwtExpirationMs))
+                .signWith(key(), SignatureAlgorithm.HS256)
+                .compact();
+    }
+
+    public String generateRefreshToken(String username) {
+        return Jwts.builder()
+                .setSubject(username)
+                .claim("token_type", "REFRESH")
+                .setIssuedAt(new Date())
+                .setExpiration(new Date((new Date()).getTime() + jwtRefreshExpirationMs))
                 .signWith(key(), SignatureAlgorithm.HS256)
                 .compact();
     }
@@ -65,5 +79,39 @@ public class JwtUtils {
         }
 
         return false;
+    }
+
+    public Claims getClaimsFromJwtToken(String token) {
+        return Jwts.parserBuilder().setSigningKey(key()).build()
+                .parseClaimsJws(token).getBody();
+    }
+
+    public boolean validateRefreshToken(String token) {
+        if (!validateJwtToken(token)) {
+            return false;
+        }
+        try {
+            Claims claims = getClaimsFromJwtToken(token);
+            Object tokenType = claims.get("token_type");
+            return "REFRESH".equals(tokenType);
+        } catch (Exception e) {
+            log.error("Failed to parse refresh token claims: {}", e.getMessage());
+            return false;
+        }
+    }
+
+    public boolean validateAccessToken(String token) {
+        if (!validateJwtToken(token)) {
+            return false;
+        }
+        try {
+            Claims claims = getClaimsFromJwtToken(token);
+            Object tokenType = claims.get("token_type");
+            // Allow tokens without token_type claim for backwards compatibility with existing issued tokens
+            return tokenType == null || "ACCESS".equals(tokenType);
+        } catch (Exception e) {
+            log.error("Failed to parse access token claims: {}", e.getMessage());
+            return false;
+        }
     }
 }

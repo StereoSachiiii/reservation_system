@@ -25,19 +25,34 @@ api.interceptors.request.use(
     (error) => Promise.reject(error)
 );
 
+let isRefreshing = false;
+let failedQueue: Array<{
+    resolve: (token: string) => void;
+    reject: (error: unknown) => void;
+}> = [];
+
+const processQueue = (error: unknown, token: string | null = null) => {
+    failedQueue.forEach(prom => {
+        if (error) {
+            prom.reject(error);
+        } else if (token) {
+            prom.resolve(token);
+        }
+    });
+    failedQueue = [];
+};
+
 // Global Response Interceptor
 api.interceptors.response.use(
     (response) => {
         // V4.5: Unwrap "content" from PageEnvelope if it exists
         if (response.data && response.data.content && Array.isArray(response.data.content)) {
-            // We attach the pagination metadata to the array if needed, but for now just return the content
-            // or return the full envelope if the caller expects pagination info.
-            // Strategy: Return data as is, let specific API calls handle unwrapping or use the raw envelope.
             return response;
         }
         return response;
     },
-    (error: AxiosError<ApiError>) => {
+    async (error: AxiosError<ApiError>) => {
+        const originalRequest = error.config as (typeof error.config & { _retry?: boolean });
         const status = error.response?.status;
         const apiError = error.response?.data;
 
@@ -46,15 +61,74 @@ api.interceptors.response.use(
             return Promise.reject(new Error("Unable to connect to the server. Please check your internet connection."));
         }
 
+        // Automatic Refresh Token Flow on 401 Unauthorized
+        const isAuthEndpoint = originalRequest?.url?.includes('/auth/login') ||
+            originalRequest?.url?.includes('/auth/google-login') ||
+            originalRequest?.url?.includes('/auth/refresh-token') ||
+            originalRequest?.url?.includes('/auth/register');
 
+        if (status === 401 && originalRequest && !originalRequest._retry && !isAuthEndpoint) {
+            const refreshToken = localStorage.getItem('refreshToken');
 
-        // Auto-logout on 401 Unauthorized or 403 Forbidden (stale token)
+            if (refreshToken) {
+                if (isRefreshing) {
+                    return new Promise((resolve, reject) => {
+                        failedQueue.push({
+                            resolve: (newToken: string) => {
+                                if (originalRequest.headers) {
+                                    originalRequest.headers.Authorization = `Bearer ${newToken}`;
+                                }
+                                resolve(api(originalRequest));
+                            },
+                            reject: (err) => reject(err),
+                        });
+                    });
+                }
+
+                originalRequest._retry = true;
+                isRefreshing = true;
+
+                try {
+                    // Bypass interceptors using clean axios post to prevent recursive loop
+                    const refreshResponse = await axios.post<{ token: string; refreshToken?: string }>(
+                        `${APP_CONFIG.API_BASE_URL}/auth/refresh-token`,
+                        { refreshToken },
+                        { headers: { 'Content-Type': 'application/json' } }
+                    );
+
+                    const { token: newAccessToken, refreshToken: newRefreshToken } = refreshResponse.data;
+                    localStorage.setItem('token', newAccessToken);
+                    if (newRefreshToken) {
+                        localStorage.setItem('refreshToken', newRefreshToken);
+                    }
+
+                    if (originalRequest.headers) {
+                        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+                    }
+                    processQueue(null, newAccessToken);
+                    return api(originalRequest);
+                } catch (refreshError) {
+                    processQueue(refreshError, null);
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('refreshToken');
+                    localStorage.removeItem('user');
+
+                    const isAdmin = window.location.pathname.startsWith('/admin');
+                    window.location.href = isAdmin ? '/admin/login' : '/login';
+                    return Promise.reject(new Error("Session expired. Please log in again."));
+                } finally {
+                    isRefreshing = false;
+                }
+            }
+        }
+
+        // Auto-logout on stale/forbidden session (401 without refresh token or 403 Forbidden)
         if (status === 401 || status === 403) {
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
+            if (!isAuthEndpoint) {
+                localStorage.removeItem('token');
+                localStorage.removeItem('refreshToken');
+                localStorage.removeItem('user');
 
-            // Only redirect if this was NOT a login attempt
-            if (!error.config?.url?.includes('/auth/login')) {
                 const isAdmin = window.location.pathname.startsWith('/admin');
                 window.location.href = isAdmin ? '/admin/login' : '/login';
                 return Promise.reject(new Error("Session expired or access denied. Please login again."));

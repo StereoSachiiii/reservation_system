@@ -49,13 +49,18 @@ public class AuthService {
         User user = userRepository.findByUsername(userDetails.getUsername())
                 .orElseThrow(() -> new ResourceNotFoundException("Error: User not found."));
 
-        return new AuthResponse(jwt, userService.mapToUserResponse(user));
+        String refreshToken = jwtUtils.generateRefreshToken(user.getUsername());
+        return AuthResponse.builder()
+                .token(jwt)
+                .refreshToken(refreshToken)
+                .user(userService.mapToUserResponse(user))
+                .build();
     }
 
     public AuthResponse googleLogin(String idTokenString) {
         com.google.api.client.googleapis.auth.oauth2.GoogleIdToken.Payload payload = googleTokenVerifier.verifyToken(idTokenString);
         if (payload == null) {
-            throw new BadRequestException("Invalid Google token");
+            throw new BadRequestException("Invalid or untrusted Google token. Signature, issuer, audience, or verification check failed.");
         }
 
         String email = payload.getEmail();
@@ -85,7 +90,31 @@ public class AuthService {
         }
 
         String jwt = jwtUtils.generateJwtTokenFromUsername(user.getUsername());
-        return new AuthResponse(jwt, userService.mapToUserResponse(user));
+        String refreshToken = jwtUtils.generateRefreshToken(user.getUsername());
+        return AuthResponse.builder()
+                .token(jwt)
+                .refreshToken(refreshToken)
+                .user(userService.mapToUserResponse(user))
+                .build();
+    }
+
+    public AuthResponse refreshToken(String refreshToken) {
+        if (!jwtUtils.validateRefreshToken(refreshToken)) {
+            throw new BadRequestException("Invalid or expired refresh token");
+        }
+
+        String username = jwtUtils.getUserNameFromJwtToken(refreshToken);
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("Error: User not found for token."));
+
+        String newAccessToken = jwtUtils.generateJwtTokenFromUsername(user.getUsername());
+        String newRefreshToken = jwtUtils.generateRefreshToken(user.getUsername());
+
+        return AuthResponse.builder()
+                .token(newAccessToken)
+                .refreshToken(newRefreshToken)
+                .user(userService.mapToUserResponse(user))
+                .build();
     }
 
     @Value("${app.frontend.url:http://localhost:5173}")

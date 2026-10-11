@@ -44,10 +44,13 @@ function LoginPage() {
         }
     })
 
+    const [googleAuthError, setGoogleAuthError] = useState<string | null>(null)
+
     const googleMutation = useMutation({
         mutationFn: authApi.googleLogin,
         onSuccess: (data) => {
-            login(data.token, data.user);
+            setGoogleAuthError(null);
+            login(data.token, data.user, data.refreshToken);
             if (data.user.role === 'ADMIN') {
                 navigate('/admin/dashboard');
             } else if (data.user.role === 'EMPLOYEE') {
@@ -55,6 +58,9 @@ function LoginPage() {
             } else {
                 navigate('/vendor/dashboard');
             }
+        },
+        onError: (err: Error) => {
+            setGoogleAuthError(err.message || 'Google authentication failed. Please try again.');
         }
     })
 
@@ -198,19 +204,22 @@ function LoginPage() {
                             <div className="overflow-hidden rounded-xl shadow-sm border border-gray-200">
                                 <GoogleLogin
                                     onSuccess={credentialResponse => {
+                                        setGoogleAuthError(null);
                                         if (credentialResponse.credential) {
                                             googleMutation.mutate(credentialResponse.credential);
+                                        } else {
+                                            setGoogleAuthError('No credential received from Google Identity Services.');
                                         }
                                     }}
                                     onError={() => {
-                                        console.log('Login Failed');
+                                        setGoogleAuthError('Google sign-in popup closed or permission denied.');
                                     }}
                                     useOneTap
                                 />
                             </div>
                         </motion.div>
 
-                        {googleMutation.isError && (
+                        {(googleMutation.isError || googleAuthError) && (
                             <motion.div 
                                 initial={{ opacity: 0, height: 0 }}
                                 animate={{ opacity: 1, height: 'auto' }}
@@ -221,7 +230,7 @@ function LoginPage() {
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                                     </svg>
                                 </div>
-                                <span className="text-sm font-semibold">{googleMutation.error?.message || 'Google Login failed'}</span>
+                                <span className="text-sm font-semibold">{googleAuthError || googleMutation.error?.message || 'Google Login failed'}</span>
                             </motion.div>
                         )}
 

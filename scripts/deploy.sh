@@ -32,15 +32,15 @@ az vm run-command invoke --resource-group $RG --name $VM_NAME \
     cd ~/reservation_system
     
     # Generate Certs if they don't exist
-    chmod +x generate-ssl.sh
-    ./generate-ssl.sh
+    chmod +x scripts/generate-ssl.sh
+    ./scripts/generate-ssl.sh
     
     # Ensure logs directories exist
     mkdir -p logs/backend logs/frontend
     
-    # Rename template if original .env does not exist
+    # Copy template if original .env does not exist
     if [ ! -f .env ]; then
-      cp .env.production .env
+      cp backend/.env.example .env
     fi
 
     # Build and deploy

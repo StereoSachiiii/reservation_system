@@ -13,8 +13,9 @@ export interface AuthContextType {
      * Function to log in a user
      * @param token - The JWT token received from the backend
      * @param user - The user object received from the backend
+     * @param refreshToken - The refresh token received from the backend
      */
-    login: (token: string, user: User) => void;
+    login: (token: string, user: User, refreshToken?: string) => void;
     /** Function to log out the current user */
     logout: (redirectPath?: string) => void;
     /** Boolean indicating if a user is currently authenticated */

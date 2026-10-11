@@ -44,9 +44,13 @@ public class AuthController {
     }
 
     @PostMapping("/google-login")
-    public ResponseEntity<AuthResponse> googleLogin(@RequestBody java.util.Map<String, String> request) {
-        String idToken = request.get("idToken");
-        return ResponseEntity.ok(authService.googleLogin(idToken));
+    public ResponseEntity<AuthResponse> googleLogin(@jakarta.validation.Valid @RequestBody com.bookfair.dto.request.GoogleLoginRequest request) {
+        return ResponseEntity.ok(authService.googleLogin(request.getIdToken()));
+    }
+
+    @PostMapping("/refresh-token")
+    public ResponseEntity<AuthResponse> refreshToken(@jakarta.validation.Valid @RequestBody com.bookfair.dto.request.RefreshTokenRequest request) {
+        return ResponseEntity.ok(authService.refreshToken(request.getRefreshToken()));
     }
 
     @PostMapping("/forgot-password")

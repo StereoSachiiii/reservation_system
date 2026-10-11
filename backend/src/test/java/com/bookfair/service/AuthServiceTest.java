@@ -65,6 +65,7 @@ class AuthServiceTest {
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
                 .thenReturn(auth);
         when(jwtUtils.generateJwtToken(auth)).thenReturn("jwt-token-123");
+        when(jwtUtils.generateRefreshToken("vendor1")).thenReturn("refresh-token-123");
         when(userRepository.findByUsername("vendor1")).thenReturn(Optional.of(testUser));
         when(userService.mapToUserResponse(testUser)).thenReturn(
             new com.bookfair.dto.response.UserResponse(
@@ -77,6 +78,7 @@ class AuthServiceTest {
 
         assertNotNull(response);
         assertEquals("jwt-token-123", response.getToken());
+        assertEquals("refresh-token-123", response.getRefreshToken());
         assertNotNull(response.getUser());
         assertEquals("vendor1", response.getUser().getUsername());
         assertEquals("VENDOR", response.getUser().getRole());
@@ -121,6 +123,7 @@ class AuthServiceTest {
         when(authenticationManager.authenticate(any())).thenReturn(auth);
         when(jwtUtils.generateJwtToken(auth)).thenReturn("token");
         when(userRepository.findByUsername("vendor1")).thenReturn(Optional.of(testUser));
+        when(jwtUtils.generateRefreshToken("vendor1")).thenReturn("refresh-token");
         when(userService.mapToUserResponse(testUser)).thenReturn(
             new com.bookfair.dto.response.UserResponse(
                 1L, "vendor1", "vendor@test.com", "VENDOR",
@@ -132,5 +135,40 @@ class AuthServiceTest {
 
         verify(authenticationManager, times(1)).authenticate(any());
         verify(jwtUtils, times(1)).generateJwtToken(auth);
+        verify(jwtUtils, times(1)).generateRefreshToken("vendor1");
+    }
+
+    // ─── Refresh Token ──────────────────────────────────────────
+
+    @Test
+    @DisplayName("refreshToken with valid token returns new access and refresh tokens")
+    void refreshToken_validToken_returnsNewTokens() {
+        when(jwtUtils.validateRefreshToken("valid-refresh")).thenReturn(true);
+        when(jwtUtils.getUserNameFromJwtToken("valid-refresh")).thenReturn("vendor1");
+        when(userRepository.findByUsername("vendor1")).thenReturn(Optional.of(testUser));
+        when(jwtUtils.generateJwtTokenFromUsername("vendor1")).thenReturn("new-access-token");
+        when(jwtUtils.generateRefreshToken("vendor1")).thenReturn("new-refresh-token");
+        when(userService.mapToUserResponse(testUser)).thenReturn(
+            new com.bookfair.dto.response.UserResponse(
+                1L, "vendor1", "vendor@test.com", "VENDOR",
+                "Test Publisher", null, null, java.util.Collections.emptyList(), null, null
+            )
+        );
+
+        AuthResponse response = authService.refreshToken("valid-refresh");
+
+        assertNotNull(response);
+        assertEquals("new-access-token", response.getToken());
+        assertEquals("new-refresh-token", response.getRefreshToken());
+        assertEquals("vendor1", response.getUser().getUsername());
+    }
+
+    @Test
+    @DisplayName("refreshToken with invalid token throws BadRequestException")
+    void refreshToken_invalidToken_throwsBadRequest() {
+        when(jwtUtils.validateRefreshToken("bad-refresh")).thenReturn(false);
+
+        assertThrows(com.bookfair.exception.BadRequestException.class,
+                () -> authService.refreshToken("bad-refresh"));
     }
 }

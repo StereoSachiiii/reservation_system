@@ -51,17 +51,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         hydrate();
     }, []);
 
-    const login = (newToken: string, newUser: User) => {
+    const login = (newToken: string, newUser: User, newRefreshToken?: string) => {
         setToken(newToken);
         setUser(newUser);
         localStorage.setItem('token', newToken);
         localStorage.setItem('user', JSON.stringify(newUser));
+        if (newRefreshToken) {
+            localStorage.setItem('refreshToken', newRefreshToken);
+        }
     };
 
     const logout = (redirectPath?: string) => {
         setToken(null);
         setUser(null);
         localStorage.removeItem('token');
+        localStorage.removeItem('refreshToken');
         localStorage.removeItem('user');
         window.location.href = redirectPath || '/login';
     };
